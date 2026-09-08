@@ -21,17 +21,17 @@
             justify-content: center;
             align-items: center;
             transition: background-color 0.2s;
-            padding: 12px;
+            padding: 8px;
             margin: 0;
         }
 
         #app {
             width: 100%;
-            max-width: 420px;
-            height: 780px;
+            max-width: 400px;
+            height: 740px;
             background: #ffffff;
-            border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            border-radius: 36px;
+            box-shadow: 0 16px 32px rgba(0,0,0,0.12);
             display: flex;
             flex-direction: column;
             position: relative;
@@ -46,34 +46,34 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 24px 8px;
+            padding: 16px 20px 6px;
             position: relative;
             z-index: 5;
         }
 
         #counter {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
             color: #2d1b3d;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             background: rgba(255,255,255,0.6);
-            padding: 4px 18px;
-            border-radius: 40px;
+            padding: 3px 14px;
+            border-radius: 32px;
             backdrop-filter: blur(4px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
             transition: color 0.2s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         #settings-btn {
-            font-size: 30px;
+            font-size: 26px;
             background: none;
             border: none;
             cursor: pointer;
-            padding: 6px 8px;
-            border-radius: 30px;
+            padding: 4px 6px;
+            border-radius: 28px;
             transition: 0.2s;
             color: #2d1b3d;
             -webkit-tap-highlight-color: transparent;
@@ -84,21 +84,18 @@
 
         /* ----- main button ----- */
         #hug-btn {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 24px 20px;
+            aspect-ratio: 1/1;
+            width: 240px;
+            max-width: 65%;
+            border-radius: 50%;
             background: #ffb6c9;
             border: none;
-            border-radius: 100px;
-            font-size: 48px;
+            font-size: 38px;
             font-weight: 700;
             color: #4a2c5a;
-            box-shadow: 0 12px 0 #d48a9e, 0 12px 24px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.15);
             transition: all 0.08s ease, background-color 0.2s, color 0.2s, background-image 0.3s, box-shadow 0.2s;
             cursor: pointer;
-            letter-spacing: 2px;
             text-shadow: 0 2px 4px rgba(255,255,255,0.3);
             touch-action: manipulation;
             position: relative;
@@ -107,10 +104,15 @@
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             outline: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            flex-shrink: 0;
         }
         #hug-btn:active {
-            transform: translateY(8px);
-            box-shadow: 0 4px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.12);
+            transform: scale(0.95);
+            box-shadow: 0 4px 0 #d48a9e, 0 8px 16px rgba(0,0,0,0.12);
         }
         #hug-btn .btn-text {
             position: relative;
@@ -118,6 +120,7 @@
             text-shadow: 0 2px 8px rgba(0,0,0,0.15);
             transition: opacity 0.3s;
             pointer-events: none;
+            font-size: 32px;
         }
         #hug-btn.has-image .btn-text {
             opacity: 0.85;
@@ -130,7 +133,7 @@
         #bottom-bar {
             display: flex;
             justify-content: flex-start;
-            padding: 8px 24px 20px;
+            padding: 6px 20px 14px;
             position: relative;
             z-index: 5;
         }
@@ -138,10 +141,10 @@
         #calendar-icon {
             background: none;
             border: none;
-            font-size: 34px;
+            font-size: 30px;
             cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 40px;
+            padding: 4px 8px;
+            border-radius: 32px;
             transition: 0.2s;
             color: #2d1b3d;
             -webkit-tap-highlight-color: transparent;
@@ -163,7 +166,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
-            border-radius: 40px;
+            border-radius: 36px;
         }
         .overlay.open {
             opacity: 1;
@@ -172,12 +175,12 @@
 
         .modal {
             background: #ffffff;
-            width: 90%;
-            max-width: 360px;
-            max-height: 85%;
-            border-radius: 40px;
-            padding: 28px 24px 24px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+            width: 92%;
+            max-width: 340px;
+            max-height: 82%;
+            border-radius: 32px;
+            padding: 20px 18px 18px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.25);
             overflow-y: auto;
             transition: transform 0.2s;
             transform: scale(0.95);
@@ -188,10 +191,10 @@
         }
 
         .modal h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 20px;
+            margin-bottom: 14px;
             font-weight: 600;
-            letter-spacing: -0.3px;
+            letter-spacing: -0.2px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -199,45 +202,45 @@
         .modal h2 button {
             background: none;
             border: none;
-            font-size: 28px;
+            font-size: 24px;
             cursor: pointer;
-            padding: 0 8px;
+            padding: 0 6px;
             color: #4a3a5a;
         }
 
         .setting-group {
-            margin-bottom: 20px;
-            padding-bottom: 16px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
             border-bottom: 1px solid #f0eaf5;
         }
         .setting-group:last-of-type {
             border-bottom: none;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         .setting-group label {
             display: block;
             font-weight: 500;
-            margin-bottom: 6px;
-            font-size: 15px;
+            margin-bottom: 4px;
+            font-size: 13px;
             color: #3a2a4a;
         }
         .setting-group .hint {
-            font-size: 12px;
+            font-size: 11px;
             color: #887a98;
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
         .color-picker-row {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
         }
         .color-picker-row input[type="color"] {
-            width: 44px;
-            height: 44px;
+            width: 38px;
+            height: 38px;
             border: 2px solid #ddd;
-            border-radius: 30px;
+            border-radius: 24px;
             padding: 2px;
             background: white;
             cursor: pointer;
@@ -247,22 +250,22 @@
         }
         .color-picker-row input[type="color"]::-webkit-color-swatch {
             border: none;
-            border-radius: 30px;
+            border-radius: 24px;
         }
 
         .btn-row {
             display: flex;
-            gap: 10px;
-            margin-top: 8px;
+            gap: 8px;
+            margin-top: 6px;
             flex-wrap: wrap;
         }
         .btn-row button {
             flex: 1;
-            padding: 10px 12px;
+            padding: 8px 10px;
             border: none;
-            border-radius: 30px;
+            border-radius: 24px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: 0.2s;
             background: #f0e6f5;
@@ -281,16 +284,16 @@
 
         .file-upload-wrapper {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
             align-items: center;
         }
         .file-upload-wrapper label {
             background: #eee8f0;
-            padding: 8px 18px;
-            border-radius: 30px;
+            padding: 6px 14px;
+            border-radius: 24px;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: 0.2s;
             color: #3d2a4a;
@@ -304,18 +307,30 @@
         .file-upload-wrapper .remove-img {
             background: none;
             border: none;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             color: #a080b0;
-            padding: 4px 8px;
+            padding: 2px 6px;
+        }
+        .file-upload-wrapper .edit-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #6a5a7a;
+            padding: 2px 6px;
+            transition: 0.2s;
+        }
+        .file-upload-wrapper .edit-btn:hover {
+            transform: scale(1.1);
         }
 
         .btn-small {
-            padding: 6px 14px;
-            border-radius: 30px;
+            padding: 4px 12px;
+            border-radius: 24px;
             border: none;
             background: #e8def0;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             color: #2d1b3d;
@@ -326,16 +341,20 @@
 
         /* Image editor */
         .image-editor {
-            margin-top: 8px;
-            padding: 12px;
+            margin-top: 6px;
+            padding: 10px;
             background: #f8f2fc;
-            border-radius: 20px;
+            border-radius: 16px;
+            display: none;
+        }
+        .image-editor.open {
+            display: block;
         }
         .image-editor .slider-group {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .image-editor .slider-group label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             display: flex;
             justify-content: space-between;
@@ -343,16 +362,16 @@
         }
         .image-editor input[type="range"] {
             width: 100%;
-            height: 6px;
+            height: 4px;
             -webkit-appearance: none;
             background: #dcc8e5;
-            border-radius: 10px;
+            border-radius: 8px;
             outline: none;
         }
         .image-editor input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: #b094c2;
             cursor: pointer;
@@ -360,11 +379,11 @@
         .image-editor .preview-container {
             position: relative;
             width: 100%;
-            height: 120px;
-            border-radius: 16px;
+            height: 90px;
+            border-radius: 12px;
             overflow: hidden;
             background: #e8def0;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -378,7 +397,7 @@
         }
         .image-editor .no-image {
             color: #887a98;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         /* ----- calendar grid ----- */
@@ -386,22 +405,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 12px 0 16px;
+            margin: 10px 0 12px;
         }
         .calendar-nav button {
             background: #eee8f0;
             border: none;
-            font-size: 22px;
-            width: 40px;
-            height: 40px;
-            border-radius: 30px;
+            font-size: 18px;
+            width: 34px;
+            height: 34px;
+            border-radius: 24px;
             cursor: pointer;
             font-weight: 600;
             color: #2d1b3d;
         }
         .calendar-nav span {
             font-weight: 600;
-            font-size: 18px;
+            font-size: 16px;
         }
 
         .weekdays {
@@ -409,14 +428,14 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
             color: #5a4a6a;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
+            gap: 3px;
         }
         .day-cell {
             aspect-ratio: 1/1;
@@ -424,8 +443,8 @@
             align-items: center;
             justify-content: center;
             background: #f6f0fa;
-            border-radius: 30px;
-            font-size: 15px;
+            border-radius: 24px;
+            font-size: 13px;
             font-weight: 500;
             cursor: pointer;
             transition: 0.15s;
@@ -441,9 +460,9 @@
         }
         .day-cell .hug-indicator {
             position: absolute;
-            bottom: 2px;
-            right: 4px;
-            font-size: 12px;
+            bottom: 1px;
+            right: 3px;
+            font-size: 10px;
             color: #c44a7a;
         }
         .day-cell.selected {
@@ -453,36 +472,36 @@
         }
 
         #day-info {
-            margin-top: 16px;
-            padding: 12px;
+            margin-top: 12px;
+            padding: 10px;
             background: #f3edf7;
-            border-radius: 30px;
+            border-radius: 24px;
             text-align: center;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 500;
             color: #2a1a3a;
         }
 
         /* scroll */
         .modal::-webkit-scrollbar {
-            width: 4px;
+            width: 3px;
         }
         .modal::-webkit-scrollbar-track {
             background: #ece4f0;
         }
         .modal::-webkit-scrollbar-thumb {
             background: #b8a2c7;
-            border-radius: 10px;
+            border-radius: 8px;
         }
 
         .reset-btn {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             border: none;
-            border-radius: 40px;
+            border-radius: 32px;
             background: #f0e6f5;
             font-weight: 600;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
             color: #3d2a4a;
         }
@@ -500,9 +519,11 @@
     </div>
 
     <!-- главная кнопка -->
-    <button id="hug-btn">
-        <span class="btn-text">обнимашки</span>
-    </button>
+    <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:0 16px;">
+        <button id="hug-btn">
+            <span class="btn-text">обнимашки</span>
+        </button>
+    </div>
 
     <!-- нижняя панель -->
     <div id="bottom-bar">
@@ -522,7 +543,7 @@
                 <label>Цвет фона приложения</label>
                 <div class="color-picker-row">
                     <input type="color" id="bg-color-picker" value="#f7f0fa">
-                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button>
                 </div>
                 <div class="hint">Цвет фона всего экрана (перекрывается фото)</div>
@@ -534,7 +555,25 @@
                 <div class="file-upload-wrapper">
                     <label for="bg-image-upload">📁 Загрузить</label>
                     <input type="file" id="bg-image-upload" accept="image/*">
+                    <button class="edit-btn" id="bg-image-edit" title="Редактировать">✏️</button>
                     <button class="remove-img" id="remove-bg-image" title="Удалить фото">✕</button>
+                </div>
+                <div class="image-editor" id="bg-image-editor">
+                    <div class="preview-container" id="bg-image-preview">
+                        <span class="no-image">Нет фото</span>
+                    </div>
+                    <div class="slider-group">
+                        <label>Масштаб <span id="bg-image-scale-val">100%</span></label>
+                        <input type="range" id="bg-image-scale" min="50" max="200" value="100">
+                    </div>
+                    <div class="slider-group">
+                        <label>Смещение X <span id="bg-image-x-val">0%</span></label>
+                        <input type="range" id="bg-image-x" min="-50" max="50" value="0">
+                    </div>
+                    <div class="slider-group">
+                        <label>Смещение Y <span id="bg-image-y-val">0%</span></label>
+                        <input type="range" id="bg-image-y" min="-50" max="50" value="0">
+                    </div>
                 </div>
                 <div class="hint">Фото перекрывает цвет фона приложения</div>
             </div>
@@ -544,7 +583,7 @@
                 <label>Цвет фона под кнопкой</label>
                 <div class="color-picker-row">
                     <input type="color" id="btn-bg-color-picker" value="#ffffff">
-                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-btn-bg" style="margin-left:auto;">Сбросить</button>
                 </div>
                 <div class="hint">Белый фон под самой кнопкой (перекрывается фото)</div>
@@ -556,10 +595,10 @@
                 <div class="file-upload-wrapper">
                     <label for="btn-bg-image-upload">📁 Загрузить</label>
                     <input type="file" id="btn-bg-image-upload" accept="image/*">
+                    <button class="edit-btn" id="btn-bg-image-edit" title="Редактировать">✏️</button>
                     <button class="remove-img" id="remove-btn-bg-image" title="Удалить фото">✕</button>
                 </div>
-                <div class="hint">Фото перекрывает цвет фона под кнопкой</div>
-                <div class="image-editor" id="btn-bg-editor" style="display:none;">
+                <div class="image-editor" id="btn-bg-image-editor">
                     <div class="preview-container" id="btn-bg-preview">
                         <span class="no-image">Нет фото</span>
                     </div>
@@ -576,6 +615,7 @@
                         <input type="range" id="btn-bg-y" min="-50" max="50" value="0">
                     </div>
                 </div>
+                <div class="hint">Фото перекрывает цвет фона под кнопкой</div>
             </div>
 
             <!-- Цвет самой кнопки -->
@@ -583,7 +623,7 @@
                 <label>Цвет самой кнопки</label>
                 <div class="color-picker-row">
                     <input type="color" id="btn-color-picker" value="#ffb6c9">
-                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button>
                 </div>
                 <div class="hint">Основной цвет кнопки (тень станет темнее)</div>
@@ -594,7 +634,7 @@
                 <label>Цвет текста</label>
                 <div class="color-picker-row">
                     <input type="color" id="text-color-picker" value="#2d1b3d">
-                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button>
                 </div>
                 <div class="hint">Цвет всего текста в приложении</div>
@@ -606,10 +646,10 @@
                 <div class="file-upload-wrapper">
                     <label for="btn-image-upload">📁 Загрузить</label>
                     <input type="file" id="btn-image-upload" accept="image/*">
+                    <button class="edit-btn" id="btn-image-edit" title="Редактировать">✏️</button>
                     <button class="remove-img" id="remove-btn-image" title="Удалить фото">✕</button>
                 </div>
-                <div class="hint">Фото будет фоном кнопки, текст станет чуть прозрачнее</div>
-                <div class="image-editor" id="btn-image-editor" style="display:none;">
+                <div class="image-editor" id="btn-image-editor">
                     <div class="preview-container" id="btn-image-preview">
                         <span class="no-image">Нет фото</span>
                     </div>
@@ -626,15 +666,16 @@
                         <input type="range" id="btn-image-y" min="-50" max="50" value="0">
                     </div>
                 </div>
+                <div class="hint">Фото будет фоном кнопки, текст станет чуть прозрачнее</div>
             </div>
 
-            <!-- Сброс счётчика -->
+            <!-- Сброс всех настроек -->
             <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
-                <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
+                <button class="reset-btn" id="reset-all-btn">Сбросить все настройки</button>
             </div>
 
             <!-- Кнопки сохранить/отмена -->
-            <div class="btn-row" style="margin-top:16px; border-top:1px solid #f0eaf5; padding-top:16px;">
+            <div class="btn-row" style="margin-top:12px; border-top:1px solid #f0eaf5; padding-top:12px;">
                 <button id="save-settings" class="primary">Сохранить</button>
                 <button id="cancel-settings">Отмена</button>
             </div>
@@ -666,8 +707,8 @@
         let hugCount = 0;
         let history = {};
 
-        // настройки
-        let settings = {
+        // настройки по умолчанию
+        const defaultSettings = {
             bgColor: '#f7f0fa',
             textColor: '#2d1b3d',
             btnBgColor: '#ffffff',
@@ -675,10 +716,12 @@
             bgImage: null,
             btnBgImage: null,
             btnImage: null,
-            // настройки изображений
+            bgImageSettings: { scale: 100, x: 0, y: 0 },
             btnBgImageSettings: { scale: 100, x: 0, y: 0 },
             btnImageSettings: { scale: 100, x: 0, y: 0 },
         };
+
+        let settings = { ...defaultSettings };
 
         // временные
         let tempSettings = { ...settings };
@@ -723,19 +766,37 @@
         const removeBtnBgImage = document.getElementById('remove-btn-bg-image');
         const removeBtnImage = document.getElementById('remove-btn-image');
 
+        // кнопки редактирования
+        const bgImageEdit = document.getElementById('bg-image-edit');
+        const btnBgImageEdit = document.getElementById('btn-bg-image-edit');
+        const btnImageEdit = document.getElementById('btn-image-edit');
+
         // редакторы
-        const btnBgEditor = document.getElementById('btn-bg-editor');
+        const bgImageEditor = document.getElementById('bg-image-editor');
+        const btnBgImageEditor = document.getElementById('btn-bg-image-editor');
         const btnImageEditor = document.getElementById('btn-image-editor');
+
+        // превью
+        const bgPreview = document.getElementById('bg-image-preview');
         const btnBgPreview = document.getElementById('btn-bg-preview');
         const btnImagePreview = document.getElementById('btn-image-preview');
+
+        // слайдеры для фона приложения
+        const bgScale = document.getElementById('bg-image-scale');
+        const bgX = document.getElementById('bg-image-x');
+        const bgY = document.getElementById('bg-image-y');
+
+        // слайдеры для фона под кнопкой
         const btnBgScale = document.getElementById('btn-bg-scale');
         const btnBgX = document.getElementById('btn-bg-x');
         const btnBgY = document.getElementById('btn-bg-y');
+
+        // слайдеры для кнопки
         const btnImageScale = document.getElementById('btn-image-scale');
         const btnImageX = document.getElementById('btn-image-x');
         const btnImageY = document.getElementById('btn-image-y');
 
-        const resetCounter = document.getElementById('reset-counter-btn');
+        const resetAllBtn = document.getElementById('reset-all-btn');
         const saveSettingsBtn = document.getElementById('save-settings');
         const cancelSettingsBtn = document.getElementById('cancel-settings');
 
@@ -748,7 +809,6 @@
 
         // ---- функции для работы с тенью ----
         function darkenColor(hex, percent) {
-            // затемняет цвет на percent (0-100)
             let r = parseInt(hex.slice(1,3), 16);
             let g = parseInt(hex.slice(3,5), 16);
             let b = parseInt(hex.slice(5,7), 16);
@@ -760,7 +820,7 @@
 
         function updateButtonShadow(color) {
             const dark = darkenColor(color, 35);
-            hugBtn.style.boxShadow = `0 12px 0 ${dark}, 0 12px 24px rgba(0,0,0,0.15)`;
+            hugBtn.style.boxShadow = `0 10px 0 ${dark}, 0 10px 20px rgba(0,0,0,0.15)`;
         }
 
         // ---- загрузка/сохранение ----
@@ -772,11 +832,12 @@
                     if (data.count !== undefined) hugCount = data.count;
                     if (data.history) history = data.history;
                     if (data.settings) {
-                        settings = { ...settings, ...data.settings };
+                        settings = { ...defaultSettings, ...data.settings };
                     }
                     if (data.bgImage) settings.bgImage = data.bgImage;
                     if (data.btnBgImage) settings.btnBgImage = data.btnBgImage;
                     if (data.btnImage) settings.btnImage = data.btnImage;
+                    if (data.bgImageSettings) settings.bgImageSettings = data.bgImageSettings;
                     if (data.btnBgImageSettings) settings.btnBgImageSettings = data.btnBgImageSettings;
                     if (data.btnImageSettings) settings.btnImageSettings = data.btnImageSettings;
                 }
@@ -798,6 +859,7 @@
                     bgImage: settings.bgImage,
                     btnBgImage: settings.btnBgImage,
                     btnImage: settings.btnImage,
+                    bgImageSettings: settings.bgImageSettings,
                     btnBgImageSettings: settings.btnBgImageSettings,
                     btnImageSettings: settings.btnImageSettings,
                 }));
@@ -809,16 +871,17 @@
             // Внешний фон
             document.body.style.backgroundColor = settings.bgColor;
             if (settings.bgImage) {
+                const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
                 document.body.style.backgroundImage = `url(${settings.bgImage})`;
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundSize = `${s.scale}%`;
+                document.body.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
             } else {
                 document.body.style.backgroundImage = 'none';
             }
 
             // Внутренний фон (app)
             if (settings.btnBgImage) {
-                const s = settings.btnBgImageSettings;
+                const s = settings.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
                 app.style.backgroundImage = `url(${settings.btnBgImage})`;
                 app.style.backgroundSize = `${s.scale}%`;
                 app.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
@@ -837,7 +900,7 @@
 
             // Фото на кнопку
             if (settings.btnImage) {
-                const s = settings.btnImageSettings;
+                const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
                 hugBtn.style.backgroundImage = `url(${settings.btnImage})`;
                 hugBtn.style.backgroundSize = `${s.scale}%`;
                 hugBtn.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
@@ -876,9 +939,10 @@
             const t = tempSettings;
             document.body.style.backgroundColor = t.bgColor;
             if (tempBgImage) {
+                const s = t.bgImageSettings || { scale: 100, x: 0, y: 0 };
                 document.body.style.backgroundImage = `url(${tempBgImage})`;
-                document.body.style.backgroundSize = 'cover';
-                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundSize = `${s.scale}%`;
+                document.body.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
             } else {
                 document.body.style.backgroundImage = 'none';
             }
@@ -925,7 +989,24 @@
         }
 
         // ---- отображение редактора ----
-        function showEditor(editorId, imageData) {
+        function toggleEditor(editorId, imageData) {
+            const editor = document.getElementById(editorId);
+            const isOpen = editor.classList.contains('open');
+            
+            if (imageData) {
+                if (isOpen) {
+                    editor.classList.remove('open');
+                } else {
+                    editor.classList.add('open');
+                    // Обновить превью
+                    updateEditorPreview(editorId, imageData);
+                }
+            } else {
+                editor.classList.remove('open');
+            }
+        }
+
+        function updateEditorPreview(editorId, imageData) {
             const editor = document.getElementById(editorId);
             const preview = editor.querySelector('.preview-container');
             const noImage = preview.querySelector('.no-image');
@@ -939,22 +1020,29 @@
                 img.src = imageData;
                 img.style.display = 'block';
                 if (noImage) noImage.style.display = 'none';
-                editor.style.display = 'block';
-            } else {
-                if (img) img.style.display = 'none';
-                if (noImage) noImage.style.display = 'block';
-                editor.style.display = 'none';
-            }
-        }
-
-        // ---- обновление превью редактора ----
-        function updateEditorPreview(editorId, imageData, scale, x, y) {
-            const editor = document.getElementById(editorId);
-            const img = editor.querySelector('.preview-container img');
-            if (img && imageData) {
+                
+                // Получаем настройки для этого редактора
+                let settingsKey = '';
+                let scale = 100, x = 0, y = 0;
+                if (editorId === 'bg-image-editor') {
+                    settingsKey = 'bgImageSettings';
+                    const s = tempSettings.bgImageSettings || { scale: 100, x: 0, y: 0 };
+                    scale = s.scale; x = s.x; y = s.y;
+                } else if (editorId === 'btn-bg-image-editor') {
+                    settingsKey = 'btnBgImageSettings';
+                    const s = tempSettings.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
+                    scale = s.scale; x = s.x; y = s.y;
+                } else if (editorId === 'btn-image-editor') {
+                    settingsKey = 'btnImageSettings';
+                    const s = tempSettings.btnImageSettings || { scale: 100, x: 0, y: 0 };
+                    scale = s.scale; x = s.x; y = s.y;
+                }
                 img.style.width = `${scale}%`;
                 img.style.height = `${scale}%`;
                 img.style.transform = `translate(${x}%, ${y}%)`;
+            } else {
+                if (img) img.style.display = 'none';
+                if (noImage) noImage.style.display = 'block';
             }
         }
 
@@ -969,34 +1057,8 @@
             btnBgPicker.value = tempSettings.btnBgColor;
             btnColorPicker.value = tempSettings.btnColor;
             
-            // Показать редакторы если есть фото
-            if (tempBtnBgImage) {
-                showEditor('btn-bg-editor', tempBtnBgImage);
-                const s = tempSettings.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
-                btnBgScale.value = s.scale;
-                btnBgX.value = s.x;
-                btnBgY.value = s.y;
-                document.getElementById('btn-bg-scale-val').textContent = s.scale + '%';
-                document.getElementById('btn-bg-x-val').textContent = s.x + '%';
-                document.getElementById('btn-bg-y-val').textContent = s.y + '%';
-                updateEditorPreview('btn-bg-editor', tempBtnBgImage, s.scale, s.x, s.y);
-            } else {
-                showEditor('btn-bg-editor', null);
-            }
-            
-            if (tempBtnImage) {
-                showEditor('btn-image-editor', tempBtnImage);
-                const s = tempSettings.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                btnImageScale.value = s.scale;
-                btnImageX.value = s.x;
-                btnImageY.value = s.y;
-                document.getElementById('btn-image-scale-val').textContent = s.scale + '%';
-                document.getElementById('btn-image-x-val').textContent = s.x + '%';
-                document.getElementById('btn-image-y-val').textContent = s.y + '%';
-                updateEditorPreview('btn-image-editor', tempBtnImage, s.scale, s.x, s.y);
-            } else {
-                showEditor('btn-image-editor', null);
-            }
+            // Закрыть все редакторы
+            document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
             
             applyTempSettings();
             settingsOverlay.classList.add('open');
@@ -1179,6 +1241,9 @@
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     tempBgImage = ev.target.result;
+                    if (!tempSettings.bgImageSettings) {
+                        tempSettings.bgImageSettings = { scale: 100, x: 0, y: 0 };
+                    }
                     applyTempSettings();
                 };
                 reader.readAsDataURL(file);
@@ -1194,15 +1259,6 @@
                     if (!tempSettings.btnBgImageSettings) {
                         tempSettings.btnBgImageSettings = { scale: 100, x: 0, y: 0 };
                     }
-                    showEditor('btn-bg-editor', tempBtnBgImage);
-                    const s = tempSettings.btnBgImageSettings;
-                    btnBgScale.value = s.scale;
-                    btnBgX.value = s.x;
-                    btnBgY.value = s.y;
-                    document.getElementById('btn-bg-scale-val').textContent = s.scale + '%';
-                    document.getElementById('btn-bg-x-val').textContent = s.x + '%';
-                    document.getElementById('btn-bg-y-val').textContent = s.y + '%';
-                    updateEditorPreview('btn-bg-editor', tempBtnBgImage, s.scale, s.x, s.y);
                     applyTempSettings();
                 };
                 reader.readAsDataURL(file);
@@ -1218,15 +1274,6 @@
                     if (!tempSettings.btnImageSettings) {
                         tempSettings.btnImageSettings = { scale: 100, x: 0, y: 0 };
                     }
-                    showEditor('btn-image-editor', tempBtnImage);
-                    const s = tempSettings.btnImageSettings;
-                    btnImageScale.value = s.scale;
-                    btnImageX.value = s.x;
-                    btnImageY.value = s.y;
-                    document.getElementById('btn-image-scale-val').textContent = s.scale + '%';
-                    document.getElementById('btn-image-x-val').textContent = s.x + '%';
-                    document.getElementById('btn-image-y-val').textContent = s.y + '%';
-                    updateEditorPreview('btn-image-editor', tempBtnImage, s.scale, s.x, s.y);
                     applyTempSettings();
                 };
                 reader.readAsDataURL(file);
@@ -1237,68 +1284,103 @@
         removeBgImage.addEventListener('click', function() {
             tempBgImage = null;
             bgImageUpload.value = '';
+            document.getElementById('bg-image-editor').classList.remove('open');
             applyTempSettings();
         });
         removeBtnBgImage.addEventListener('click', function() {
             tempBtnBgImage = null;
             btnBgImageUpload.value = '';
-            showEditor('btn-bg-editor', null);
+            document.getElementById('btn-bg-image-editor').classList.remove('open');
             applyTempSettings();
         });
         removeBtnImage.addEventListener('click', function() {
             tempBtnImage = null;
             btnImageUpload.value = '';
-            showEditor('btn-image-editor', null);
+            document.getElementById('btn-image-editor').classList.remove('open');
             applyTempSettings();
         });
 
-        // слайдеры для редактора
-        function setupSlider(sliderId, valId, editorId, imageKey, settingsKey) {
+        // кнопки редактирования
+        bgImageEdit.addEventListener('click', function() {
+            if (tempBgImage) {
+                toggleEditor('bg-image-editor', tempBgImage);
+            }
+        });
+        btnBgImageEdit.addEventListener('click', function() {
+            if (tempBtnBgImage) {
+                toggleEditor('btn-bg-image-editor', tempBtnBgImage);
+            }
+        });
+        btnImageEdit.addEventListener('click', function() {
+            if (tempBtnImage) {
+                toggleEditor('btn-image-editor', tempBtnImage);
+            }
+        });
+
+        // настройка слайдеров
+        function setupSlider(sliderId, valId, editorId, settingsKey) {
             const slider = document.getElementById(sliderId);
             const valSpan = document.getElementById(valId);
             slider.addEventListener('input', function() {
                 const val = parseInt(this.value);
                 valSpan.textContent = val + '%';
-                if (imageKey === 'btnBg') {
-                    tempSettings.btnBgImageSettings = tempSettings.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
-                    if (sliderId.includes('scale')) tempSettings.btnBgImageSettings.scale = val;
-                    else if (sliderId.includes('x')) tempSettings.btnBgImageSettings.x = val;
-                    else if (sliderId.includes('y')) tempSettings.btnBgImageSettings.y = val;
-                    if (tempBtnBgImage) {
-                        updateEditorPreview('btn-bg-editor', tempBtnBgImage, 
-                            tempSettings.btnBgImageSettings.scale,
-                            tempSettings.btnBgImageSettings.x,
-                            tempSettings.btnBgImageSettings.y);
-                    }
-                } else if (imageKey === 'btnImage') {
-                    tempSettings.btnImageSettings = tempSettings.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                    if (sliderId.includes('scale')) tempSettings.btnImageSettings.scale = val;
-                    else if (sliderId.includes('x')) tempSettings.btnImageSettings.x = val;
-                    else if (sliderId.includes('y')) tempSettings.btnImageSettings.y = val;
-                    if (tempBtnImage) {
-                        updateEditorPreview('btn-image-editor', tempBtnImage,
-                            tempSettings.btnImageSettings.scale,
-                            tempSettings.btnImageSettings.x,
-                            tempSettings.btnImageSettings.y);
-                    }
+                if (!tempSettings[settingsKey]) {
+                    tempSettings[settingsKey] = { scale: 100, x: 0, y: 0 };
+                }
+                const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
+                tempSettings[settingsKey][key] = val;
+                // обновить превью
+                let imageData = null;
+                if (settingsKey === 'bgImageSettings') imageData = tempBgImage;
+                else if (settingsKey === 'btnBgImageSettings') imageData = tempBtnBgImage;
+                else if (settingsKey === 'btnImageSettings') imageData = tempBtnImage;
+                if (imageData) {
+                    updateEditorPreview(editorId, imageData);
                 }
                 applyTempSettings();
             });
         }
 
-        setupSlider('btn-bg-scale', 'btn-bg-scale-val', 'btn-bg-editor', 'btnBg', 'btnBgImageSettings');
-        setupSlider('btn-bg-x', 'btn-bg-x-val', 'btn-bg-editor', 'btnBg', 'btnBgImageSettings');
-        setupSlider('btn-bg-y', 'btn-bg-y-val', 'btn-bg-editor', 'btnBg', 'btnBgImageSettings');
-        setupSlider('btn-image-scale', 'btn-image-scale-val', 'btn-image-editor', 'btnImage', 'btnImageSettings');
-        setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImage', 'btnImageSettings');
-        setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImage', 'btnImageSettings');
+        setupSlider('bg-image-scale', 'bg-image-scale-val', 'bg-image-editor', 'bgImageSettings');
+        setupSlider('bg-image-x', 'bg-image-x-val', 'bg-image-editor', 'bgImageSettings');
+        setupSlider('bg-image-y', 'bg-image-y-val', 'bg-image-editor', 'bgImageSettings');
+        setupSlider('btn-bg-scale', 'btn-bg-scale-val', 'btn-bg-image-editor', 'btnBgImageSettings');
+        setupSlider('btn-bg-x', 'btn-bg-x-val', 'btn-bg-image-editor', 'btnBgImageSettings');
+        setupSlider('btn-bg-y', 'btn-bg-y-val', 'btn-bg-image-editor', 'btnBgImageSettings');
+        setupSlider('btn-image-scale', 'btn-image-scale-val', 'btn-image-editor', 'btnImageSettings');
+        setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
+        setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
 
-        resetCounter.addEventListener('click', function() {
-            if (confirm('Сбросить счётчик обнимашек?')) {
+        // сброс всех настроек
+        resetAllBtn.addEventListener('click', function() {
+            if (confirm('Сбросить все настройки и счётчик?')) {
+                // Сброс счётчика
                 hugCount = 0;
                 history = {};
                 updateCounter();
-                saveState();
+                
+                // Сброс настроек
+                tempSettings = { ...defaultSettings };
+                tempBgImage = null;
+                tempBtnBgImage = null;
+                tempBtnImage = null;
+                
+                // Закрыть все редакторы
+                document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
+                
+                // Обновить пикеры
+                bgPicker.value = defaultSettings.bgColor;
+                textPicker.value = defaultSettings.textColor;
+                btnBgPicker.value = defaultSettings.btnBgColor;
+                btnColorPicker.value = defaultSettings.btnColor;
+                
+                // Очистить загрузчики
+                bgImageUpload.value = '';
+                btnBgImageUpload.value = '';
+                btnImageUpload.value = '';
+                
+                applyTempSettings();
+                
                 if (calendarOverlay.classList.contains('open')) {
                     renderCalendar(currentYear, currentMonth);
                 }
