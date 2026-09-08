@@ -10,6 +10,7 @@
             padding: 0;
             box-sizing: border-box;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -21,14 +22,13 @@
             align-items: center;
             transition: background-color 0.2s;
             padding: 12px;
+            margin: 0;
         }
 
         #app {
             width: 100%;
             max-width: 420px;
             height: 780px;
-            background: #ffffffdd;
-            backdrop-filter: blur(4px);
             background: #ffffff;
             border-radius: 40px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.15);
@@ -62,6 +62,9 @@
             backdrop-filter: blur(4px);
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         #settings-btn {
@@ -73,6 +76,7 @@
             border-radius: 30px;
             transition: 0.2s;
             color: #2d1b3d;
+            -webkit-tap-highlight-color: transparent;
         }
         #settings-btn:hover {
             background: rgba(0,0,0,0.04);
@@ -101,6 +105,8 @@
             background-size: cover;
             background-position: center;
             overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
         }
         #hug-btn:active {
             transform: translateY(8px);
@@ -111,9 +117,13 @@
             z-index: 2;
             text-shadow: 0 2px 8px rgba(0,0,0,0.15);
             transition: opacity 0.3s;
+            pointer-events: none;
         }
         #hug-btn.has-image .btn-text {
             opacity: 0.85;
+        }
+        #hug-btn:focus-visible {
+            outline: none;
         }
 
         /* ----- bottom: calendar icon ----- */
@@ -134,6 +144,7 @@
             border-radius: 40px;
             transition: 0.2s;
             color: #2d1b3d;
+            -webkit-tap-highlight-color: transparent;
         }
         #calendar-icon:hover {
             background: rgba(0,0,0,0.04);
@@ -238,13 +249,6 @@
             border: none;
             border-radius: 30px;
         }
-        .color-picker-row .preview-box {
-            width: 44px;
-            height: 44px;
-            border-radius: 30px;
-            border: 2px solid #ddd;
-            transition: background 0.2s;
-        }
 
         .btn-row {
             display: flex;
@@ -304,6 +308,20 @@
             cursor: pointer;
             color: #a080b0;
             padding: 4px 8px;
+        }
+
+        .btn-small {
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: none;
+            background: #e8def0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #2d1b3d;
+        }
+        .btn-small:active {
+            background: #d0c0dd;
         }
 
         /* ----- calendar grid ----- */
@@ -400,25 +418,19 @@
             border-radius: 10px;
         }
 
-        /* доп стили для сохранения */
-        .setting-group .color-preview-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 4px;
-        }
-        .btn-small {
-            padding: 6px 14px;
-            border-radius: 30px;
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
             border: none;
-            background: #e8def0;
-            font-size: 13px;
-            font-weight: 500;
+            border-radius: 40px;
+            background: #f0e6f5;
+            font-weight: 600;
+            font-size: 16px;
             cursor: pointer;
-            color: #2d1b3d;
+            color: #3d2a4a;
         }
-        .btn-small:active {
-            background: #d0c0dd;
+        .reset-btn:active {
+            background: #dcc8e5;
         }
     </style>
 </head>
@@ -426,7 +438,7 @@
 <div id="app">
     <!-- header -->
     <div id="header">
-        <span id="counter">0</span>
+        <span id="counter">🤗 0</span>
         <button id="settings-btn" aria-label="Настройки">⚙️</button>
     </div>
 
@@ -456,16 +468,49 @@
                     <span style="font-size:14px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button>
                 </div>
-                <div class="hint">Цвет фона всего экрана</div>
+                <div class="hint">Цвет фона всего экрана (перекрывается фото)</div>
+            </div>
+
+            <!-- Фото на фон приложения -->
+            <div class="setting-group">
+                <label>Фото на фон приложения</label>
+                <div class="file-upload-wrapper">
+                    <label for="bg-image-upload">📁 Загрузить</label>
+                    <input type="file" id="bg-image-upload" accept="image/*">
+                    <button class="remove-img" id="remove-bg-image" title="Удалить фото">✕</button>
+                </div>
+                <div class="hint">Фото перекрывает цвет фона приложения</div>
             </div>
 
             <!-- Цвет фона под кнопкой -->
             <div class="setting-group">
                 <label>Цвет фона под кнопкой</label>
                 <div class="color-picker-row">
-                    <input type="color" id="btn-bg-color-picker" value="#ffb6c9">
+                    <input type="color" id="btn-bg-color-picker" value="#ffffff">
                     <span style="font-size:14px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-btn-bg" style="margin-left:auto;">Сбросить</button>
+                </div>
+                <div class="hint">Белый фон под самой кнопкой (перекрывается фото)</div>
+            </div>
+
+            <!-- Фото на фон под кнопкой -->
+            <div class="setting-group">
+                <label>Фото на фон под кнопкой</label>
+                <div class="file-upload-wrapper">
+                    <label for="btn-bg-image-upload">📁 Загрузить</label>
+                    <input type="file" id="btn-bg-image-upload" accept="image/*">
+                    <button class="remove-img" id="remove-btn-bg-image" title="Удалить фото">✕</button>
+                </div>
+                <div class="hint">Фото перекрывает цвет фона под кнопкой</div>
+            </div>
+
+            <!-- Цвет самой кнопки -->
+            <div class="setting-group">
+                <label>Цвет самой кнопки</label>
+                <div class="color-picker-row">
+                    <input type="color" id="btn-color-picker" value="#ffb6c9">
+                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button>
                 </div>
                 <div class="hint">Основной цвет кнопки (граница остаётся)</div>
             </div>
@@ -481,29 +526,7 @@
                 <div class="hint">Цвет всего текста в приложении</div>
             </div>
 
-            <!-- Цвет кнопки (текст) -->
-            <div class="setting-group">
-                <label>Цвет текста кнопки</label>
-                <div class="color-picker-row">
-                    <input type="color" id="btn-text-color-picker" value="#4a2c5a">
-                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-btn-text" style="margin-left:auto;">Сбросить</button>
-                </div>
-                <div class="hint">Цвет надписи на кнопке</div>
-            </div>
-
-            <!-- Загрузка фото на фон -->
-            <div class="setting-group">
-                <label>Фото на фон приложения</label>
-                <div class="file-upload-wrapper">
-                    <label for="bg-image-upload">📁 Загрузить</label>
-                    <input type="file" id="bg-image-upload" accept="image/*">
-                    <button class="remove-img" id="remove-bg-image" title="Удалить фото">✕</button>
-                </div>
-                <div class="hint">Фото будет фоном всего приложения</div>
-            </div>
-
-            <!-- Загрузка фото на кнопку -->
+            <!-- Фото на кнопку -->
             <div class="setting-group">
                 <label>Фото на кнопку</label>
                 <div class="file-upload-wrapper">
@@ -516,7 +539,7 @@
 
             <!-- Сброс счётчика -->
             <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
-                <button class="reset-btn" id="reset-counter-btn" style="width:100%; padding:12px; border:none; border-radius:40px; background:#f0e6f5; font-weight:600; font-size:16px; cursor:pointer;">Сбросить счётчик</button>
+                <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
             </div>
 
             <!-- Кнопки сохранить/отмена -->
@@ -556,15 +579,17 @@
         let settings = {
             bgColor: '#f7f0fa',
             textColor: '#2d1b3d',
-            btnBgColor: '#ffb6c9',
-            btnTextColor: '#4a2c5a',
-            bgImage: null,      // dataURL
-            btnImage: null,     // dataURL
+            btnBgColor: '#ffffff',      // фон под кнопкой
+            btnColor: '#ffb6c9',        // цвет самой кнопки
+            bgImage: null,
+            btnBgImage: null,
+            btnImage: null,
         };
 
-        // временные (в процессе настройки)
+        // временные
         let tempSettings = { ...settings };
         let tempBgImage = null;
+        let tempBtnBgImage = null;
         let tempBtnImage = null;
 
         // календарь
@@ -588,18 +613,20 @@
         const bgPicker = document.getElementById('bg-color-picker');
         const textPicker = document.getElementById('text-color-picker');
         const btnBgPicker = document.getElementById('btn-bg-color-picker');
-        const btnTextPicker = document.getElementById('btn-text-color-picker');
+        const btnColorPicker = document.getElementById('btn-color-picker');
 
         // кнопки сброса цвета
         const resetBg = document.getElementById('reset-bg-color');
         const resetText = document.getElementById('reset-text-color');
         const resetBtnBg = document.getElementById('reset-btn-bg');
-        const resetBtnText = document.getElementById('reset-btn-text');
+        const resetBtnColor = document.getElementById('reset-btn-color');
 
         // загрузка фото
         const bgImageUpload = document.getElementById('bg-image-upload');
+        const btnBgImageUpload = document.getElementById('btn-bg-image-upload');
         const btnImageUpload = document.getElementById('btn-image-upload');
         const removeBgImage = document.getElementById('remove-bg-image');
+        const removeBtnBgImage = document.getElementById('remove-btn-bg-image');
         const removeBtnImage = document.getElementById('remove-btn-image');
 
         const resetCounter = document.getElementById('reset-counter-btn');
@@ -625,12 +652,13 @@
                         settings = { ...settings, ...data.settings };
                     }
                     if (data.bgImage) settings.bgImage = data.bgImage;
+                    if (data.btnBgImage) settings.btnBgImage = data.btnBgImage;
                     if (data.btnImage) settings.btnImage = data.btnImage;
                 }
             } catch (e) {}
-            // синхронизируем временные
             tempSettings = { ...settings };
             tempBgImage = settings.bgImage;
+            tempBtnBgImage = settings.btnBgImage;
             tempBtnImage = settings.btnImage;
             applyAllSettings();
             updateCounter();
@@ -643,6 +671,7 @@
                     history: history,
                     settings: settings,
                     bgImage: settings.bgImage,
+                    btnBgImage: settings.btnBgImage,
                     btnImage: settings.btnImage,
                 }));
             } catch (e) {}
@@ -660,15 +689,64 @@
                 app.style.backgroundColor = '#ffffff';
             }
 
-            // цвет фона кнопки
-            hugBtn.style.backgroundColor = settings.btnBgColor;
-            // цвет текста общий
-            applyTextColor(settings.textColor);
-            // цвет текста кнопки
-            hugBtn.style.color = settings.btnTextColor;
-            btnText.style.color = settings.btnTextColor;
+            // фон под кнопкой (внутри app, но под кнопкой)
+            if (settings.btnBgImage) {
+                app.style.backgroundImage = `url(${settings.btnBgImage})`;
+                app.style.backgroundColor = 'transparent';
+                // но сохраняем цвет как fallback
+            }
+            // цвет фона под кнопкой (используем как fallback)
+            // применяем через отдельный слой - просто сохраняем в переменной
+            // но app уже использует bgImage или bgColor
+            // чтобы разделить, используем псевдо-слой: задаем app фон, но кнопка поверх
+            // для фона под кнопкой используем отдельный div? Но проще: если есть btnBgImage, то app фон = btnBgImage
+            // а bgImage для body? Нет, нужно разделить.
+            // Решение: app фон = bgImage (если есть) иначе bgColor
+            // а btnBgImage - это фон под кнопкой, но он должен быть виден только в области кнопки?
+            // По заданию: "цвет фона под кнопкой" - это цвет белого фона, который был раньше.
+            // То есть это фон всего app, но под кнопкой? Но по факту это фон приложения.
+            // Я понял: "Цвет фона под кнопкой" - это цвет фона самого приложения (тот что белый был).
+            // Но в прошлой версии было "фото на фон приложения" - это тоже самое.
+            // Сейчас сделаем: "фон приложения" - это фон body (внешний), "фон под кнопкой" - это фон app (внутренний белый)
+            // Тогда:
+            // body.bgColor = bgColor (внешний фон)
+            // app.bgColor = btnBgColor (внутренний фон, под кнопкой)
+            // app.bgImage = btnBgImage (фото на внутренний фон)
+            // но также есть bgImage для app? По заданию "фото на фон приложения" - это на внешний фон?
+            // Переделаем логику:
+            // - bgColor: цвет фона body (внешний)
+            // - bgImage: фото на body (внешний)
+            // - btnBgColor: цвет фона app (внутренний, под кнопкой)
+            // - btnBgImage: фото на app (внутренний)
+            // - btnColor: цвет самой кнопки
+            // - btnImage: фото на кнопку
 
-            // фото на кнопку
+            // Внешний фон (body)
+            document.body.style.backgroundColor = settings.bgColor;
+            if (settings.bgImage) {
+                document.body.style.backgroundImage = `url(${settings.bgImage})`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+            } else {
+                document.body.style.backgroundImage = 'none';
+            }
+
+            // Внутренний фон (app) - под кнопкой
+            if (settings.btnBgImage) {
+                app.style.backgroundImage = `url(${settings.btnBgImage})`;
+                app.style.backgroundColor = 'transparent';
+            } else {
+                app.style.backgroundImage = 'none';
+                app.style.backgroundColor = settings.btnBgColor;
+            }
+
+            // Цвет самой кнопки
+            hugBtn.style.backgroundColor = settings.btnColor;
+
+            // Цвет текста общий
+            applyTextColor(settings.textColor);
+
+            // Фото на кнопку
             if (settings.btnImage) {
                 hugBtn.style.backgroundImage = `url(${settings.btnImage})`;
                 hugBtn.classList.add('has-image');
@@ -677,7 +755,6 @@
                 hugBtn.classList.remove('has-image');
             }
 
-            // обновить счетчик
             updateCounter();
         }
 
@@ -689,34 +766,46 @@
                     el.style.color = color;
                 }
             });
-            // отдельно для кнопки (но цвет текста кнопки отдельно)
-            // не перебиваем btnTextColor
             document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
                 .forEach(el => el.style.color = color);
             document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
                 .forEach(el => el.style.color = color);
-            // счётчик
             counterEl.style.color = color;
+            // текст кнопки тоже наследует общий цвет, если не переопределен
+            hugBtn.style.color = color;
+            btnText.style.color = color;
         }
 
         function updateCounter() {
-            counterEl.textContent = hugCount;
+            counterEl.innerHTML = `🤗 ${hugCount}`;
         }
 
         // ---- временные настройки (предпросмотр) ----
         function applyTempSettings() {
-            // применяем временные настройки к интерфейсу (но не сохраняем)
             const t = tempSettings;
+            // Внешний фон
             document.body.style.backgroundColor = t.bgColor;
             if (tempBgImage) {
-                app.style.backgroundImage = `url(${tempBgImage})`;
+                document.body.style.backgroundImage = `url(${tempBgImage})`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+            } else {
+                document.body.style.backgroundImage = 'none';
+            }
+
+            // Внутренний фон (app)
+            if (tempBtnBgImage) {
+                app.style.backgroundImage = `url(${tempBtnBgImage})`;
                 app.style.backgroundColor = 'transparent';
             } else {
                 app.style.backgroundImage = 'none';
-                app.style.backgroundColor = '#ffffff';
+                app.style.backgroundColor = t.btnBgColor;
             }
-            hugBtn.style.backgroundColor = t.btnBgColor;
-            // текст
+
+            // Цвет кнопки
+            hugBtn.style.backgroundColor = t.btnColor;
+
+            // Цвет текста
             const color = t.textColor;
             document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *').forEach(el => {
                 if (el.tagName === 'INPUT' && el.type === 'color') return;
@@ -729,10 +818,10 @@
             document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
                 .forEach(el => el.style.color = color);
             counterEl.style.color = color;
-            // цвет текста кнопки
-            hugBtn.style.color = t.btnTextColor;
-            btnText.style.color = t.btnTextColor;
-            // фото кнопки
+            hugBtn.style.color = color;
+            btnText.style.color = color;
+
+            // Фото на кнопку
             if (tempBtnImage) {
                 hugBtn.style.backgroundImage = `url(${tempBtnImage})`;
                 hugBtn.classList.add('has-image');
@@ -746,29 +835,28 @@
         function resetColorsToDefault() {
             tempSettings.bgColor = '#f7f0fa';
             tempSettings.textColor = '#2d1b3d';
-            tempSettings.btnBgColor = '#ffb6c9';
-            tempSettings.btnTextColor = '#4a2c5a';
+            tempSettings.btnBgColor = '#ffffff';
+            tempSettings.btnColor = '#ffb6c9';
             tempBgImage = null;
+            tempBtnBgImage = null;
             tempBtnImage = null;
-            // обновить пикеры
             bgPicker.value = tempSettings.bgColor;
             textPicker.value = tempSettings.textColor;
             btnBgPicker.value = tempSettings.btnBgColor;
-            btnTextPicker.value = tempSettings.btnTextColor;
+            btnColorPicker.value = tempSettings.btnColor;
             applyTempSettings();
         }
 
         // ---- открытие настроек ----
         function openSettings() {
-            // копируем текущие настройки во временные
             tempSettings = { ...settings };
             tempBgImage = settings.bgImage;
+            tempBtnBgImage = settings.btnBgImage;
             tempBtnImage = settings.btnImage;
-            // установить значения пикеров
             bgPicker.value = tempSettings.bgColor;
             textPicker.value = tempSettings.textColor;
             btnBgPicker.value = tempSettings.btnBgColor;
-            btnTextPicker.value = tempSettings.btnTextColor;
+            btnColorPicker.value = tempSettings.btnColor;
             applyTempSettings();
             settingsOverlay.classList.add('open');
         }
@@ -776,14 +864,13 @@
         function closeSettingsFn(apply) {
             settingsOverlay.classList.remove('open');
             if (apply) {
-                // сохранить
                 settings = { ...tempSettings };
                 settings.bgImage = tempBgImage;
+                settings.btnBgImage = tempBtnBgImage;
                 settings.btnImage = tempBtnImage;
                 applyAllSettings();
                 saveState();
             } else {
-                // откат
                 applyAllSettings();
             }
         }
@@ -878,7 +965,6 @@
         }
 
         // ---- обработчики ----
-        // обнимашки
         hugBtn.addEventListener('click', function() {
             hugCount++;
             const today = new Date();
@@ -896,7 +982,6 @@
             }
         });
 
-        // настройки
         settingsBtn.addEventListener('click', openSettings);
         closeSettings.addEventListener('click', () => closeSettingsFn(false));
         cancelSettingsBtn.addEventListener('click', () => closeSettingsFn(false));
@@ -906,7 +991,7 @@
             if (e.target === this) closeSettingsFn(false);
         });
 
-        // пикеры -> обновляем temp
+        // пикеры
         bgPicker.addEventListener('input', function() {
             tempSettings.bgColor = this.value;
             applyTempSettings();
@@ -919,8 +1004,8 @@
             tempSettings.btnBgColor = this.value;
             applyTempSettings();
         });
-        btnTextPicker.addEventListener('input', function() {
-            tempSettings.btnTextColor = this.value;
+        btnColorPicker.addEventListener('input', function() {
+            tempSettings.btnColor = this.value;
             applyTempSettings();
         });
 
@@ -936,13 +1021,13 @@
             applyTempSettings();
         });
         resetBtnBg.addEventListener('click', () => {
-            tempSettings.btnBgColor = '#ffb6c9';
-            btnBgPicker.value = '#ffb6c9';
+            tempSettings.btnBgColor = '#ffffff';
+            btnBgPicker.value = '#ffffff';
             applyTempSettings();
         });
-        resetBtnText.addEventListener('click', () => {
-            tempSettings.btnTextColor = '#4a2c5a';
-            btnTextPicker.value = '#4a2c5a';
+        resetBtnColor.addEventListener('click', () => {
+            tempSettings.btnColor = '#ffb6c9';
+            btnColorPicker.value = '#ffb6c9';
             applyTempSettings();
         });
 
@@ -953,6 +1038,17 @@
                 const reader = new FileReader();
                 reader.onload = function(ev) {
                     tempBgImage = ev.target.result;
+                    applyTempSettings();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        btnBgImageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    tempBtnBgImage = ev.target.result;
                     applyTempSettings();
                 };
                 reader.readAsDataURL(file);
@@ -975,13 +1071,17 @@
             bgImageUpload.value = '';
             applyTempSettings();
         });
+        removeBtnBgImage.addEventListener('click', function() {
+            tempBtnBgImage = null;
+            btnBgImageUpload.value = '';
+            applyTempSettings();
+        });
         removeBtnImage.addEventListener('click', function() {
             tempBtnImage = null;
             btnImageUpload.value = '';
             applyTempSettings();
         });
 
-        // сброс счётчика
         resetCounter.addEventListener('click', function() {
             if (confirm('Сбросить счётчик обнимашек?')) {
                 hugCount = 0;
@@ -996,7 +1096,6 @@
             }
         });
 
-        // календарь
         calendarIcon.addEventListener('click', openCalendar);
         closeCalendar.addEventListener('click', () => {
             calendarOverlay.classList.remove('open');
