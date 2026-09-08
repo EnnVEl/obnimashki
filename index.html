@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Обнимашки</title>
     <style>
         * {
@@ -13,22 +13,26 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #f7f0fa;
+        html, body {
+            width: 100%;
             min-height: 100vh;
+            min-height: 100dvh;
+            background: #f7f0fa;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: background-color 0.2s;
             padding: 8px;
             margin: 0;
+            overflow: hidden;
         }
 
         #app {
             width: 100%;
-            max-width: 400px;
-            height: 740px;
+            max-width: 420px;
+            height: 100vh;
+            height: 100dvh;
+            max-height: 780px;
             background: #ffffff;
             border-radius: 36px;
             box-shadow: 0 16px 32px rgba(0,0,0,0.12);
@@ -49,6 +53,7 @@
             padding: 16px 20px 6px;
             position: relative;
             z-index: 5;
+            flex-shrink: 0;
         }
 
         #counter {
@@ -82,15 +87,24 @@
             background: rgba(0,0,0,0.04);
         }
 
-        /* ----- main button ----- */
+        /* ----- main button container ----- */
+        #btn-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 16px;
+            min-height: 0;
+        }
+
         #hug-btn {
             aspect-ratio: 1/1;
-            width: 240px;
-            max-width: 65%;
+            width: min(65%, 240px);
+            max-width: 280px;
             border-radius: 50%;
             background: #ffb6c9;
             border: none;
-            font-size: 38px;
+            font-size: clamp(24px, 5vw, 38px);
             font-weight: 700;
             color: #4a2c5a;
             box-shadow: 0 10px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.15);
@@ -120,7 +134,7 @@
             text-shadow: 0 2px 8px rgba(0,0,0,0.15);
             transition: opacity 0.3s;
             pointer-events: none;
-            font-size: 32px;
+            font-size: clamp(20px, 4vw, 32px);
         }
         #hug-btn.has-image .btn-text {
             opacity: 0.85;
@@ -136,6 +150,7 @@
             padding: 6px 20px 14px;
             position: relative;
             z-index: 5;
+            flex-shrink: 0;
         }
 
         #calendar-icon {
@@ -223,11 +238,6 @@
             margin-bottom: 4px;
             font-size: 13px;
             color: #3a2a4a;
-        }
-        .setting-group .hint {
-            font-size: 11px;
-            color: #887a98;
-            margin-top: 3px;
         }
 
         .color-picker-row {
@@ -508,6 +518,151 @@
         .reset-btn:active {
             background: #dcc8e5;
         }
+
+        /* Адаптация для маленьких экранов */
+        @media (max-height: 700px) {
+            #header {
+                padding: 10px 16px 4px;
+            }
+            #counter {
+                font-size: 20px;
+                padding: 2px 12px;
+            }
+            #settings-btn {
+                font-size: 22px;
+            }
+            #hug-btn {
+                width: min(55%, 180px);
+            }
+            #hug-btn .btn-text {
+                font-size: clamp(16px, 3.5vw, 26px);
+            }
+            #bottom-bar {
+                padding: 4px 16px 10px;
+            }
+            #calendar-icon {
+                font-size: 24px;
+            }
+            .modal {
+                padding: 14px 14px 14px;
+                max-height: 80%;
+            }
+            .modal h2 {
+                font-size: 17px;
+                margin-bottom: 10px;
+            }
+            .setting-group {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+            }
+            .setting-group label {
+                font-size: 12px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            #hug-btn {
+                width: min(45%, 140px);
+            }
+            #hug-btn .btn-text {
+                font-size: clamp(14px, 3vw, 20px);
+            }
+            #header {
+                padding: 6px 12px 2px;
+            }
+            #counter {
+                font-size: 16px;
+                padding: 2px 10px;
+            }
+            #bottom-bar {
+                padding: 2px 12px 6px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            #app {
+                border-radius: 24px;
+            }
+            .modal {
+                width: 95%;
+                padding: 12px 12px 12px;
+            }
+            .modal h2 {
+                font-size: 16px;
+            }
+        }
+
+        /* Модальное окно подтверждения */
+        .confirm-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            border-radius: 36px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .confirm-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .confirm-box {
+            background: #ffffff;
+            padding: 24px 28px 20px;
+            border-radius: 28px;
+            max-width: 300px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.3);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        .confirm-overlay.open .confirm-box {
+            transform: scale(1);
+        }
+        .confirm-box h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #2d1b3d;
+        }
+        .confirm-box p {
+            font-size: 14px;
+            color: #5a4a6a;
+            margin-bottom: 18px;
+        }
+        .confirm-box .confirm-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .confirm-box .confirm-btns button {
+            padding: 8px 28px;
+            border: none;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .confirm-box .confirm-btns .confirm-yes {
+            background: #d48a9e;
+            color: white;
+        }
+        .confirm-box .confirm-btns .confirm-yes:active {
+            background: #c07a8e;
+        }
+        .confirm-box .confirm-btns .confirm-no {
+            background: #f0e6f5;
+            color: #3d2a4a;
+        }
+        .confirm-box .confirm-btns .confirm-no:active {
+            background: #dcc8e5;
+        }
     </style>
 </head>
 <body>
@@ -519,7 +674,7 @@
     </div>
 
     <!-- главная кнопка -->
-    <div style="flex:1; display:flex; align-items:center; justify-content:center; padding:0 16px;">
+    <div id="btn-container">
         <button id="hug-btn">
             <span class="btn-text">обнимашки</span>
         </button>
@@ -546,7 +701,6 @@
                     <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button>
                 </div>
-                <div class="hint">Цвет фона всего экрана (перекрывается фото)</div>
             </div>
 
             <!-- Фото на фон приложения -->
@@ -575,7 +729,6 @@
                         <input type="range" id="bg-image-y" min="-50" max="50" value="0">
                     </div>
                 </div>
-                <div class="hint">Фото перекрывает цвет фона приложения</div>
             </div>
 
             <!-- Цвет фона под кнопкой -->
@@ -586,7 +739,6 @@
                     <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-btn-bg" style="margin-left:auto;">Сбросить</button>
                 </div>
-                <div class="hint">Белый фон под самой кнопкой (перекрывается фото)</div>
             </div>
 
             <!-- Фото на фон под кнопкой -->
@@ -615,7 +767,6 @@
                         <input type="range" id="btn-bg-y" min="-50" max="50" value="0">
                     </div>
                 </div>
-                <div class="hint">Фото перекрывает цвет фона под кнопкой</div>
             </div>
 
             <!-- Цвет самой кнопки -->
@@ -626,7 +777,6 @@
                     <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button>
                 </div>
-                <div class="hint">Основной цвет кнопки (тень станет темнее)</div>
             </div>
 
             <!-- Цвет текста -->
@@ -637,7 +787,6 @@
                     <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button>
                 </div>
-                <div class="hint">Цвет всего текста в приложении</div>
             </div>
 
             <!-- Фото на кнопку -->
@@ -666,7 +815,6 @@
                         <input type="range" id="btn-image-y" min="-50" max="50" value="0">
                     </div>
                 </div>
-                <div class="hint">Фото будет фоном кнопки, текст станет чуть прозрачнее</div>
             </div>
 
             <!-- Сброс всех настроек -->
@@ -697,6 +845,18 @@
             <div class="weekdays" id="weekdays"></div>
             <div class="days-grid" id="days-grid"></div>
             <div id="day-info">Выберите день</div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения сброса -->
+    <div class="confirm-overlay" id="confirm-overlay">
+        <div class="confirm-box">
+            <h3>⚠️ Подтверждение</h3>
+            <p>Вы уверены, что хотите сбросить все настройки и счётчик?</p>
+            <div class="confirm-btns">
+                <button class="confirm-yes" id="confirm-yes">Да, сбросить</button>
+                <button class="confirm-no" id="confirm-no">Отмена</button>
+            </div>
         </div>
     </div>
 </div>
@@ -776,11 +936,6 @@
         const btnBgImageEditor = document.getElementById('btn-bg-image-editor');
         const btnImageEditor = document.getElementById('btn-image-editor');
 
-        // превью
-        const bgPreview = document.getElementById('bg-image-preview');
-        const btnBgPreview = document.getElementById('btn-bg-preview');
-        const btnImagePreview = document.getElementById('btn-image-preview');
-
         // слайдеры для фона приложения
         const bgScale = document.getElementById('bg-image-scale');
         const bgX = document.getElementById('bg-image-x');
@@ -799,6 +954,11 @@
         const resetAllBtn = document.getElementById('reset-all-btn');
         const saveSettingsBtn = document.getElementById('save-settings');
         const cancelSettingsBtn = document.getElementById('cancel-settings');
+
+        // Модальное окно подтверждения
+        const confirmOverlay = document.getElementById('confirm-overlay');
+        const confirmYes = document.getElementById('confirm-yes');
+        const confirmNo = document.getElementById('confirm-no');
 
         const monthYearSpan = document.getElementById('month-year');
         const prevMonthBtn = document.getElementById('prev-month');
@@ -998,7 +1158,6 @@
                     editor.classList.remove('open');
                 } else {
                     editor.classList.add('open');
-                    // Обновить превью
                     updateEditorPreview(editorId, imageData);
                 }
             } else {
@@ -1021,19 +1180,14 @@
                 img.style.display = 'block';
                 if (noImage) noImage.style.display = 'none';
                 
-                // Получаем настройки для этого редактора
-                let settingsKey = '';
                 let scale = 100, x = 0, y = 0;
                 if (editorId === 'bg-image-editor') {
-                    settingsKey = 'bgImageSettings';
                     const s = tempSettings.bgImageSettings || { scale: 100, x: 0, y: 0 };
                     scale = s.scale; x = s.x; y = s.y;
                 } else if (editorId === 'btn-bg-image-editor') {
-                    settingsKey = 'btnBgImageSettings';
                     const s = tempSettings.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
                     scale = s.scale; x = s.x; y = s.y;
                 } else if (editorId === 'btn-image-editor') {
-                    settingsKey = 'btnImageSettings';
                     const s = tempSettings.btnImageSettings || { scale: 100, x: 0, y: 0 };
                     scale = s.scale; x = s.x; y = s.y;
                 }
@@ -1057,7 +1211,6 @@
             btnBgPicker.value = tempSettings.btnBgColor;
             btnColorPicker.value = tempSettings.btnColor;
             
-            // Закрыть все редакторы
             document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
             
             applyTempSettings();
@@ -1329,7 +1482,6 @@
                 }
                 const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
                 tempSettings[settingsKey][key] = val;
-                // обновить превью
                 let imageData = null;
                 if (settingsKey === 'bgImageSettings') imageData = tempBgImage;
                 else if (settingsKey === 'btnBgImageSettings') imageData = tempBtnBgImage;
@@ -1351,41 +1503,59 @@
         setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
         setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
 
-        // сброс всех настроек
+        // ---- Сброс всех настроек с подтверждением ----
         resetAllBtn.addEventListener('click', function() {
-            if (confirm('Сбросить все настройки и счётчик?')) {
-                // Сброс счётчика
-                hugCount = 0;
-                history = {};
-                updateCounter();
-                
-                // Сброс настроек
-                tempSettings = { ...defaultSettings };
-                tempBgImage = null;
-                tempBtnBgImage = null;
-                tempBtnImage = null;
-                
-                // Закрыть все редакторы
-                document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
-                
-                // Обновить пикеры
-                bgPicker.value = defaultSettings.bgColor;
-                textPicker.value = defaultSettings.textColor;
-                btnBgPicker.value = defaultSettings.btnBgColor;
-                btnColorPicker.value = defaultSettings.btnColor;
-                
-                // Очистить загрузчики
-                bgImageUpload.value = '';
-                btnBgImageUpload.value = '';
-                btnImageUpload.value = '';
-                
-                applyTempSettings();
-                
-                if (calendarOverlay.classList.contains('open')) {
-                    renderCalendar(currentYear, currentMonth);
-                }
-                selectedDate = null;
-                dayInfo.textContent = 'Выберите день';
+            confirmOverlay.classList.add('open');
+        });
+
+        confirmYes.addEventListener('click', function() {
+            // Сброс счётчика
+            hugCount = 0;
+            history = {};
+            updateCounter();
+            
+            // Сброс настроек
+            settings = { ...defaultSettings };
+            tempSettings = { ...defaultSettings };
+            tempBgImage = null;
+            tempBtnBgImage = null;
+            tempBtnImage = null;
+            
+            // Закрыть все редакторы
+            document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
+            
+            // Обновить пикеры
+            bgPicker.value = defaultSettings.bgColor;
+            textPicker.value = defaultSettings.textColor;
+            btnBgPicker.value = defaultSettings.btnBgColor;
+            btnColorPicker.value = defaultSettings.btnColor;
+            
+            // Очистить загрузчики
+            bgImageUpload.value = '';
+            btnBgImageUpload.value = '';
+            btnImageUpload.value = '';
+            
+            // Применить настройки
+            applyAllSettings();
+            saveState();
+            
+            // Обновить календарь если открыт
+            if (calendarOverlay.classList.contains('open')) {
+                renderCalendar(currentYear, currentMonth);
+            }
+            selectedDate = null;
+            dayInfo.textContent = 'Выберите день';
+            
+            confirmOverlay.classList.remove('open');
+        });
+
+        confirmNo.addEventListener('click', function() {
+            confirmOverlay.classList.remove('open');
+        });
+
+        confirmOverlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                confirmOverlay.classList.remove('open');
             }
         });
 
