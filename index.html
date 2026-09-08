@@ -36,7 +36,9 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, background-image 0.3s;
+            background-size: cover;
+            background-position: center;
         }
 
         /* ----- header ----- */
@@ -90,16 +92,28 @@
             font-weight: 700;
             color: #4a2c5a;
             box-shadow: 0 12px 0 #d48a9e, 0 12px 24px rgba(0,0,0,0.15);
-            transition: all 0.08s ease;
+            transition: all 0.08s ease, background-color 0.2s, color 0.2s, background-image 0.3s;
             cursor: pointer;
             letter-spacing: 2px;
             text-shadow: 0 2px 4px rgba(255,255,255,0.3);
             touch-action: manipulation;
-            transition: background-color 0.2s, color 0.2s;
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
         }
         #hug-btn:active {
             transform: translateY(8px);
             box-shadow: 0 4px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.12);
+        }
+        #hug-btn .btn-text {
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: opacity 0.3s;
+        }
+        #hug-btn.has-image .btn-text {
+            opacity: 0.85;
         }
 
         /* ----- bottom: calendar icon ----- */
@@ -181,7 +195,13 @@
         }
 
         .setting-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0eaf5;
+        }
+        .setting-group:last-of-type {
+            border-bottom: none;
+            margin-bottom: 12px;
         }
         .setting-group label {
             display: block;
@@ -189,6 +209,11 @@
             margin-bottom: 6px;
             font-size: 15px;
             color: #3a2a4a;
+        }
+        .setting-group .hint {
+            font-size: 12px;
+            color: #887a98;
+            margin-top: 4px;
         }
 
         .color-picker-row {
@@ -198,8 +223,8 @@
             flex-wrap: wrap;
         }
         .color-picker-row input[type="color"] {
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             border: 2px solid #ddd;
             border-radius: 30px;
             padding: 2px;
@@ -213,22 +238,72 @@
             border: none;
             border-radius: 30px;
         }
+        .color-picker-row .preview-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 30px;
+            border: 2px solid #ddd;
+            transition: background 0.2s;
+        }
 
-        .reset-btn {
-            background: #f0e6f5;
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .btn-row button {
+            flex: 1;
+            padding: 10px 12px;
             border: none;
-            padding: 12px 18px;
-            border-radius: 40px;
+            border-radius: 30px;
             font-weight: 600;
-            font-size: 16px;
-            color: #3d2a4a;
+            font-size: 14px;
             cursor: pointer;
             transition: 0.2s;
-            width: 100%;
-            margin-top: 8px;
+            background: #f0e6f5;
+            color: #3d2a4a;
         }
-        .reset-btn:active {
+        .btn-row button:active {
             background: #dcc8e5;
+        }
+        .btn-row button.primary {
+            background: #c9b0d6;
+            color: #1f0f2a;
+        }
+        .btn-row button.primary:active {
+            background: #b094c2;
+        }
+
+        .file-upload-wrapper {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .file-upload-wrapper label {
+            background: #eee8f0;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #3d2a4a;
+        }
+        .file-upload-wrapper label:active {
+            background: #dcc8e5;
+        }
+        .file-upload-wrapper input[type="file"] {
+            display: none;
+        }
+        .file-upload-wrapper .remove-img {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #a080b0;
+            padding: 4px 8px;
         }
 
         /* ----- calendar grid ----- */
@@ -324,6 +399,27 @@
             background: #b8a2c7;
             border-radius: 10px;
         }
+
+        /* доп стили для сохранения */
+        .setting-group .color-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .btn-small {
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: none;
+            background: #e8def0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #2d1b3d;
+        }
+        .btn-small:active {
+            background: #d0c0dd;
+        }
     </style>
 </head>
 <body>
@@ -335,7 +431,9 @@
     </div>
 
     <!-- главная кнопка -->
-    <button id="hug-btn">обнимашки</button>
+    <button id="hug-btn">
+        <span class="btn-text">обнимашки</span>
+    </button>
 
     <!-- нижняя панель -->
     <div id="bottom-bar">
@@ -349,21 +447,83 @@
                 Настройки
                 <button id="close-settings">✕</button>
             </h2>
+            
+            <!-- Цвет фона приложения -->
             <div class="setting-group">
-                <label>Цвет фона</label>
+                <label>Цвет фона приложения</label>
                 <div class="color-picker-row">
                     <input type="color" id="bg-color-picker" value="#f7f0fa">
-                    <span style="font-size:14px; color:#5a4a6a;">выберите цвет</span>
+                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button>
                 </div>
+                <div class="hint">Цвет фона всего экрана</div>
             </div>
+
+            <!-- Цвет фона под кнопкой -->
+            <div class="setting-group">
+                <label>Цвет фона под кнопкой</label>
+                <div class="color-picker-row">
+                    <input type="color" id="btn-bg-color-picker" value="#ffb6c9">
+                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <button class="btn-small" id="reset-btn-bg" style="margin-left:auto;">Сбросить</button>
+                </div>
+                <div class="hint">Основной цвет кнопки (граница остаётся)</div>
+            </div>
+
+            <!-- Цвет текста -->
             <div class="setting-group">
                 <label>Цвет текста</label>
                 <div class="color-picker-row">
                     <input type="color" id="text-color-picker" value="#2d1b3d">
-                    <span style="font-size:14px; color:#5a4a6a;">весь текст</span>
+                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button>
                 </div>
+                <div class="hint">Цвет всего текста в приложении</div>
             </div>
-            <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
+
+            <!-- Цвет кнопки (текст) -->
+            <div class="setting-group">
+                <label>Цвет текста кнопки</label>
+                <div class="color-picker-row">
+                    <input type="color" id="btn-text-color-picker" value="#4a2c5a">
+                    <span style="font-size:14px; color:#5a4a6a;">выберите</span>
+                    <button class="btn-small" id="reset-btn-text" style="margin-left:auto;">Сбросить</button>
+                </div>
+                <div class="hint">Цвет надписи на кнопке</div>
+            </div>
+
+            <!-- Загрузка фото на фон -->
+            <div class="setting-group">
+                <label>Фото на фон приложения</label>
+                <div class="file-upload-wrapper">
+                    <label for="bg-image-upload">📁 Загрузить</label>
+                    <input type="file" id="bg-image-upload" accept="image/*">
+                    <button class="remove-img" id="remove-bg-image" title="Удалить фото">✕</button>
+                </div>
+                <div class="hint">Фото будет фоном всего приложения</div>
+            </div>
+
+            <!-- Загрузка фото на кнопку -->
+            <div class="setting-group">
+                <label>Фото на кнопку</label>
+                <div class="file-upload-wrapper">
+                    <label for="btn-image-upload">📁 Загрузить</label>
+                    <input type="file" id="btn-image-upload" accept="image/*">
+                    <button class="remove-img" id="remove-btn-image" title="Удалить фото">✕</button>
+                </div>
+                <div class="hint">Фото будет фоном кнопки, текст станет чуть прозрачнее</div>
+            </div>
+
+            <!-- Сброс счётчика -->
+            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
+                <button class="reset-btn" id="reset-counter-btn" style="width:100%; padding:12px; border:none; border-radius:40px; background:#f0e6f5; font-weight:600; font-size:16px; cursor:pointer;">Сбросить счётчик</button>
+            </div>
+
+            <!-- Кнопки сохранить/отмена -->
+            <div class="btn-row" style="margin-top:16px; border-top:1px solid #f0eaf5; padding-top:16px;">
+                <button id="save-settings" class="primary">Сохранить</button>
+                <button id="cancel-settings">Отмена</button>
+            </div>
         </div>
     </div>
 
@@ -390,21 +550,33 @@
     (function(){
         // ---- состояние ----
         let hugCount = 0;
-        // сохраняем историю: ключ "YYYY-MM-DD" -> количество
         let history = {};
 
-        // текущие цвета
-        let bgColor = '#f7f0fa';
-        let textColor = '#2d1b3d';
+        // настройки
+        let settings = {
+            bgColor: '#f7f0fa',
+            textColor: '#2d1b3d',
+            btnBgColor: '#ffb6c9',
+            btnTextColor: '#4a2c5a',
+            bgImage: null,      // dataURL
+            btnImage: null,     // dataURL
+        };
+
+        // временные (в процессе настройки)
+        let tempSettings = { ...settings };
+        let tempBgImage = null;
+        let tempBtnImage = null;
 
         // календарь
         let currentYear = 2026;
-        let currentMonth = 0; // 0-11
-        let selectedDate = null; // 'YYYY-MM-DD'
+        let currentMonth = 0;
+        let selectedDate = null;
 
         // DOM
-        const counterEl = document.getElementById('counter');
+        const app = document.getElementById('app');
         const hugBtn = document.getElementById('hug-btn');
+        const btnText = hugBtn.querySelector('.btn-text');
+        const counterEl = document.getElementById('counter');
         const settingsBtn = document.getElementById('settings-btn');
         const settingsOverlay = document.getElementById('settings-overlay');
         const closeSettings = document.getElementById('close-settings');
@@ -412,9 +584,27 @@
         const calendarIcon = document.getElementById('calendar-icon');
         const closeCalendar = document.getElementById('close-calendar');
 
+        // пикеры
         const bgPicker = document.getElementById('bg-color-picker');
         const textPicker = document.getElementById('text-color-picker');
-        const resetBtn = document.getElementById('reset-counter-btn');
+        const btnBgPicker = document.getElementById('btn-bg-color-picker');
+        const btnTextPicker = document.getElementById('btn-text-color-picker');
+
+        // кнопки сброса цвета
+        const resetBg = document.getElementById('reset-bg-color');
+        const resetText = document.getElementById('reset-text-color');
+        const resetBtnBg = document.getElementById('reset-btn-bg');
+        const resetBtnText = document.getElementById('reset-btn-text');
+
+        // загрузка фото
+        const bgImageUpload = document.getElementById('bg-image-upload');
+        const btnImageUpload = document.getElementById('btn-image-upload');
+        const removeBgImage = document.getElementById('remove-bg-image');
+        const removeBtnImage = document.getElementById('remove-btn-image');
+
+        const resetCounter = document.getElementById('reset-counter-btn');
+        const saveSettingsBtn = document.getElementById('save-settings');
+        const cancelSettingsBtn = document.getElementById('cancel-settings');
 
         const monthYearSpan = document.getElementById('month-year');
         const prevMonthBtn = document.getElementById('prev-month');
@@ -423,9 +613,7 @@
         const weekdaysEl = document.getElementById('weekdays');
         const dayInfo = document.getElementById('day-info');
 
-        const app = document.getElementById('app');
-
-        // ---- инициализация истории из localStorage ----
+        // ---- загрузка/сохранение ----
         function loadState() {
             try {
                 const saved = localStorage.getItem('hugAppData');
@@ -433,11 +621,18 @@
                     const data = JSON.parse(saved);
                     if (data.count !== undefined) hugCount = data.count;
                     if (data.history) history = data.history;
-                    if (data.bgColor) bgColor = data.bgColor;
-                    if (data.textColor) textColor = data.textColor;
+                    if (data.settings) {
+                        settings = { ...settings, ...data.settings };
+                    }
+                    if (data.bgImage) settings.bgImage = data.bgImage;
+                    if (data.btnImage) settings.btnImage = data.btnImage;
                 }
             } catch (e) {}
-            applyColors();
+            // синхронизируем временные
+            tempSettings = { ...settings };
+            tempBgImage = settings.bgImage;
+            tempBtnImage = settings.btnImage;
+            applyAllSettings();
             updateCounter();
         }
 
@@ -446,59 +641,150 @@
                 localStorage.setItem('hugAppData', JSON.stringify({
                     count: hugCount,
                     history: history,
-                    bgColor: bgColor,
-                    textColor: textColor
+                    settings: settings,
+                    bgImage: settings.bgImage,
+                    btnImage: settings.btnImage,
                 }));
             } catch (e) {}
         }
 
-        // ---- apply colors ----
-        function applyColors() {
-            document.body.style.backgroundColor = bgColor;
-            app.style.backgroundColor = '#ffffff'; // сохраняем белый фон карточки
-            // все текстовые элементы
-            const textElements = document.querySelectorAll('#counter, #settings-btn, #calendar-icon, #hug-btn, .modal, .modal *');
-            textElements.forEach(el => {
-                if (el.tagName === 'INPUT' && el.type === 'color') return;
-                if (el.closest('.modal') && !el.closest('.color-picker-row')) {
-                    // в модалках тоже меняем, но оставляем инпуты
-                }
-                el.style.color = textColor;
-            });
-            // отдельно для кнопки обнимашки (чтобы перебить)
-            hugBtn.style.color = textColor;
-            // заголовок и остальное в модалке
-            document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
-                .forEach(el => el.style.color = textColor);
-            // специально для инпутов цвет не трогаем
-            // но цвет текста в picker не меняем
-            // также для кнопок
-            document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
-                .forEach(el => el.style.color = textColor);
+        // ---- применение настроек ----
+        function applyAllSettings() {
+            // фон приложения
+            document.body.style.backgroundColor = settings.bgColor;
+            if (settings.bgImage) {
+                app.style.backgroundImage = `url(${settings.bgImage})`;
+                app.style.backgroundColor = 'transparent';
+            } else {
+                app.style.backgroundImage = 'none';
+                app.style.backgroundColor = '#ffffff';
+            }
+
+            // цвет фона кнопки
+            hugBtn.style.backgroundColor = settings.btnBgColor;
+            // цвет текста общий
+            applyTextColor(settings.textColor);
+            // цвет текста кнопки
+            hugBtn.style.color = settings.btnTextColor;
+            btnText.style.color = settings.btnTextColor;
+
+            // фото на кнопку
+            if (settings.btnImage) {
+                hugBtn.style.backgroundImage = `url(${settings.btnImage})`;
+                hugBtn.classList.add('has-image');
+            } else {
+                hugBtn.style.backgroundImage = 'none';
+                hugBtn.classList.remove('has-image');
+            }
+
+            // обновить счетчик
+            updateCounter();
         }
 
-        // обновить счетчик
+        function applyTextColor(color) {
+            const elements = document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *');
+            elements.forEach(el => {
+                if (el.tagName === 'INPUT' && el.type === 'color') return;
+                if (el.closest('.modal') && !el.closest('.color-picker-row') && !el.closest('.file-upload-wrapper')) {
+                    el.style.color = color;
+                }
+            });
+            // отдельно для кнопки (но цвет текста кнопки отдельно)
+            // не перебиваем btnTextColor
+            document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
+                .forEach(el => el.style.color = color);
+            document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
+                .forEach(el => el.style.color = color);
+            // счётчик
+            counterEl.style.color = color;
+        }
+
         function updateCounter() {
             counterEl.textContent = hugCount;
         }
 
-        // ---- обработка нажатия обнимашек ----
-        function handleHug() {
-            hugCount++;
-            const today = new Date();
-            const key = today.getFullYear() + '-' + 
-                        String(today.getMonth()+1).padStart(2,'0') + '-' + 
-                        String(today.getDate()).padStart(2,'0');
-            history[key] = (history[key] || 0) + 1;
-            updateCounter();
-            saveState();
-            // если календарь открыт и выбран сегодня — обновить информацию
-            if (calendarOverlay.classList.contains('open') && selectedDate === key) {
-                showDayInfo(key);
+        // ---- временные настройки (предпросмотр) ----
+        function applyTempSettings() {
+            // применяем временные настройки к интерфейсу (но не сохраняем)
+            const t = tempSettings;
+            document.body.style.backgroundColor = t.bgColor;
+            if (tempBgImage) {
+                app.style.backgroundImage = `url(${tempBgImage})`;
+                app.style.backgroundColor = 'transparent';
+            } else {
+                app.style.backgroundImage = 'none';
+                app.style.backgroundColor = '#ffffff';
             }
-            // также обновить сетку если открыт календарь (чтобы индикаторы обновились)
-            if (calendarOverlay.classList.contains('open')) {
-                renderCalendar(currentYear, currentMonth);
+            hugBtn.style.backgroundColor = t.btnBgColor;
+            // текст
+            const color = t.textColor;
+            document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *').forEach(el => {
+                if (el.tagName === 'INPUT' && el.type === 'color') return;
+                if (el.closest('.modal') && !el.closest('.color-picker-row') && !el.closest('.file-upload-wrapper')) {
+                    el.style.color = color;
+                }
+            });
+            document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
+                .forEach(el => el.style.color = color);
+            document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
+                .forEach(el => el.style.color = color);
+            counterEl.style.color = color;
+            // цвет текста кнопки
+            hugBtn.style.color = t.btnTextColor;
+            btnText.style.color = t.btnTextColor;
+            // фото кнопки
+            if (tempBtnImage) {
+                hugBtn.style.backgroundImage = `url(${tempBtnImage})`;
+                hugBtn.classList.add('has-image');
+            } else {
+                hugBtn.style.backgroundImage = 'none';
+                hugBtn.classList.remove('has-image');
+            }
+        }
+
+        // ---- сброс настроек ----
+        function resetColorsToDefault() {
+            tempSettings.bgColor = '#f7f0fa';
+            tempSettings.textColor = '#2d1b3d';
+            tempSettings.btnBgColor = '#ffb6c9';
+            tempSettings.btnTextColor = '#4a2c5a';
+            tempBgImage = null;
+            tempBtnImage = null;
+            // обновить пикеры
+            bgPicker.value = tempSettings.bgColor;
+            textPicker.value = tempSettings.textColor;
+            btnBgPicker.value = tempSettings.btnBgColor;
+            btnTextPicker.value = tempSettings.btnTextColor;
+            applyTempSettings();
+        }
+
+        // ---- открытие настроек ----
+        function openSettings() {
+            // копируем текущие настройки во временные
+            tempSettings = { ...settings };
+            tempBgImage = settings.bgImage;
+            tempBtnImage = settings.btnImage;
+            // установить значения пикеров
+            bgPicker.value = tempSettings.bgColor;
+            textPicker.value = tempSettings.textColor;
+            btnBgPicker.value = tempSettings.btnBgColor;
+            btnTextPicker.value = tempSettings.btnTextColor;
+            applyTempSettings();
+            settingsOverlay.classList.add('open');
+        }
+
+        function closeSettingsFn(apply) {
+            settingsOverlay.classList.remove('open');
+            if (apply) {
+                // сохранить
+                settings = { ...tempSettings };
+                settings.bgImage = tempBgImage;
+                settings.btnImage = tempBtnImage;
+                applyAllSettings();
+                saveState();
+            } else {
+                // откат
+                applyAllSettings();
             }
         }
 
@@ -508,22 +794,19 @@
                                 'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
             monthYearSpan.textContent = monthNames[month] + ' ' + year;
 
-            // заголовки дней недели (по 2 буквы)
             const shortDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
             weekdaysEl.innerHTML = shortDays.map(d => `<div>${d}</div>`).join('');
 
             const firstDay = new Date(year, month, 1);
-            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1; // Пн=0
+            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
             const daysInMonth = new Date(year, month+1, 0).getDate();
 
             let gridHtml = '';
-            // пустые ячейки
             for (let i = 0; i < startDay; i++) {
                 gridHtml += `<div class="day-cell empty"></div>`;
             }
 
             for (let d = 1; d <= daysInMonth; d++) {
-                const dateObj = new Date(year, month, d);
                 const key = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
                 const count = history[key] || 0;
                 const isSelected = (selectedDate === key);
@@ -535,9 +818,8 @@
 
             daysGrid.innerHTML = gridHtml;
 
-            // добавить обработчики на ячейки
             document.querySelectorAll('.day-cell:not(.empty)').forEach(cell => {
-                cell.addEventListener('click', function(e) {
+                cell.addEventListener('click', function() {
                     const dateKey = this.dataset.date;
                     if (dateKey) {
                         selectedDate = dateKey;
@@ -547,13 +829,11 @@
                 });
             });
 
-            // если есть выбранная дата, показать инфо
             if (selectedDate) {
-                const [y,m,d] = selectedDate.split('-').map(Number);
+                const [y,m] = selectedDate.split('-').map(Number);
                 if (y === year && m-1 === month) {
                     showDayInfo(selectedDate);
                 } else {
-                    // выбранная дата не в этом месяце
                     dayInfo.textContent = 'Выберите день';
                 }
             } else {
@@ -571,7 +851,6 @@
             dayInfo.textContent = `${dateStr} (${wd}) — ${count} обнимашек`;
         }
 
-        // переключение месяца
         function changeMonth(delta) {
             currentMonth += delta;
             if (currentMonth < 0) { currentMonth = 11; currentYear--; }
@@ -580,27 +859,13 @@
             renderCalendar(currentYear, currentMonth);
         }
 
-        // ---- overlay logic ----
-        function openSettings() {
-            settingsOverlay.classList.add('open');
-            // установить текущие цвета в пикеры
-            bgPicker.value = bgColor;
-            textPicker.value = textColor;
-        }
-
-        function closeSettingsFn() {
-            settingsOverlay.classList.remove('open');
-        }
-
         function openCalendar() {
             calendarOverlay.classList.add('open');
-            // если нет selected, поставим сегодня
             if (!selectedDate) {
                 const today = new Date();
                 const key = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
                 selectedDate = key;
             }
-            // перейти к году/месяцу выбранной даты
             if (selectedDate) {
                 const [y,m] = selectedDate.split('-').map(Number);
                 currentYear = y;
@@ -612,79 +877,144 @@
             renderCalendar(currentYear, currentMonth);
         }
 
-        function closeCalendarFn() {
-            calendarOverlay.classList.remove('open');
-        }
+        // ---- обработчики ----
+        // обнимашки
+        hugBtn.addEventListener('click', function() {
+            hugCount++;
+            const today = new Date();
+            const key = today.getFullYear() + '-' + 
+                        String(today.getMonth()+1).padStart(2,'0') + '-' + 
+                        String(today.getDate()).padStart(2,'0');
+            history[key] = (history[key] || 0) + 1;
+            updateCounter();
+            saveState();
+            if (calendarOverlay.classList.contains('open') && selectedDate === key) {
+                showDayInfo(key);
+            }
+            if (calendarOverlay.classList.contains('open')) {
+                renderCalendar(currentYear, currentMonth);
+            }
+        });
 
-        // ---- события ----
-        hugBtn.addEventListener('click', handleHug);
-
+        // настройки
         settingsBtn.addEventListener('click', openSettings);
-        closeSettings.addEventListener('click', closeSettingsFn);
+        closeSettings.addEventListener('click', () => closeSettingsFn(false));
+        cancelSettingsBtn.addEventListener('click', () => closeSettingsFn(false));
+        saveSettingsBtn.addEventListener('click', () => closeSettingsFn(true));
+
         settingsOverlay.addEventListener('click', function(e) {
-            if (e.target === this) closeSettingsFn();
+            if (e.target === this) closeSettingsFn(false);
         });
 
-        calendarIcon.addEventListener('click', openCalendar);
-        closeCalendar.addEventListener('click', closeCalendarFn);
-        calendarOverlay.addEventListener('click', function(e) {
-            if (e.target === this) closeCalendarFn();
+        // пикеры -> обновляем temp
+        bgPicker.addEventListener('input', function() {
+            tempSettings.bgColor = this.value;
+            applyTempSettings();
+        });
+        textPicker.addEventListener('input', function() {
+            tempSettings.textColor = this.value;
+            applyTempSettings();
+        });
+        btnBgPicker.addEventListener('input', function() {
+            tempSettings.btnBgColor = this.value;
+            applyTempSettings();
+        });
+        btnTextPicker.addEventListener('input', function() {
+            tempSettings.btnTextColor = this.value;
+            applyTempSettings();
         });
 
-        // настройки цвета
-        bgPicker.addEventListener('input', function(e) {
-            bgColor = this.value;
-            document.body.style.backgroundColor = bgColor;
-            saveState();
+        // сброс цвета
+        resetBg.addEventListener('click', () => {
+            tempSettings.bgColor = '#f7f0fa';
+            bgPicker.value = '#f7f0fa';
+            applyTempSettings();
+        });
+        resetText.addEventListener('click', () => {
+            tempSettings.textColor = '#2d1b3d';
+            textPicker.value = '#2d1b3d';
+            applyTempSettings();
+        });
+        resetBtnBg.addEventListener('click', () => {
+            tempSettings.btnBgColor = '#ffb6c9';
+            btnBgPicker.value = '#ffb6c9';
+            applyTempSettings();
+        });
+        resetBtnText.addEventListener('click', () => {
+            tempSettings.btnTextColor = '#4a2c5a';
+            btnTextPicker.value = '#4a2c5a';
+            applyTempSettings();
         });
 
-        textPicker.addEventListener('input', function(e) {
-            textColor = this.value;
-            applyColors();
-            saveState();
+        // загрузка фото
+        bgImageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    tempBgImage = ev.target.result;
+                    applyTempSettings();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        btnImageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    tempBtnImage = ev.target.result;
+                    applyTempSettings();
+                };
+                reader.readAsDataURL(file);
+            }
         });
 
-        // сброс
-        resetBtn.addEventListener('click', function() {
+        removeBgImage.addEventListener('click', function() {
+            tempBgImage = null;
+            bgImageUpload.value = '';
+            applyTempSettings();
+        });
+        removeBtnImage.addEventListener('click', function() {
+            tempBtnImage = null;
+            btnImageUpload.value = '';
+            applyTempSettings();
+        });
+
+        // сброс счётчика
+        resetCounter.addEventListener('click', function() {
             if (confirm('Сбросить счётчик обнимашек?')) {
                 hugCount = 0;
                 history = {};
                 updateCounter();
                 saveState();
-                // обновить календарь если открыт
                 if (calendarOverlay.classList.contains('open')) {
                     renderCalendar(currentYear, currentMonth);
                 }
-                // сбросить выбор даты
                 selectedDate = null;
                 dayInfo.textContent = 'Выберите день';
             }
         });
 
-        // навигация календаря
+        // календарь
+        calendarIcon.addEventListener('click', openCalendar);
+        closeCalendar.addEventListener('click', () => {
+            calendarOverlay.classList.remove('open');
+        });
+        calendarOverlay.addEventListener('click', function(e) {
+            if (e.target === this) calendarOverlay.classList.remove('open');
+        });
         prevMonthBtn.addEventListener('click', () => changeMonth(-1));
         nextMonthBtn.addEventListener('click', () => changeMonth(1));
 
-        // ---- загрузка ----
+        // ---- инициализация ----
         loadState();
 
-        // если нет истории, инициализируем сегодняшний день
         const today = new Date();
         const defaultKey = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-        if (!history[defaultKey]) {
-            // не добавляем, просто для календаря
-        }
-
-        // дополнительно: если календарь закрыт, сбросить selected?
-        // не сбрасываем, чтобы сохранить.
-
-        // обновить цвета после загрузки
-        applyColors();
-
-        // проставляем начальный выбранный день (сегодня)
         selectedDate = defaultKey;
 
-        console.log('Приложение обнимашек загружено!');
+        applyAllSettings();
     })();
 </script>
 </body>
