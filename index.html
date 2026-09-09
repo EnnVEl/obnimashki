@@ -15,27 +15,30 @@
 
         html, body {
             width: 100%;
-            min-height: 100vh;
-            min-height: 100dvh;
+            height: 100%;
+            height: 100dvh;
             background: #f7f0fa;
             display: flex;
             justify-content: center;
             align-items: center;
             transition: background-color 0.2s;
-            padding: 8px;
+            padding: 0;
             margin: 0;
             overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
 
         #app {
             width: 100%;
             max-width: 420px;
-            height: 100vh;
+            height: 100%;
             height: 100dvh;
             max-height: 780px;
-            background: #ffffff;
-            border-radius: 36px;
-            box-shadow: 0 16px 32px rgba(0,0,0,0.12);
+            background: #f7f0fa;
+            border-radius: 0;
+            box-shadow: none;
             display: flex;
             flex-direction: column;
             position: relative;
@@ -50,20 +53,20 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px 6px;
+            padding: 12px 16px 4px;
             position: relative;
             z-index: 5;
             flex-shrink: 0;
         }
 
         #counter {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 700;
-            color: #2d1b3d;
+            color: #000000;
             letter-spacing: 0.3px;
-            background: rgba(255,255,255,0.6);
-            padding: 3px 14px;
-            border-radius: 32px;
+            background: rgba(255,255,255,0.5);
+            padding: 2px 12px;
+            border-radius: 28px;
             backdrop-filter: blur(4px);
             box-shadow: 0 2px 6px rgba(0,0,0,0.04);
             transition: color 0.2s;
@@ -73,14 +76,14 @@
         }
 
         #settings-btn {
-            font-size: 26px;
+            font-size: 24px;
             background: none;
             border: none;
             cursor: pointer;
             padding: 4px 6px;
-            border-radius: 28px;
+            border-radius: 24px;
             transition: 0.2s;
-            color: #2d1b3d;
+            color: #000000;
             -webkit-tap-highlight-color: transparent;
         }
         #settings-btn:hover {
@@ -99,14 +102,14 @@
 
         #hug-btn {
             aspect-ratio: 1/1;
-            width: min(65%, 240px);
-            max-width: 280px;
+            width: min(60%, 220px);
+            max-width: 260px;
             border-radius: 50%;
             background: #ffb6c9;
             border: none;
-            font-size: clamp(24px, 5vw, 38px);
+            font-size: clamp(22px, 4.5vw, 36px);
             font-weight: 700;
-            color: #4a2c5a;
+            color: #000000;
             box-shadow: 0 10px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.15);
             transition: all 0.08s ease, background-color 0.2s, color 0.2s, background-image 0.3s, box-shadow 0.2s;
             cursor: pointer;
@@ -134,7 +137,7 @@
             text-shadow: 0 2px 8px rgba(0,0,0,0.15);
             transition: opacity 0.3s;
             pointer-events: none;
-            font-size: clamp(20px, 4vw, 32px);
+            font-size: clamp(18px, 3.5vw, 30px);
         }
         #hug-btn.has-image .btn-text {
             opacity: 0.85;
@@ -147,7 +150,7 @@
         #bottom-bar {
             display: flex;
             justify-content: flex-start;
-            padding: 6px 20px 14px;
+            padding: 4px 16px 12px;
             position: relative;
             z-index: 5;
             flex-shrink: 0;
@@ -156,12 +159,12 @@
         #calendar-icon {
             background: none;
             border: none;
-            font-size: 30px;
+            font-size: 28px;
             cursor: pointer;
             padding: 4px 8px;
-            border-radius: 32px;
+            border-radius: 28px;
             transition: 0.2s;
-            color: #2d1b3d;
+            color: #000000;
             -webkit-tap-highlight-color: transparent;
         }
         #calendar-icon:hover {
@@ -181,7 +184,7 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
-            border-radius: 36px;
+            border-radius: 0;
         }
         .overlay.open {
             opacity: 1;
@@ -192,9 +195,9 @@
             background: #ffffff;
             width: 92%;
             max-width: 340px;
-            max-height: 82%;
-            border-radius: 32px;
-            padding: 20px 18px 18px;
+            max-height: 80%;
+            border-radius: 28px;
+            padding: 18px 16px 16px;
             box-shadow: 0 24px 48px rgba(0,0,0,0.25);
             overflow-y: auto;
             transition: transform 0.2s;
@@ -206,8 +209,8 @@
         }
 
         .modal h2 {
-            font-size: 20px;
-            margin-bottom: 14px;
+            font-size: 19px;
+            margin-bottom: 12px;
             font-weight: 600;
             letter-spacing: -0.2px;
             display: flex;
@@ -217,20 +220,20 @@
         .modal h2 button {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 22px;
             cursor: pointer;
             padding: 0 6px;
             color: #4a3a5a;
         }
 
         .setting-group {
-            margin-bottom: 14px;
-            padding-bottom: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
             border-bottom: 1px solid #f0eaf5;
         }
         .setting-group:last-of-type {
             border-bottom: none;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
         .setting-group label {
             display: block;
@@ -247,10 +250,10 @@
             flex-wrap: wrap;
         }
         .color-picker-row input[type="color"] {
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border: 2px solid #ddd;
-            border-radius: 24px;
+            border-radius: 22px;
             padding: 2px;
             background: white;
             cursor: pointer;
@@ -260,36 +263,7 @@
         }
         .color-picker-row input[type="color"]::-webkit-color-swatch {
             border: none;
-            border-radius: 24px;
-        }
-
-        .btn-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 6px;
-            flex-wrap: wrap;
-        }
-        .btn-row button {
-            flex: 1;
-            padding: 8px 10px;
-            border: none;
-            border-radius: 24px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s;
-            background: #f0e6f5;
-            color: #3d2a4a;
-        }
-        .btn-row button:active {
-            background: #dcc8e5;
-        }
-        .btn-row button.primary {
-            background: #c9b0d6;
-            color: #1f0f2a;
-        }
-        .btn-row button.primary:active {
-            background: #b094c2;
+            border-radius: 22px;
         }
 
         .file-upload-wrapper {
@@ -300,10 +274,10 @@
         }
         .file-upload-wrapper label {
             background: #eee8f0;
-            padding: 6px 14px;
-            border-radius: 24px;
+            padding: 5px 12px;
+            border-radius: 20px;
             font-weight: 500;
-            font-size: 13px;
+            font-size: 12px;
             cursor: pointer;
             transition: 0.2s;
             color: #3d2a4a;
@@ -317,7 +291,7 @@
         .file-upload-wrapper .remove-img {
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: 17px;
             cursor: pointer;
             color: #a080b0;
             padding: 2px 6px;
@@ -325,7 +299,7 @@
         .file-upload-wrapper .edit-btn {
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: 17px;
             cursor: pointer;
             color: #6a5a7a;
             padding: 2px 6px;
@@ -336,11 +310,11 @@
         }
 
         .btn-small {
-            padding: 4px 12px;
-            border-radius: 24px;
+            padding: 3px 10px;
+            border-radius: 20px;
             border: none;
             background: #e8def0;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             cursor: pointer;
             color: #2d1b3d;
@@ -352,19 +326,19 @@
         /* Image editor */
         .image-editor {
             margin-top: 6px;
-            padding: 10px;
+            padding: 8px;
             background: #f8f2fc;
-            border-radius: 16px;
+            border-radius: 14px;
             display: none;
         }
         .image-editor.open {
             display: block;
         }
         .image-editor .slider-group {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .image-editor .slider-group label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             display: flex;
             justify-content: space-between;
@@ -375,7 +349,7 @@
             height: 4px;
             -webkit-appearance: none;
             background: #dcc8e5;
-            border-radius: 8px;
+            border-radius: 6px;
             outline: none;
         }
         .image-editor input[type="range"]::-webkit-slider-thumb {
@@ -389,11 +363,11 @@
         .image-editor .preview-container {
             position: relative;
             width: 100%;
-            height: 90px;
-            border-radius: 12px;
+            height: 80px;
+            border-radius: 10px;
             overflow: hidden;
             background: #e8def0;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -407,7 +381,7 @@
         }
         .image-editor .no-image {
             color: #887a98;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         /* ----- calendar grid ----- */
@@ -415,22 +389,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 10px 0 12px;
+            margin: 8px 0 10px;
         }
         .calendar-nav button {
             background: #eee8f0;
             border: none;
-            font-size: 18px;
-            width: 34px;
-            height: 34px;
-            border-radius: 24px;
+            font-size: 17px;
+            width: 32px;
+            height: 32px;
+            border-radius: 20px;
             cursor: pointer;
             font-weight: 600;
             color: #2d1b3d;
         }
         .calendar-nav span {
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .weekdays {
@@ -438,7 +412,7 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 11px;
             color: #5a4a6a;
             margin-bottom: 4px;
         }
@@ -453,8 +427,8 @@
             align-items: center;
             justify-content: center;
             background: #f6f0fa;
-            border-radius: 24px;
-            font-size: 13px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 500;
             cursor: pointer;
             transition: 0.15s;
@@ -472,7 +446,7 @@
             position: absolute;
             bottom: 1px;
             right: 3px;
-            font-size: 10px;
+            font-size: 9px;
             color: #c44a7a;
         }
         .day-cell.selected {
@@ -482,12 +456,12 @@
         }
 
         #day-info {
-            margin-top: 12px;
-            padding: 10px;
+            margin-top: 10px;
+            padding: 8px;
             background: #f3edf7;
-            border-radius: 24px;
+            border-radius: 20px;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #2a1a3a;
         }
@@ -501,19 +475,20 @@
         }
         .modal::-webkit-scrollbar-thumb {
             background: #b8a2c7;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
         .reset-btn {
             width: 100%;
-            padding: 10px;
+            padding: 9px;
             border: none;
-            border-radius: 32px;
+            border-radius: 28px;
             background: #f0e6f5;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             color: #3d2a4a;
+            transition: 0.2s;
         }
         .reset-btn:active {
             background: #dcc8e5;
@@ -522,38 +497,38 @@
         /* Адаптация для маленьких экранов */
         @media (max-height: 700px) {
             #header {
-                padding: 10px 16px 4px;
+                padding: 8px 12px 2px;
             }
             #counter {
-                font-size: 20px;
-                padding: 2px 12px;
+                font-size: 18px;
+                padding: 2px 10px;
             }
             #settings-btn {
-                font-size: 22px;
+                font-size: 20px;
             }
             #hug-btn {
-                width: min(55%, 180px);
+                width: min(50%, 170px);
             }
             #hug-btn .btn-text {
-                font-size: clamp(16px, 3.5vw, 26px);
+                font-size: clamp(14px, 3vw, 22px);
             }
             #bottom-bar {
-                padding: 4px 16px 10px;
+                padding: 2px 12px 8px;
             }
             #calendar-icon {
-                font-size: 24px;
+                font-size: 22px;
             }
             .modal {
-                padding: 14px 14px 14px;
-                max-height: 80%;
+                padding: 12px 12px 12px;
+                max-height: 78%;
             }
             .modal h2 {
-                font-size: 17px;
-                margin-bottom: 10px;
+                font-size: 16px;
+                margin-bottom: 8px;
             }
             .setting-group {
-                margin-bottom: 10px;
-                padding-bottom: 8px;
+                margin-bottom: 8px;
+                padding-bottom: 6px;
             }
             .setting-group label {
                 font-size: 12px;
@@ -562,33 +537,59 @@
 
         @media (max-height: 600px) {
             #hug-btn {
-                width: min(45%, 140px);
+                width: min(40%, 130px);
             }
             #hug-btn .btn-text {
-                font-size: clamp(14px, 3vw, 20px);
+                font-size: clamp(12px, 2.5vw, 18px);
             }
             #header {
-                padding: 6px 12px 2px;
+                padding: 4px 10px 0px;
             }
             #counter {
-                font-size: 16px;
-                padding: 2px 10px;
+                font-size: 15px;
+                padding: 1px 8px;
             }
             #bottom-bar {
-                padding: 2px 12px 6px;
+                padding: 0px 10px 4px;
+            }
+            #settings-btn {
+                font-size: 18px;
+            }
+            #calendar-icon {
+                font-size: 18px;
+            }
+            .modal {
+                padding: 10px 10px 10px;
+                max-height: 75%;
+            }
+            .modal h2 {
+                font-size: 14px;
+                margin-bottom: 6px;
+            }
+            .setting-group {
+                margin-bottom: 6px;
+                padding-bottom: 4px;
+            }
+            .color-picker-row input[type="color"] {
+                width: 30px;
+                height: 30px;
+            }
+            .file-upload-wrapper label {
+                font-size: 11px;
+                padding: 4px 10px;
             }
         }
 
         @media (max-width: 380px) {
-            #app {
-                border-radius: 24px;
-            }
             .modal {
                 width: 95%;
-                padding: 12px 12px 12px;
+                padding: 10px 10px 10px;
             }
             .modal h2 {
-                font-size: 16px;
+                font-size: 15px;
+            }
+            #hug-btn {
+                width: min(50%, 150px);
             }
         }
 
@@ -602,7 +603,7 @@
             justify-content: center;
             align-items: center;
             z-index: 30;
-            border-radius: 36px;
+            border-radius: 0;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
@@ -613,9 +614,9 @@
         }
         .confirm-box {
             background: #ffffff;
-            padding: 24px 28px 20px;
-            border-radius: 28px;
-            max-width: 300px;
+            padding: 20px 24px 18px;
+            border-radius: 24px;
+            max-width: 280px;
             width: 90%;
             text-align: center;
             box-shadow: 0 24px 48px rgba(0,0,0,0.3);
@@ -626,14 +627,14 @@
             transform: scale(1);
         }
         .confirm-box h3 {
-            font-size: 18px;
-            margin-bottom: 8px;
+            font-size: 17px;
+            margin-bottom: 6px;
             color: #2d1b3d;
         }
         .confirm-box p {
-            font-size: 14px;
+            font-size: 13px;
             color: #5a4a6a;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
         .confirm-box .confirm-btns {
             display: flex;
@@ -641,11 +642,11 @@
             justify-content: center;
         }
         .confirm-box .confirm-btns button {
-            padding: 8px 28px;
+            padding: 7px 24px;
             border: none;
-            border-radius: 24px;
+            border-radius: 20px;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             transition: 0.2s;
         }
@@ -731,44 +732,6 @@
                 </div>
             </div>
 
-            <!-- Цвет фона под кнопкой -->
-            <div class="setting-group">
-                <label>Цвет фона под кнопкой</label>
-                <div class="color-picker-row">
-                    <input type="color" id="btn-bg-color-picker" value="#ffffff">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-btn-bg" style="margin-left:auto;">Сбросить</button>
-                </div>
-            </div>
-
-            <!-- Фото на фон под кнопкой -->
-            <div class="setting-group">
-                <label>Фото на фон под кнопкой</label>
-                <div class="file-upload-wrapper">
-                    <label for="btn-bg-image-upload">📁 Загрузить</label>
-                    <input type="file" id="btn-bg-image-upload" accept="image/*">
-                    <button class="edit-btn" id="btn-bg-image-edit" title="Редактировать">✏️</button>
-                    <button class="remove-img" id="remove-btn-bg-image" title="Удалить фото">✕</button>
-                </div>
-                <div class="image-editor" id="btn-bg-image-editor">
-                    <div class="preview-container" id="btn-bg-preview">
-                        <span class="no-image">Нет фото</span>
-                    </div>
-                    <div class="slider-group">
-                        <label>Масштаб <span id="btn-bg-scale-val">100%</span></label>
-                        <input type="range" id="btn-bg-scale" min="50" max="200" value="100">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение X <span id="btn-bg-x-val">0%</span></label>
-                        <input type="range" id="btn-bg-x" min="-50" max="50" value="0">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение Y <span id="btn-bg-y-val">0%</span></label>
-                        <input type="range" id="btn-bg-y" min="-50" max="50" value="0">
-                    </div>
-                </div>
-            </div>
-
             <!-- Цвет самой кнопки -->
             <div class="setting-group">
                 <label>Цвет самой кнопки</label>
@@ -776,16 +739,6 @@
                     <input type="color" id="btn-color-picker" value="#ffb6c9">
                     <span style="font-size:12px; color:#5a4a6a;">выберите</span>
                     <button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button>
-                </div>
-            </div>
-
-            <!-- Цвет текста -->
-            <div class="setting-group">
-                <label>Цвет текста</label>
-                <div class="color-picker-row">
-                    <input type="color" id="text-color-picker" value="#2d1b3d">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button>
                 </div>
             </div>
 
@@ -817,15 +770,19 @@
                 </div>
             </div>
 
-            <!-- Сброс всех настроек -->
-            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
-                <button class="reset-btn" id="reset-all-btn">Сбросить все настройки</button>
+            <!-- Цвет текста -->
+            <div class="setting-group">
+                <label>Цвет текста</label>
+                <div class="color-picker-row">
+                    <input type="color" id="text-color-picker" value="#000000">
+                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
+                    <button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button>
+                </div>
             </div>
 
-            <!-- Кнопки сохранить/отмена -->
-            <div class="btn-row" style="margin-top:12px; border-top:1px solid #f0eaf5; padding-top:12px;">
-                <button id="save-settings" class="primary">Сохранить</button>
-                <button id="cancel-settings">Отмена</button>
+            <!-- Сброс счётчика -->
+            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
+                <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
             </div>
         </div>
     </div>
@@ -852,9 +809,9 @@
     <div class="confirm-overlay" id="confirm-overlay">
         <div class="confirm-box">
             <h3>⚠️ Подтверждение</h3>
-            <p>Вы уверены, что хотите сбросить все настройки и счётчик?</p>
+            <p>Вы уверены, что хотите сбросить счётчик обнимашек?</p>
             <div class="confirm-btns">
-                <button class="confirm-yes" id="confirm-yes">Да, сбросить</button>
+                <button class="confirm-yes" id="confirm-yes">Да</button>
                 <button class="confirm-no" id="confirm-no">Отмена</button>
             </div>
         </div>
@@ -870,24 +827,15 @@
         // настройки по умолчанию
         const defaultSettings = {
             bgColor: '#f7f0fa',
-            textColor: '#2d1b3d',
-            btnBgColor: '#ffffff',
+            textColor: '#000000',
             btnColor: '#ffb6c9',
             bgImage: null,
-            btnBgImage: null,
             btnImage: null,
             bgImageSettings: { scale: 100, x: 0, y: 0 },
-            btnBgImageSettings: { scale: 100, x: 0, y: 0 },
             btnImageSettings: { scale: 100, x: 0, y: 0 },
         };
 
         let settings = { ...defaultSettings };
-
-        // временные
-        let tempSettings = { ...settings };
-        let tempBgImage = null;
-        let tempBtnBgImage = null;
-        let tempBtnImage = null;
 
         // календарь
         let currentYear = 2026;
@@ -909,31 +857,25 @@
         // пикеры
         const bgPicker = document.getElementById('bg-color-picker');
         const textPicker = document.getElementById('text-color-picker');
-        const btnBgPicker = document.getElementById('btn-bg-color-picker');
         const btnColorPicker = document.getElementById('btn-color-picker');
 
         // кнопки сброса
         const resetBg = document.getElementById('reset-bg-color');
         const resetText = document.getElementById('reset-text-color');
-        const resetBtnBg = document.getElementById('reset-btn-bg');
         const resetBtnColor = document.getElementById('reset-btn-color');
 
         // загрузка фото
         const bgImageUpload = document.getElementById('bg-image-upload');
-        const btnBgImageUpload = document.getElementById('btn-bg-image-upload');
         const btnImageUpload = document.getElementById('btn-image-upload');
         const removeBgImage = document.getElementById('remove-bg-image');
-        const removeBtnBgImage = document.getElementById('remove-btn-bg-image');
         const removeBtnImage = document.getElementById('remove-btn-image');
 
         // кнопки редактирования
         const bgImageEdit = document.getElementById('bg-image-edit');
-        const btnBgImageEdit = document.getElementById('btn-bg-image-edit');
         const btnImageEdit = document.getElementById('btn-image-edit');
 
         // редакторы
         const bgImageEditor = document.getElementById('bg-image-editor');
-        const btnBgImageEditor = document.getElementById('btn-bg-image-editor');
         const btnImageEditor = document.getElementById('btn-image-editor');
 
         // слайдеры для фона приложения
@@ -941,19 +883,12 @@
         const bgX = document.getElementById('bg-image-x');
         const bgY = document.getElementById('bg-image-y');
 
-        // слайдеры для фона под кнопкой
-        const btnBgScale = document.getElementById('btn-bg-scale');
-        const btnBgX = document.getElementById('btn-bg-x');
-        const btnBgY = document.getElementById('btn-bg-y');
-
         // слайдеры для кнопки
         const btnImageScale = document.getElementById('btn-image-scale');
         const btnImageX = document.getElementById('btn-image-x');
         const btnImageY = document.getElementById('btn-image-y');
 
-        const resetAllBtn = document.getElementById('reset-all-btn');
-        const saveSettingsBtn = document.getElementById('save-settings');
-        const cancelSettingsBtn = document.getElementById('cancel-settings');
+        const resetCounterBtn = document.getElementById('reset-counter-btn');
 
         // Модальное окно подтверждения
         const confirmOverlay = document.getElementById('confirm-overlay');
@@ -995,17 +930,11 @@
                         settings = { ...defaultSettings, ...data.settings };
                     }
                     if (data.bgImage) settings.bgImage = data.bgImage;
-                    if (data.btnBgImage) settings.btnBgImage = data.btnBgImage;
                     if (data.btnImage) settings.btnImage = data.btnImage;
                     if (data.bgImageSettings) settings.bgImageSettings = data.bgImageSettings;
-                    if (data.btnBgImageSettings) settings.btnBgImageSettings = data.btnBgImageSettings;
                     if (data.btnImageSettings) settings.btnImageSettings = data.btnImageSettings;
                 }
             } catch (e) {}
-            tempSettings = { ...settings };
-            tempBgImage = settings.bgImage;
-            tempBtnBgImage = settings.btnBgImage;
-            tempBtnImage = settings.btnImage;
             applyAllSettings();
             updateCounter();
         }
@@ -1017,10 +946,8 @@
                     history: history,
                     settings: settings,
                     bgImage: settings.bgImage,
-                    btnBgImage: settings.btnBgImage,
                     btnImage: settings.btnImage,
                     bgImageSettings: settings.bgImageSettings,
-                    btnBgImageSettings: settings.btnBgImageSettings,
                     btnImageSettings: settings.btnImageSettings,
                 }));
             } catch (e) {}
@@ -1028,27 +955,16 @@
 
         // ---- применение настроек ----
         function applyAllSettings() {
-            // Внешний фон
-            document.body.style.backgroundColor = settings.bgColor;
+            // Внешний фон (app)
             if (settings.bgImage) {
                 const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                document.body.style.backgroundImage = `url(${settings.bgImage})`;
-                document.body.style.backgroundSize = `${s.scale}%`;
-                document.body.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-            } else {
-                document.body.style.backgroundImage = 'none';
-            }
-
-            // Внутренний фон (app)
-            if (settings.btnBgImage) {
-                const s = settings.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
-                app.style.backgroundImage = `url(${settings.btnBgImage})`;
+                app.style.backgroundImage = `url(${settings.bgImage})`;
                 app.style.backgroundSize = `${s.scale}%`;
                 app.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
                 app.style.backgroundColor = 'transparent';
             } else {
                 app.style.backgroundImage = 'none';
-                app.style.backgroundColor = settings.btnBgColor;
+                app.style.backgroundColor = settings.bgColor;
             }
 
             // Цвет кнопки и тень
@@ -1094,58 +1010,10 @@
             counterEl.innerHTML = `🤗 ${hugCount}`;
         }
 
-        // ---- временные настройки ----
-        function applyTempSettings() {
-            const t = tempSettings;
-            document.body.style.backgroundColor = t.bgColor;
-            if (tempBgImage) {
-                const s = t.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                document.body.style.backgroundImage = `url(${tempBgImage})`;
-                document.body.style.backgroundSize = `${s.scale}%`;
-                document.body.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-            } else {
-                document.body.style.backgroundImage = 'none';
-            }
-
-            if (tempBtnBgImage) {
-                const s = t.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
-                app.style.backgroundImage = `url(${tempBtnBgImage})`;
-                app.style.backgroundSize = `${s.scale}%`;
-                app.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-                app.style.backgroundColor = 'transparent';
-            } else {
-                app.style.backgroundImage = 'none';
-                app.style.backgroundColor = t.btnBgColor;
-            }
-
-            hugBtn.style.backgroundColor = t.btnColor;
-            updateButtonShadow(t.btnColor);
-
-            const color = t.textColor;
-            document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *').forEach(el => {
-                if (el.tagName === 'INPUT' && el.type === 'color') return;
-                if (el.closest('.modal') && !el.closest('.color-picker-row') && !el.closest('.file-upload-wrapper') && !el.closest('.image-editor')) {
-                    el.style.color = color;
-                }
-            });
-            document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
-                .forEach(el => el.style.color = color);
-            document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
-                .forEach(el => el.style.color = color);
-            counterEl.style.color = color;
-            hugBtn.style.color = color;
-            btnText.style.color = color;
-
-            if (tempBtnImage) {
-                const s = t.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                hugBtn.style.backgroundImage = `url(${tempBtnImage})`;
-                hugBtn.style.backgroundSize = `${s.scale}%`;
-                hugBtn.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-                hugBtn.classList.add('has-image');
-            } else {
-                hugBtn.style.backgroundImage = 'none';
-                hugBtn.classList.remove('has-image');
-            }
+        // ---- сохранение при изменениях ----
+        function saveAndApply() {
+            applyAllSettings();
+            saveState();
         }
 
         // ---- отображение редактора ----
@@ -1182,13 +1050,10 @@
                 
                 let scale = 100, x = 0, y = 0;
                 if (editorId === 'bg-image-editor') {
-                    const s = tempSettings.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                    scale = s.scale; x = s.x; y = s.y;
-                } else if (editorId === 'btn-bg-image-editor') {
-                    const s = tempSettings.btnBgImageSettings || { scale: 100, x: 0, y: 0 };
+                    const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
                     scale = s.scale; x = s.x; y = s.y;
                 } else if (editorId === 'btn-image-editor') {
-                    const s = tempSettings.btnImageSettings || { scale: 100, x: 0, y: 0 };
+                    const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
                     scale = s.scale; x = s.x; y = s.y;
                 }
                 img.style.width = `${scale}%`;
@@ -1202,33 +1067,17 @@
 
         // ---- открытие настроек ----
         function openSettings() {
-            tempSettings = { ...settings };
-            tempBgImage = settings.bgImage;
-            tempBtnBgImage = settings.btnBgImage;
-            tempBtnImage = settings.btnImage;
-            bgPicker.value = tempSettings.bgColor;
-            textPicker.value = tempSettings.textColor;
-            btnBgPicker.value = tempSettings.btnBgColor;
-            btnColorPicker.value = tempSettings.btnColor;
+            bgPicker.value = settings.bgColor;
+            textPicker.value = settings.textColor;
+            btnColorPicker.value = settings.btnColor;
             
             document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
             
-            applyTempSettings();
             settingsOverlay.classList.add('open');
         }
 
-        function closeSettingsFn(apply) {
+        function closeSettingsFn() {
             settingsOverlay.classList.remove('open');
-            if (apply) {
-                settings = { ...tempSettings };
-                settings.bgImage = tempBgImage;
-                settings.btnBgImage = tempBtnBgImage;
-                settings.btnImage = tempBtnImage;
-                applyAllSettings();
-                saveState();
-            } else {
-                applyAllSettings();
-            }
         }
 
         // ---- календарь ----
@@ -1339,95 +1188,69 @@
         });
 
         settingsBtn.addEventListener('click', openSettings);
-        closeSettings.addEventListener('click', () => closeSettingsFn(false));
-        cancelSettingsBtn.addEventListener('click', () => closeSettingsFn(false));
-        saveSettingsBtn.addEventListener('click', () => closeSettingsFn(true));
-
+        closeSettings.addEventListener('click', closeSettingsFn);
         settingsOverlay.addEventListener('click', function(e) {
-            if (e.target === this) closeSettingsFn(false);
+            if (e.target === this) closeSettingsFn();
         });
 
-        // пикеры
+        // пикеры - автосохранение
         bgPicker.addEventListener('input', function() {
-            tempSettings.bgColor = this.value;
-            applyTempSettings();
+            settings.bgColor = this.value;
+            saveAndApply();
         });
         textPicker.addEventListener('input', function() {
-            tempSettings.textColor = this.value;
-            applyTempSettings();
-        });
-        btnBgPicker.addEventListener('input', function() {
-            tempSettings.btnBgColor = this.value;
-            applyTempSettings();
+            settings.textColor = this.value;
+            saveAndApply();
         });
         btnColorPicker.addEventListener('input', function() {
-            tempSettings.btnColor = this.value;
-            applyTempSettings();
+            settings.btnColor = this.value;
+            saveAndApply();
         });
 
         // сброс цвета
         resetBg.addEventListener('click', () => {
-            tempSettings.bgColor = '#f7f0fa';
+            settings.bgColor = '#f7f0fa';
             bgPicker.value = '#f7f0fa';
-            applyTempSettings();
+            saveAndApply();
         });
         resetText.addEventListener('click', () => {
-            tempSettings.textColor = '#2d1b3d';
-            textPicker.value = '#2d1b3d';
-            applyTempSettings();
-        });
-        resetBtnBg.addEventListener('click', () => {
-            tempSettings.btnBgColor = '#ffffff';
-            btnBgPicker.value = '#ffffff';
-            applyTempSettings();
+            settings.textColor = '#000000';
+            textPicker.value = '#000000';
+            saveAndApply();
         });
         resetBtnColor.addEventListener('click', () => {
-            tempSettings.btnColor = '#ffb6c9';
+            settings.btnColor = '#ffb6c9';
             btnColorPicker.value = '#ffb6c9';
-            applyTempSettings();
+            saveAndApply();
         });
 
-        // загрузка фото
+        // загрузка фото на фон
         bgImageUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
-                    tempBgImage = ev.target.result;
-                    if (!tempSettings.bgImageSettings) {
-                        tempSettings.bgImageSettings = { scale: 100, x: 0, y: 0 };
+                    settings.bgImage = ev.target.result;
+                    if (!settings.bgImageSettings) {
+                        settings.bgImageSettings = { scale: 100, x: 0, y: 0 };
                     }
-                    applyTempSettings();
+                    saveAndApply();
                 };
                 reader.readAsDataURL(file);
             }
         });
 
-        btnBgImageUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    tempBtnBgImage = ev.target.result;
-                    if (!tempSettings.btnBgImageSettings) {
-                        tempSettings.btnBgImageSettings = { scale: 100, x: 0, y: 0 };
-                    }
-                    applyTempSettings();
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
+        // загрузка фото на кнопку
         btnImageUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(ev) {
-                    tempBtnImage = ev.target.result;
-                    if (!tempSettings.btnImageSettings) {
-                        tempSettings.btnImageSettings = { scale: 100, x: 0, y: 0 };
+                    settings.btnImage = ev.target.result;
+                    if (!settings.btnImageSettings) {
+                        settings.btnImageSettings = { scale: 100, x: 0, y: 0 };
                     }
-                    applyTempSettings();
+                    saveAndApply();
                 };
                 reader.readAsDataURL(file);
             }
@@ -1435,38 +1258,27 @@
 
         // удаление фото
         removeBgImage.addEventListener('click', function() {
-            tempBgImage = null;
+            settings.bgImage = null;
             bgImageUpload.value = '';
             document.getElementById('bg-image-editor').classList.remove('open');
-            applyTempSettings();
-        });
-        removeBtnBgImage.addEventListener('click', function() {
-            tempBtnBgImage = null;
-            btnBgImageUpload.value = '';
-            document.getElementById('btn-bg-image-editor').classList.remove('open');
-            applyTempSettings();
+            saveAndApply();
         });
         removeBtnImage.addEventListener('click', function() {
-            tempBtnImage = null;
+            settings.btnImage = null;
             btnImageUpload.value = '';
             document.getElementById('btn-image-editor').classList.remove('open');
-            applyTempSettings();
+            saveAndApply();
         });
 
         // кнопки редактирования
         bgImageEdit.addEventListener('click', function() {
-            if (tempBgImage) {
-                toggleEditor('bg-image-editor', tempBgImage);
-            }
-        });
-        btnBgImageEdit.addEventListener('click', function() {
-            if (tempBtnBgImage) {
-                toggleEditor('btn-bg-image-editor', tempBtnBgImage);
+            if (settings.bgImage) {
+                toggleEditor('bg-image-editor', settings.bgImage);
             }
         });
         btnImageEdit.addEventListener('click', function() {
-            if (tempBtnImage) {
-                toggleEditor('btn-image-editor', tempBtnImage);
+            if (settings.btnImage) {
+                toggleEditor('btn-image-editor', settings.btnImage);
             }
         });
 
@@ -1477,69 +1289,39 @@
             slider.addEventListener('input', function() {
                 const val = parseInt(this.value);
                 valSpan.textContent = val + '%';
-                if (!tempSettings[settingsKey]) {
-                    tempSettings[settingsKey] = { scale: 100, x: 0, y: 0 };
+                if (!settings[settingsKey]) {
+                    settings[settingsKey] = { scale: 100, x: 0, y: 0 };
                 }
                 const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
-                tempSettings[settingsKey][key] = val;
+                settings[settingsKey][key] = val;
+                saveAndApply();
                 let imageData = null;
-                if (settingsKey === 'bgImageSettings') imageData = tempBgImage;
-                else if (settingsKey === 'btnBgImageSettings') imageData = tempBtnBgImage;
-                else if (settingsKey === 'btnImageSettings') imageData = tempBtnImage;
+                if (settingsKey === 'bgImageSettings') imageData = settings.bgImage;
+                else if (settingsKey === 'btnImageSettings') imageData = settings.btnImage;
                 if (imageData) {
                     updateEditorPreview(editorId, imageData);
                 }
-                applyTempSettings();
             });
         }
 
         setupSlider('bg-image-scale', 'bg-image-scale-val', 'bg-image-editor', 'bgImageSettings');
         setupSlider('bg-image-x', 'bg-image-x-val', 'bg-image-editor', 'bgImageSettings');
         setupSlider('bg-image-y', 'bg-image-y-val', 'bg-image-editor', 'bgImageSettings');
-        setupSlider('btn-bg-scale', 'btn-bg-scale-val', 'btn-bg-image-editor', 'btnBgImageSettings');
-        setupSlider('btn-bg-x', 'btn-bg-x-val', 'btn-bg-image-editor', 'btnBgImageSettings');
-        setupSlider('btn-bg-y', 'btn-bg-y-val', 'btn-bg-image-editor', 'btnBgImageSettings');
         setupSlider('btn-image-scale', 'btn-image-scale-val', 'btn-image-editor', 'btnImageSettings');
         setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
         setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
 
-        // ---- Сброс всех настроек с подтверждением ----
-        resetAllBtn.addEventListener('click', function() {
+        // ---- Сброс счётчика с подтверждением ----
+        resetCounterBtn.addEventListener('click', function() {
             confirmOverlay.classList.add('open');
         });
 
         confirmYes.addEventListener('click', function() {
-            // Сброс счётчика
             hugCount = 0;
             history = {};
             updateCounter();
-            
-            // Сброс настроек
-            settings = { ...defaultSettings };
-            tempSettings = { ...defaultSettings };
-            tempBgImage = null;
-            tempBtnBgImage = null;
-            tempBtnImage = null;
-            
-            // Закрыть все редакторы
-            document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
-            
-            // Обновить пикеры
-            bgPicker.value = defaultSettings.bgColor;
-            textPicker.value = defaultSettings.textColor;
-            btnBgPicker.value = defaultSettings.btnBgColor;
-            btnColorPicker.value = defaultSettings.btnColor;
-            
-            // Очистить загрузчики
-            bgImageUpload.value = '';
-            btnBgImageUpload.value = '';
-            btnImageUpload.value = '';
-            
-            // Применить настройки
-            applyAllSettings();
             saveState();
             
-            // Обновить календарь если открыт
             if (calendarOverlay.classList.contains('open')) {
                 renderCalendar(currentYear, currentMonth);
             }
