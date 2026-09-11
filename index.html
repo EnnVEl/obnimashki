@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Обнимашки</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             margin: 0;
@@ -48,7 +49,6 @@
             background-position: center;
         }
 
-        /* ----- header ----- */
         #header {
             display: flex;
             justify-content: space-between;
@@ -84,13 +84,11 @@
             border-radius: 24px;
             transition: 0.2s;
             color: #000000;
-            -webkit-tap-highlight-color: transparent;
         }
         #settings-btn:hover {
             background: rgba(0,0,0,0.04);
         }
 
-        /* ----- main button container ----- */
         #btn-container {
             flex: 1;
             display: flex;
@@ -119,7 +117,6 @@
             background-size: cover;
             background-position: center;
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
             outline: none;
             display: flex;
             justify-content: center;
@@ -142,11 +139,7 @@
         #hug-btn.has-image .btn-text {
             opacity: 0.85;
         }
-        #hug-btn:focus-visible {
-            outline: none;
-        }
 
-        /* ----- bottom: calendar icon ----- */
         #bottom-bar {
             display: flex;
             justify-content: flex-start;
@@ -165,13 +158,11 @@
             border-radius: 28px;
             transition: 0.2s;
             color: #000000;
-            -webkit-tap-highlight-color: transparent;
         }
         #calendar-icon:hover {
             background: rgba(0,0,0,0.04);
         }
 
-        /* ----- overlay (settings / calendar) ----- */
         .overlay {
             position: absolute;
             inset: 0;
@@ -184,7 +175,6 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
-            border-radius: 0;
         }
         .overlay.open {
             opacity: 1;
@@ -212,7 +202,6 @@
             font-size: 19px;
             margin-bottom: 12px;
             font-weight: 600;
-            letter-spacing: -0.2px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -323,7 +312,6 @@
             background: #d0c0dd;
         }
 
-        /* Image editor */
         .image-editor {
             margin-top: 6px;
             padding: 8px;
@@ -384,7 +372,6 @@
             font-size: 12px;
         }
 
-        /* ----- calendar grid ----- */
         .calendar-nav {
             display: flex;
             justify-content: space-between;
@@ -466,7 +453,6 @@
             color: #2a1a3a;
         }
 
-        /* scroll */
         .modal::-webkit-scrollbar {
             width: 3px;
         }
@@ -494,106 +480,33 @@
             background: #dcc8e5;
         }
 
-        /* Адаптация для маленьких экранов */
         @media (max-height: 700px) {
-            #header {
-                padding: 8px 12px 2px;
-            }
-            #counter {
-                font-size: 18px;
-                padding: 2px 10px;
-            }
-            #settings-btn {
-                font-size: 20px;
-            }
-            #hug-btn {
-                width: min(50%, 170px);
-            }
-            #hug-btn .btn-text {
-                font-size: clamp(14px, 3vw, 22px);
-            }
-            #bottom-bar {
-                padding: 2px 12px 8px;
-            }
-            #calendar-icon {
-                font-size: 22px;
-            }
-            .modal {
-                padding: 12px 12px 12px;
-                max-height: 78%;
-            }
-            .modal h2 {
-                font-size: 16px;
-                margin-bottom: 8px;
-            }
-            .setting-group {
-                margin-bottom: 8px;
-                padding-bottom: 6px;
-            }
-            .setting-group label {
-                font-size: 12px;
-            }
+            #header { padding: 8px 12px 2px; }
+            #counter { font-size: 18px; padding: 2px 10px; }
+            #settings-btn { font-size: 20px; }
+            #hug-btn { width: min(50%, 170px); }
+            #hug-btn .btn-text { font-size: clamp(14px, 3vw, 22px); }
+            #bottom-bar { padding: 2px 12px 8px; }
+            #calendar-icon { font-size: 22px; }
+            .modal { padding: 12px; max-height: 78%; }
+            .modal h2 { font-size: 16px; margin-bottom: 8px; }
+            .setting-group { margin-bottom: 8px; padding-bottom: 6px; }
+            .setting-group label { font-size: 12px; }
         }
 
         @media (max-height: 600px) {
-            #hug-btn {
-                width: min(40%, 130px);
-            }
-            #hug-btn .btn-text {
-                font-size: clamp(12px, 2.5vw, 18px);
-            }
-            #header {
-                padding: 4px 10px 0px;
-            }
-            #counter {
-                font-size: 15px;
-                padding: 1px 8px;
-            }
-            #bottom-bar {
-                padding: 0px 10px 4px;
-            }
-            #settings-btn {
-                font-size: 18px;
-            }
-            #calendar-icon {
-                font-size: 18px;
-            }
-            .modal {
-                padding: 10px 10px 10px;
-                max-height: 75%;
-            }
-            .modal h2 {
-                font-size: 14px;
-                margin-bottom: 6px;
-            }
-            .setting-group {
-                margin-bottom: 6px;
-                padding-bottom: 4px;
-            }
-            .color-picker-row input[type="color"] {
-                width: 30px;
-                height: 30px;
-            }
-            .file-upload-wrapper label {
-                font-size: 11px;
-                padding: 4px 10px;
-            }
+            #hug-btn { width: min(40%, 130px); }
+            #hug-btn .btn-text { font-size: clamp(12px, 2.5vw, 18px); }
+            #header { padding: 4px 10px 0px; }
+            #counter { font-size: 15px; padding: 1px 8px; }
+            #bottom-bar { padding: 0px 10px 4px; }
+            #settings-btn { font-size: 18px; }
+            #calendar-icon { font-size: 18px; }
+            .modal { padding: 10px; max-height: 75%; }
+            .modal h2 { font-size: 14px; margin-bottom: 6px; }
+            .setting-group { margin-bottom: 6px; padding-bottom: 4px; }
         }
 
-        @media (max-width: 380px) {
-            .modal {
-                width: 95%;
-                padding: 10px 10px 10px;
-            }
-            .modal h2 {
-                font-size: 15px;
-            }
-            #hug-btn {
-                width: min(50%, 150px);
-            }
-        }
-
-        /* Модальное окно подтверждения */
         .confirm-overlay {
             position: absolute;
             inset: 0;
@@ -603,7 +516,6 @@
             justify-content: center;
             align-items: center;
             z-index: 30;
-            border-radius: 0;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
@@ -668,33 +580,25 @@
 </head>
 <body>
 <div id="app">
-    <!-- header -->
     <div id="header">
         <span id="counter">🤗 0</span>
         <button id="settings-btn" aria-label="Настройки">⚙️</button>
     </div>
 
-    <!-- главная кнопка -->
     <div id="btn-container">
         <button id="hug-btn">
             <span class="btn-text">обнимашки</span>
         </button>
     </div>
 
-    <!-- нижняя панель -->
     <div id="bottom-bar">
         <button id="calendar-icon" aria-label="Календарь">📅</button>
     </div>
 
-    <!-- overlay настроек -->
     <div id="settings-overlay" class="overlay">
         <div class="modal" id="settings-modal">
-            <h2>
-                Настройки
-                <button id="close-settings">✕</button>
-            </h2>
+            <h2>Настройки <button id="close-settings">✕</button></h2>
             
-            <!-- Цвет фона приложения -->
             <div class="setting-group">
                 <label>Цвет фона приложения</label>
                 <div class="color-picker-row">
@@ -704,7 +608,6 @@
                 </div>
             </div>
 
-            <!-- Фото на фон приложения -->
             <div class="setting-group">
                 <label>Фото на фон приложения</label>
                 <div class="file-upload-wrapper">
@@ -732,7 +635,6 @@
                 </div>
             </div>
 
-            <!-- Цвет самой кнопки -->
             <div class="setting-group">
                 <label>Цвет самой кнопки</label>
                 <div class="color-picker-row">
@@ -742,7 +644,6 @@
                 </div>
             </div>
 
-            <!-- Фото на кнопку -->
             <div class="setting-group">
                 <label>Фото на кнопку</label>
                 <div class="file-upload-wrapper">
@@ -770,7 +671,6 @@
                 </div>
             </div>
 
-            <!-- Цвет текста -->
             <div class="setting-group">
                 <label>Цвет текста</label>
                 <div class="color-picker-row">
@@ -780,20 +680,15 @@
                 </div>
             </div>
 
-            <!-- Сброс счётчика -->
             <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
                 <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
             </div>
         </div>
     </div>
 
-    <!-- overlay календаря -->
     <div id="calendar-overlay" class="overlay">
         <div class="modal" id="calendar-modal">
-            <h2>
-                📅 Календарь
-                <button id="close-calendar">✕</button>
-            </h2>
+            <h2>📅 Календарь <button id="close-calendar">✕</button></h2>
             <div class="calendar-nav">
                 <button id="prev-month">‹</button>
                 <span id="month-year">Январь 2026</span>
@@ -805,7 +700,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно подтверждения сброса -->
     <div class="confirm-overlay" id="confirm-overlay">
         <div class="confirm-box">
             <h3>⚠️ Подтверждение</h3>
@@ -820,11 +714,17 @@
 
 <script>
     (function(){
-        // ---- состояние ----
+        // ---- Проверка доступности Telegram CloudStorage ----
+        const tg = window.Telegram?.WebApp;
+        const hasCloudStorage = !!(tg && tg.CloudStorage);
+
+        // ---- Состояние ----
         let hugCount = 0;
         let history = {};
+        let currentYear = 2026;
+        let currentMonth = 0;
+        let selectedDate = null;
 
-        // настройки по умолчанию
         const defaultSettings = {
             bgColor: '#f7f0fa',
             textColor: '#000000',
@@ -837,125 +737,71 @@
 
         let settings = { ...defaultSettings };
 
-        // календарь
-        let currentYear = 2026;
-        let currentMonth = 0;
-        let selectedDate = null;
+        // ---- Ключи для хранения ----
+        const STORAGE_KEY = 'hugAppData';
 
-        // DOM
-        const app = document.getElementById('app');
-        const hugBtn = document.getElementById('hug-btn');
-        const btnText = hugBtn.querySelector('.btn-text');
-        const counterEl = document.getElementById('counter');
-        const settingsBtn = document.getElementById('settings-btn');
-        const settingsOverlay = document.getElementById('settings-overlay');
-        const closeSettings = document.getElementById('close-settings');
-        const calendarOverlay = document.getElementById('calendar-overlay');
-        const calendarIcon = document.getElementById('calendar-icon');
-        const closeCalendar = document.getElementById('close-calendar');
+        // ---- Сохранение в CloudStorage или localStorage ----
+        function persistData(callback) {
+            const dataToSave = JSON.stringify({
+                count: hugCount,
+                history: history,
+                settings: settings,
+            });
 
-        // пикеры
-        const bgPicker = document.getElementById('bg-color-picker');
-        const textPicker = document.getElementById('text-color-picker');
-        const btnColorPicker = document.getElementById('btn-color-picker');
-
-        // кнопки сброса
-        const resetBg = document.getElementById('reset-bg-color');
-        const resetText = document.getElementById('reset-text-color');
-        const resetBtnColor = document.getElementById('reset-btn-color');
-
-        // загрузка фото
-        const bgImageUpload = document.getElementById('bg-image-upload');
-        const btnImageUpload = document.getElementById('btn-image-upload');
-        const removeBgImage = document.getElementById('remove-bg-image');
-        const removeBtnImage = document.getElementById('remove-btn-image');
-
-        // кнопки редактирования
-        const bgImageEdit = document.getElementById('bg-image-edit');
-        const btnImageEdit = document.getElementById('btn-image-edit');
-
-        // редакторы
-        const bgImageEditor = document.getElementById('bg-image-editor');
-        const btnImageEditor = document.getElementById('btn-image-editor');
-
-        // слайдеры для фона приложения
-        const bgScale = document.getElementById('bg-image-scale');
-        const bgX = document.getElementById('bg-image-x');
-        const bgY = document.getElementById('bg-image-y');
-
-        // слайдеры для кнопки
-        const btnImageScale = document.getElementById('btn-image-scale');
-        const btnImageX = document.getElementById('btn-image-x');
-        const btnImageY = document.getElementById('btn-image-y');
-
-        const resetCounterBtn = document.getElementById('reset-counter-btn');
-
-        // Модальное окно подтверждения
-        const confirmOverlay = document.getElementById('confirm-overlay');
-        const confirmYes = document.getElementById('confirm-yes');
-        const confirmNo = document.getElementById('confirm-no');
-
-        const monthYearSpan = document.getElementById('month-year');
-        const prevMonthBtn = document.getElementById('prev-month');
-        const nextMonthBtn = document.getElementById('next-month');
-        const daysGrid = document.getElementById('days-grid');
-        const weekdaysEl = document.getElementById('weekdays');
-        const dayInfo = document.getElementById('day-info');
-
-        // ---- функции для работы с тенью ----
-        function darkenColor(hex, percent) {
-            let r = parseInt(hex.slice(1,3), 16);
-            let g = parseInt(hex.slice(3,5), 16);
-            let b = parseInt(hex.slice(5,7), 16);
-            r = Math.max(0, r - (r * percent / 100));
-            g = Math.max(0, g - (g * percent / 100));
-            b = Math.max(0, b - (b * percent / 100));
-            return `#${Math.round(r).toString(16).padStart(2,'0')}${Math.round(g).toString(16).padStart(2,'0')}${Math.round(b).toString(16).padStart(2,'0')}`;
+            if (hasCloudStorage) {
+                tg.CloudStorage.setItem(STORAGE_KEY, dataToSave, (err, success) => {
+                    if (err) console.warn('CloudStorage save error:', err);
+                    if (callback) callback();
+                });
+            } else {
+                try {
+                    localStorage.setItem(STORAGE_KEY, dataToSave);
+                } catch (e) {}
+                if (callback) callback();
+            }
         }
 
-        function updateButtonShadow(color) {
-            const dark = darkenColor(color, 35);
-            hugBtn.style.boxShadow = `0 10px 0 ${dark}, 0 10px 20px rgba(0,0,0,0.15)`;
+        // ---- Загрузка из CloudStorage или localStorage ----
+        function loadData(callback) {
+            if (hasCloudStorage) {
+                tg.CloudStorage.getItem(STORAGE_KEY, (err, value) => {
+                    if (err || !value) {
+                        // Данных нет — пробуем localStorage как fallback
+                        tryLoadFromLocal(callback);
+                    } else {
+                        try {
+                            const data = JSON.parse(value);
+                            applyLoadedData(data);
+                        } catch (e) {}
+                        if (callback) callback();
+                    }
+                });
+            } else {
+                tryLoadFromLocal(callback);
+            }
         }
 
-        // ---- загрузка/сохранение ----
-        function loadState() {
+        function tryLoadFromLocal(callback) {
             try {
-                const saved = localStorage.getItem('hugAppData');
+                const saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) {
                     const data = JSON.parse(saved);
-                    if (data.count !== undefined) hugCount = data.count;
-                    if (data.history) history = data.history;
-                    if (data.settings) {
-                        settings = { ...defaultSettings, ...data.settings };
-                    }
-                    if (data.bgImage) settings.bgImage = data.bgImage;
-                    if (data.btnImage) settings.btnImage = data.btnImage;
-                    if (data.bgImageSettings) settings.bgImageSettings = data.bgImageSettings;
-                    if (data.btnImageSettings) settings.btnImageSettings = data.btnImageSettings;
+                    applyLoadedData(data);
                 }
             } catch (e) {}
-            applyAllSettings();
-            updateCounter();
+            if (callback) callback();
         }
 
-        function saveState() {
-            try {
-                localStorage.setItem('hugAppData', JSON.stringify({
-                    count: hugCount,
-                    history: history,
-                    settings: settings,
-                    bgImage: settings.bgImage,
-                    btnImage: settings.btnImage,
-                    bgImageSettings: settings.bgImageSettings,
-                    btnImageSettings: settings.btnImageSettings,
-                }));
-            } catch (e) {}
+        function applyLoadedData(data) {
+            if (data.count !== undefined) hugCount = data.count;
+            if (data.history) history = data.history;
+            if (data.settings) {
+                settings = { ...defaultSettings, ...data.settings };
+            }
         }
 
-        // ---- применение настроек ----
+        // ---- Применение настроек ----
         function applyAllSettings() {
-            // Внешний фон (app)
             if (settings.bgImage) {
                 const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
                 app.style.backgroundImage = `url(${settings.bgImage})`;
@@ -967,14 +813,12 @@
                 app.style.backgroundColor = settings.bgColor;
             }
 
-            // Цвет кнопки и тень
             hugBtn.style.backgroundColor = settings.btnColor;
-            updateButtonShadow(settings.btnColor);
+            const dark = darkenColor(settings.btnColor, 35);
+            hugBtn.style.boxShadow = `0 10px 0 ${dark}, 0 10px 20px rgba(0,0,0,0.15)`;
 
-            // Цвет текста
             applyTextColor(settings.textColor);
 
-            // Фото на кнопку
             if (settings.btnImage) {
                 const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
                 hugBtn.style.backgroundImage = `url(${settings.btnImage})`;
@@ -990,8 +834,7 @@
         }
 
         function applyTextColor(color) {
-            const elements = document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *');
-            elements.forEach(el => {
+            document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *').forEach(el => {
                 if (el.tagName === 'INPUT' && el.type === 'color') return;
                 if (el.closest('.modal') && !el.closest('.color-picker-row') && !el.closest('.file-upload-wrapper') && !el.closest('.image-editor')) {
                     el.style.color = color;
@@ -1010,17 +853,66 @@
             counterEl.innerHTML = `🤗 ${hugCount}`;
         }
 
-        // ---- сохранение при изменениях ----
-        function saveAndApply() {
-            applyAllSettings();
-            saveState();
+        function darkenColor(hex, percent) {
+            let r = parseInt(hex.slice(1,3), 16);
+            let g = parseInt(hex.slice(3,5), 16);
+            let b = parseInt(hex.slice(5,7), 16);
+            r = Math.max(0, r - (r * percent / 100));
+            g = Math.max(0, g - (g * percent / 100));
+            b = Math.max(0, b - (b * percent / 100));
+            return `#${Math.round(r).toString(16).padStart(2,'0')}${Math.round(g).toString(16).padStart(2,'0')}${Math.round(b).toString(16).padStart(2,'0')}`;
         }
 
-        // ---- отображение редактора ----
+        // ---- Сохранить и применить ----
+        function saveAndApply() {
+            applyAllSettings();
+            persistData();
+        }
+
+        // ---- DOM ----
+        const app = document.getElementById('app');
+        const hugBtn = document.getElementById('hug-btn');
+        const btnText = hugBtn.querySelector('.btn-text');
+        const counterEl = document.getElementById('counter');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsOverlay = document.getElementById('settings-overlay');
+        const closeSettings = document.getElementById('close-settings');
+        const calendarOverlay = document.getElementById('calendar-overlay');
+        const calendarIcon = document.getElementById('calendar-icon');
+        const closeCalendar = document.getElementById('close-calendar');
+
+        const bgPicker = document.getElementById('bg-color-picker');
+        const textPicker = document.getElementById('text-color-picker');
+        const btnColorPicker = document.getElementById('btn-color-picker');
+
+        const resetBg = document.getElementById('reset-bg-color');
+        const resetText = document.getElementById('reset-text-color');
+        const resetBtnColor = document.getElementById('reset-btn-color');
+
+        const bgImageUpload = document.getElementById('bg-image-upload');
+        const btnImageUpload = document.getElementById('btn-image-upload');
+        const removeBgImage = document.getElementById('remove-bg-image');
+        const removeBtnImage = document.getElementById('remove-btn-image');
+
+        const bgImageEdit = document.getElementById('bg-image-edit');
+        const btnImageEdit = document.getElementById('btn-image-edit');
+
+        const resetCounterBtn = document.getElementById('reset-counter-btn');
+        const confirmOverlay = document.getElementById('confirm-overlay');
+        const confirmYes = document.getElementById('confirm-yes');
+        const confirmNo = document.getElementById('confirm-no');
+
+        const monthYearSpan = document.getElementById('month-year');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const daysGrid = document.getElementById('days-grid');
+        const weekdaysEl = document.getElementById('weekdays');
+        const dayInfo = document.getElementById('day-info');
+
+        // ---- Редактор изображений ----
         function toggleEditor(editorId, imageData) {
             const editor = document.getElementById(editorId);
             const isOpen = editor.classList.contains('open');
-            
             if (imageData) {
                 if (isOpen) {
                     editor.classList.remove('open');
@@ -1065,22 +957,7 @@
             }
         }
 
-        // ---- открытие настроек ----
-        function openSettings() {
-            bgPicker.value = settings.bgColor;
-            textPicker.value = settings.textColor;
-            btnColorPicker.value = settings.btnColor;
-            
-            document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
-            
-            settingsOverlay.classList.add('open');
-        }
-
-        function closeSettingsFn() {
-            settingsOverlay.classList.remove('open');
-        }
-
-        // ---- календарь ----
+        // ---- Календарь ----
         function renderCalendar(year, month) {
             const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь',
                                 'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -1151,25 +1028,7 @@
             renderCalendar(currentYear, currentMonth);
         }
 
-        function openCalendar() {
-            calendarOverlay.classList.add('open');
-            if (!selectedDate) {
-                const today = new Date();
-                const key = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-                selectedDate = key;
-            }
-            if (selectedDate) {
-                const [y,m] = selectedDate.split('-').map(Number);
-                currentYear = y;
-                currentMonth = m-1;
-            } else {
-                currentYear = 2026;
-                currentMonth = 0;
-            }
-            renderCalendar(currentYear, currentMonth);
-        }
-
-        // ---- обработчики ----
+        // ---- Обработчики ----
         hugBtn.addEventListener('click', function() {
             hugCount++;
             const today = new Date();
@@ -1178,7 +1037,7 @@
                         String(today.getDate()).padStart(2,'0');
             history[key] = (history[key] || 0) + 1;
             updateCounter();
-            saveState();
+            persistData();
             if (calendarOverlay.classList.contains('open') && selectedDate === key) {
                 showDayInfo(key);
             }
@@ -1187,13 +1046,20 @@
             }
         });
 
-        settingsBtn.addEventListener('click', openSettings);
-        closeSettings.addEventListener('click', closeSettingsFn);
-        settingsOverlay.addEventListener('click', function(e) {
-            if (e.target === this) closeSettingsFn();
+        settingsBtn.addEventListener('click', function() {
+            bgPicker.value = settings.bgColor;
+            textPicker.value = settings.textColor;
+            btnColorPicker.value = settings.btnColor;
+            document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
+            settingsOverlay.classList.add('open');
         });
 
-        // пикеры - автосохранение
+        closeSettings.addEventListener('click', () => settingsOverlay.classList.remove('open'));
+        settingsOverlay.addEventListener('click', function(e) {
+            if (e.target === this) settingsOverlay.classList.remove('open');
+        });
+
+        // Пикеры
         bgPicker.addEventListener('input', function() {
             settings.bgColor = this.value;
             saveAndApply();
@@ -1207,7 +1073,7 @@
             saveAndApply();
         });
 
-        // сброс цвета
+        // Сброс цветов
         resetBg.addEventListener('click', () => {
             settings.bgColor = '#f7f0fa';
             bgPicker.value = '#f7f0fa';
@@ -1224,7 +1090,7 @@
             saveAndApply();
         });
 
-        // загрузка фото на фон
+        // Загрузка фото
         bgImageUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -1240,7 +1106,6 @@
             }
         });
 
-        // загрузка фото на кнопку
         btnImageUpload.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -1256,7 +1121,7 @@
             }
         });
 
-        // удаление фото
+        // Удаление фото
         removeBgImage.addEventListener('click', function() {
             settings.bgImage = null;
             bgImageUpload.value = '';
@@ -1270,19 +1135,15 @@
             saveAndApply();
         });
 
-        // кнопки редактирования
+        // Кнопки редактирования
         bgImageEdit.addEventListener('click', function() {
-            if (settings.bgImage) {
-                toggleEditor('bg-image-editor', settings.bgImage);
-            }
+            if (settings.bgImage) toggleEditor('bg-image-editor', settings.bgImage);
         });
         btnImageEdit.addEventListener('click', function() {
-            if (settings.btnImage) {
-                toggleEditor('btn-image-editor', settings.btnImage);
-            }
+            if (settings.btnImage) toggleEditor('btn-image-editor', settings.btnImage);
         });
 
-        // настройка слайдеров
+        // Слайдеры
         function setupSlider(sliderId, valId, editorId, settingsKey) {
             const slider = document.getElementById(sliderId);
             const valSpan = document.getElementById(valId);
@@ -1298,9 +1159,7 @@
                 let imageData = null;
                 if (settingsKey === 'bgImageSettings') imageData = settings.bgImage;
                 else if (settingsKey === 'btnImageSettings') imageData = settings.btnImage;
-                if (imageData) {
-                    updateEditorPreview(editorId, imageData);
-                }
+                if (imageData) updateEditorPreview(editorId, imageData);
             });
         }
 
@@ -1311,54 +1170,48 @@
         setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
         setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
 
-        // ---- Сброс счётчика с подтверждением ----
-        resetCounterBtn.addEventListener('click', function() {
-            confirmOverlay.classList.add('open');
-        });
-
+        // Сброс счётчика
+        resetCounterBtn.addEventListener('click', () => confirmOverlay.classList.add('open'));
         confirmYes.addEventListener('click', function() {
             hugCount = 0;
             history = {};
             updateCounter();
-            saveState();
-            
-            if (calendarOverlay.classList.contains('open')) {
-                renderCalendar(currentYear, currentMonth);
-            }
+            persistData();
+            if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             selectedDate = null;
             dayInfo.textContent = 'Выберите день';
-            
             confirmOverlay.classList.remove('open');
         });
-
-        confirmNo.addEventListener('click', function() {
-            confirmOverlay.classList.remove('open');
-        });
-
+        confirmNo.addEventListener('click', () => confirmOverlay.classList.remove('open'));
         confirmOverlay.addEventListener('click', function(e) {
-            if (e.target === this) {
-                confirmOverlay.classList.remove('open');
-            }
+            if (e.target === this) confirmOverlay.classList.remove('open');
         });
 
-        calendarIcon.addEventListener('click', openCalendar);
-        closeCalendar.addEventListener('click', () => {
-            calendarOverlay.classList.remove('open');
+        // Календарь
+        calendarIcon.addEventListener('click', function() {
+            calendarOverlay.classList.add('open');
+            if (!selectedDate) {
+                const today = new Date();
+                selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+            }
+            const [y,m] = selectedDate.split('-').map(Number);
+            currentYear = y;
+            currentMonth = m-1;
+            renderCalendar(currentYear, currentMonth);
         });
+        closeCalendar.addEventListener('click', () => calendarOverlay.classList.remove('open'));
         calendarOverlay.addEventListener('click', function(e) {
             if (e.target === this) calendarOverlay.classList.remove('open');
         });
         prevMonthBtn.addEventListener('click', () => changeMonth(-1));
         nextMonthBtn.addEventListener('click', () => changeMonth(1));
 
-        // ---- инициализация ----
-        loadState();
-
-        const today = new Date();
-        const defaultKey = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-        selectedDate = defaultKey;
-
-        applyAllSettings();
+        // ---- Инициализация ----
+        loadData(function() {
+            applyAllSettings();
+            const today = new Date();
+            selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+        });
     })();
 </script>
 </body>
