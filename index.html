@@ -2,1217 +2,1719 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Обнимашки</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SunnyGame · Баланс и перерождение</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            height: 100dvh;
-            background: #f7f0fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.2s;
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-
-        #app {
-            width: 100%;
-            max-width: 420px;
-            height: 100%;
-            height: 100dvh;
-            max-height: 780px;
-            background: #f7f0fa;
-            border-radius: 0;
-            box-shadow: none;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            transition: background-color 0.2s, background-image 0.3s;
-            background-size: cover;
-            background-position: center;
-        }
-
-        #header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px 4px;
-            position: relative;
-            z-index: 5;
-            flex-shrink: 0;
-        }
-
-        #counter {
-            font-size: 22px;
-            font-weight: 700;
-            color: #000000;
-            letter-spacing: 0.3px;
-            background: rgba(255,255,255,0.5);
-            padding: 2px 12px;
-            border-radius: 28px;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            transition: color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        #settings-btn {
-            font-size: 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 24px;
-            transition: 0.2s;
-            color: #000000;
-        }
-        #settings-btn:hover {
-            background: rgba(0,0,0,0.04);
-        }
-
-        #btn-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px 16px;
-            min-height: 0;
-        }
-
-        #hug-btn {
-            aspect-ratio: 1/1;
-            width: min(60%, 220px);
-            max-width: 260px;
-            border-radius: 50%;
-            background: #ffb6c9;
-            border: none;
-            font-size: clamp(22px, 4.5vw, 36px);
-            font-weight: 700;
-            color: #000000;
-            box-shadow: 0 10px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.15);
-            transition: all 0.08s ease, background-color 0.2s, color 0.2s, background-image 0.3s, box-shadow 0.2s;
-            cursor: pointer;
-            text-shadow: 0 2px 4px rgba(255,255,255,0.3);
-            touch-action: manipulation;
-            position: relative;
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-            outline: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto;
-            flex-shrink: 0;
-        }
-        #hug-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 4px 0 #d48a9e, 0 8px 16px rgba(0,0,0,0.12);
-        }
-        #hug-btn .btn-text {
-            position: relative;
-            z-index: 2;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: opacity 0.3s;
-            pointer-events: none;
-            font-size: clamp(18px, 3.5vw, 30px);
-        }
-        #hug-btn.has-image .btn-text {
-            opacity: 0.85;
-        }
-
-        #bottom-bar {
-            display: flex;
-            justify-content: flex-start;
-            padding: 4px 16px 12px;
-            position: relative;
-            z-index: 5;
-            flex-shrink: 0;
-        }
-
-        #calendar-icon {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 28px;
-            transition: 0.2s;
-            color: #000000;
-        }
-        #calendar-icon:hover {
-            background: rgba(0,0,0,0.04);
-        }
-
-        .overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.15);
-            backdrop-filter: blur(3px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-        .overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal {
-            background: #ffffff;
-            width: 92%;
-            max-width: 340px;
-            max-height: 80%;
-            border-radius: 28px;
-            padding: 18px 16px 16px;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.25);
-            overflow-y: auto;
-            transition: transform 0.2s;
-            transform: scale(0.95);
-            color: #1f1a2b;
-        }
-        .overlay.open .modal {
-            transform: scale(1);
-        }
-
-        .modal h2 {
-            font-size: 19px;
-            margin-bottom: 12px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal h2 button {
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
-            padding: 0 6px;
-            color: #4a3a5a;
-        }
-
-        .setting-group {
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f0eaf5;
-        }
-        .setting-group:last-of-type {
-            border-bottom: none;
-            margin-bottom: 4px;
-        }
-        .setting-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 4px;
-            font-size: 13px;
-            color: #3a2a4a;
-        }
-
-        .color-picker-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .color-picker-row input[type="color"] {
-            width: 36px;
-            height: 36px;
-            border: 2px solid #ddd;
-            border-radius: 22px;
-            padding: 2px;
-            background: white;
-            cursor: pointer;
-        }
-        .color-picker-row input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-        .color-picker-row input[type="color"]::-webkit-color-swatch {
-            border: none;
-            border-radius: 22px;
-        }
-
-        .file-upload-wrapper {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .file-upload-wrapper label {
-            background: #eee8f0;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            color: #3d2a4a;
-        }
-        .file-upload-wrapper label:active {
-            background: #dcc8e5;
-        }
-        .file-upload-wrapper input[type="file"] {
-            display: none;
-        }
-        .file-upload-wrapper .remove-img {
-            background: none;
-            border: none;
-            font-size: 17px;
-            cursor: pointer;
-            color: #a080b0;
-            padding: 2px 6px;
-        }
-        .file-upload-wrapper .edit-btn {
-            background: none;
-            border: none;
-            font-size: 17px;
-            cursor: pointer;
-            color: #6a5a7a;
-            padding: 2px 6px;
-            transition: 0.2s;
-        }
-        .file-upload-wrapper .edit-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .btn-small {
-            padding: 3px 10px;
-            border-radius: 20px;
-            border: none;
-            background: #e8def0;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            color: #2d1b3d;
-        }
-        .btn-small:active {
-            background: #d0c0dd;
-        }
-
-        .image-editor {
-            margin-top: 6px;
-            padding: 8px;
-            background: #f8f2fc;
-            border-radius: 14px;
-            display: none;
-        }
-        .image-editor.open {
-            display: block;
-        }
-        .image-editor .slider-group {
-            margin-bottom: 6px;
-        }
-        .image-editor .slider-group label {
-            font-size: 11px;
-            font-weight: 500;
-            display: flex;
-            justify-content: space-between;
-            color: #3a2a4a;
-        }
-        .image-editor input[type="range"] {
-            width: 100%;
-            height: 4px;
-            -webkit-appearance: none;
-            background: #dcc8e5;
-            border-radius: 6px;
-            outline: none;
-        }
-        .image-editor input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #b094c2;
-            cursor: pointer;
-        }
-        .image-editor .preview-container {
-            position: relative;
-            width: 100%;
-            height: 80px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #e8def0;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .image-editor .preview-container img {
-            position: absolute;
-            object-fit: cover;
-            transition: all 0.1s;
-            max-width: none;
-            max-height: none;
-        }
-        .image-editor .no-image {
-            color: #887a98;
-            font-size: 12px;
-        }
-
-        .calendar-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 8px 0 10px;
-        }
-        .calendar-nav button {
-            background: #eee8f0;
-            border: none;
-            font-size: 17px;
-            width: 32px;
-            height: 32px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #2d1b3d;
-        }
-        .calendar-nav span {
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-weight: 600;
-            font-size: 11px;
-            color: #5a4a6a;
-            margin-bottom: 4px;
-        }
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
-        }
-        .day-cell {
-            aspect-ratio: 1/1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f6f0fa;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.15s;
-            color: #1f1a2b;
-            position: relative;
-        }
-        .day-cell.empty {
-            background: transparent;
-            pointer-events: none;
-        }
-        .day-cell:active {
-            background: #dcc8e5;
-        }
-        .day-cell .hug-indicator {
-            position: absolute;
-            bottom: 1px;
-            right: 3px;
-            font-size: 9px;
-            color: #c44a7a;
-        }
-        .day-cell.selected {
-            background: #d4b0d9;
-            color: #1e0f2a;
-            font-weight: 600;
-        }
-
-        #day-info {
-            margin-top: 10px;
-            padding: 8px;
-            background: #f3edf7;
-            border-radius: 20px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 500;
-            color: #2a1a3a;
-        }
-
-        .modal::-webkit-scrollbar {
-            width: 3px;
-        }
-        .modal::-webkit-scrollbar-track {
-            background: #ece4f0;
-        }
-        .modal::-webkit-scrollbar-thumb {
-            background: #b8a2c7;
-            border-radius: 6px;
-        }
-
-        .reset-btn {
-            width: 100%;
-            padding: 9px;
-            border: none;
-            border-radius: 28px;
-            background: #f0e6f5;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            color: #3d2a4a;
-            transition: 0.2s;
-        }
-        .reset-btn:active {
-            background: #dcc8e5;
-        }
-
-        @media (max-height: 700px) {
-            #header { padding: 8px 12px 2px; }
-            #counter { font-size: 18px; padding: 2px 10px; }
-            #settings-btn { font-size: 20px; }
-            #hug-btn { width: min(50%, 170px); }
-            #hug-btn .btn-text { font-size: clamp(14px, 3vw, 22px); }
-            #bottom-bar { padding: 2px 12px 8px; }
-            #calendar-icon { font-size: 22px; }
-            .modal { padding: 12px; max-height: 78%; }
-            .modal h2 { font-size: 16px; margin-bottom: 8px; }
-            .setting-group { margin-bottom: 8px; padding-bottom: 6px; }
-            .setting-group label { font-size: 12px; }
-        }
-
-        @media (max-height: 600px) {
-            #hug-btn { width: min(40%, 130px); }
-            #hug-btn .btn-text { font-size: clamp(12px, 2.5vw, 18px); }
-            #header { padding: 4px 10px 0px; }
-            #counter { font-size: 15px; padding: 1px 8px; }
-            #bottom-bar { padding: 0px 10px 4px; }
-            #settings-btn { font-size: 18px; }
-            #calendar-icon { font-size: 18px; }
-            .modal { padding: 10px; max-height: 75%; }
-            .modal h2 { font-size: 14px; margin-bottom: 6px; }
-            .setting-group { margin-bottom: 6px; padding-bottom: 4px; }
-        }
-
-        .confirm-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 30;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-        .confirm-overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .confirm-box {
-            background: #ffffff;
-            padding: 20px 24px 18px;
-            border-radius: 24px;
-            max-width: 280px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.3);
-            transform: scale(0.95);
-            transition: transform 0.2s;
-        }
-        .confirm-overlay.open .confirm-box {
-            transform: scale(1);
-        }
-        .confirm-box h3 {
-            font-size: 17px;
-            margin-bottom: 6px;
-            color: #2d1b3d;
-        }
-        .confirm-box p {
-            font-size: 13px;
-            color: #5a4a6a;
-            margin-bottom: 16px;
-        }
-        .confirm-box .confirm-btns {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        .confirm-box .confirm-btns button {
-            padding: 7px 24px;
-            border: none;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .confirm-box .confirm-btns .confirm-yes {
-            background: #d48a9e;
-            color: white;
-        }
-        .confirm-box .confirm-btns .confirm-yes:active {
-            background: #c07a8e;
-        }
-        .confirm-box .confirm-btns .confirm-no {
-            background: #f0e6f5;
-            color: #3d2a4a;
-        }
-        .confirm-box .confirm-btns .confirm-no:active {
-            background: #dcc8e5;
-        }
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', Arial, system-ui; margin: 0; padding: 12px; min-height: 100vh; transition: background 0.4s ease, color 0.3s ease; background: #000000; color: #ffffff; }
+        body.bg-white { background: #ffffff; color: #ffffff; }
+        body.bg-red { background: #ff0000; color: #ffb3b3; }
+        body.bg-orange { background: #ff8800; color: #ffddb3; }
+        body.bg-yellow { background: #ffdd00; color: #ffffcc; }
+        body.bg-green { background: #33cc33; color: #b3ffb3; }
+        body.bg-cyan { background: #00cccc; color: #b3ffff; }
+        body.bg-blue { background: #3399ff; color: #b3d9ff; }
+        body.bg-purple { background: #9933ff; color: #d9b3ff; }
+        body.bg-black { background: #000000; color: #ffffff; }
+        body.bg-stars { background: linear-gradient(135deg, #0a0f2a, #010108), radial-gradient(circle at 20% 30%, white 1px, transparent 1px); background-size: auto, 35px 35px; background-blend-mode: overlay; color: #cceeff; }
+        body.bg-fire { background: linear-gradient(45deg, #ff0000, #ff8800, #ffff00); color: #ffffcc; }
+        body.bg-forest { background: linear-gradient(135deg, #228833, #0a3a0a); color: #b3ffb3; }
+        body.bg-castle { background: linear-gradient(145deg, #5a5a6e, #2a2a3a); color: #ddddee; }
+        body.bg-volcano { background: linear-gradient(145deg, #ff3300, #330000), repeating-linear-gradient(45deg, #ff660020 0px, #ff660020 5px, #cc330020 5px, #cc330020 10px); background-blend-mode: overlay; position: relative; color: #ffb3b3; }
+        body.bg-volcano::after { content: "💥🌋💥"; position: absolute; bottom: 20px; right: 20px; font-size: 45px; opacity: 0.4; pointer-events: none; }
+        body.bg-ice { background: repeating-linear-gradient(45deg, #44aacc, #88ddff 30px, #ffffff 60px); color: #ddeeff; }
+        body.bg-dark { background: linear-gradient(145deg, #111122, #330066, #6600cc); color: #ccbbff; }
+        body.bg-ocean { background: linear-gradient(0deg, #003366, #0066aa, #3399cc), repeating-linear-gradient(90deg, #ffffff20 0px, #ffffff20 2px, transparent 2px, transparent 40px); background-blend-mode: overlay; position: relative; color: #bbddff; }
+        body.bg-ocean::after { content: "🌊🌊🌊"; position: absolute; bottom: 15px; left: 0; right: 0; text-align: center; font-size: 35px; opacity: 0.5; pointer-events: none; }
+        body.bg-desert { background: linear-gradient(180deg, #87CEEB 0%, #f4a460 50%, #ccaa44 100%); position: relative; color: #ffffcc; }
+        body.bg-desert::after { content: "🏜️🏜️🏜️\n▲\n▲"; position: absolute; bottom: 20px; left: 0; right: 0; text-align: center; font-size: 35px; opacity: 0.6; pointer-events: none; white-space: pre; line-height: 1; font-weight: bold; color: #eebb55; text-shadow: 2px 2px 0 #8B5A2B; }
+        body.bg-sunset { background: linear-gradient(135deg, #6a0dad 0%, #ff4500 50%, #1a0a0a 100%); background-attachment: fixed; color: #d9b3ff; }
+        body.bg-meadow { background: linear-gradient(180deg, #87CEEB 0%, #87CEEB 50%, #228B22 100%); background-attachment: fixed; position: relative; color: #ddeeff; }
+        body.bg-meadow::before { content: "☁️☁️☁️"; position: absolute; top: 10px; left: 0; right: 0; text-align: center; font-size: 60px; opacity: 0.5; pointer-events: none; white-space: nowrap; }
+        .game-container { max-width: 600px; margin: 0 auto; background: rgba(0, 0, 0, 0.3); border-radius: 28px; padding: 10px 12px 16px; position: relative; }
+        body.bg-white .game-container { background: rgba(0, 0, 0, 0.1); }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px; background: rgba(0, 0, 0, 0.3); padding: 6px 12px; border-radius: 40px; gap: 8px; }
+        .resources { display: flex; gap: 12px; background: rgba(0, 0, 0, 0.3); padding: 4px 12px; border-radius: 30px; align-items: center; }
+        .res-item { font-weight: bold; font-size: 18px; display: flex; align-items: center; gap: 4px; }
+        .title { font-size: 20px; letter-spacing: 1px; }
+        .main-row { display: flex; flex-direction: column; gap: 12px; }
+        .craft-col { width: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); border-radius: 28px; padding: 10px; }
+        body.bg-white .craft-col { background: rgba(0, 0, 0, 0.1); }
+        .bonus-panel { background: rgba(0, 0, 0, 0.3); border-radius: 28px; padding: 8px 12px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+        .bonus-btn { background: #f5b642; color: #2b381c; padding: 5px 12px; font-size: 12px; border: none; }
+        .promo-group { display: flex; gap: 6px; align-items: center; background: rgba(0, 0, 0, 0.3); padding: 4px 12px; border-radius: 30px; }
+        .promo-group input { width: 90px; padding: 5px 8px; border-radius: 30px; border: none; font-size: 11px; background: #2a2a1e; color: #f9efc0; }
+        body.bg-white .promo-group input { background: #e0e0e0; color: #000; }
+        .promo-group input::placeholder { color: #aa9f7b; }
+        .promo-group button { background: #c9a03d; padding: 5px 12px; font-size: 11px; border: none; }
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 20px; margin: 0; }
+        .cell { background: #5e3a2b; background-image: radial-gradient(circle at 25% 30%, #7e5a45, #3f2a1d); aspect-ratio: 1; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; box-shadow: 0 2px 0 #2c1a10; border: 1px solid #c7a15e; text-align: center; word-break: break-word; padding: 4px; font-weight: bold; color: #f9efc0; }
+        .cell.selected { border: 3px solid #ffd966; box-shadow: 0 2px 0 #2c1a10; }
+        .cell.empty { color: #aa9f7b; font-size: 16px; }
+        .action-bar { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+        .action-row { display: flex; justify-content: space-between; gap: 8px; margin: 8px 0; }
+        .inline-action-btn { background: #4f6b3e; color: white; flex: 1; text-align: center; }
+        .tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+        button { background: #ecd67a; border: none; font-size: 11px; font-weight: bold; padding: 5px 10px; border-radius: 30px; cursor: pointer; color: #2b381c; box-shadow: 0 2px 0 #8b6946; }
+        button:active { transform: translateY(2px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tab-btn { background: #ecd67a; color: #2b381c; }
+        .shop-panel, .npc-section { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); border-radius: 24px; padding: 10px; border: 1px solid #efcd8a; }
+        body.bg-white .shop-panel, body.bg-white .npc-section { background: rgba(0, 0, 0, 0.1); }
+        .unlock-buttons, .enchant-shop { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; max-height: 180px; overflow-y: auto; }
+        .unlock-btn, .enchant-btn { background: #4f6b3e; color: #ffefb9; box-shadow: 0 2px 0 #2b3a1f; display: flex; justify-content: space-between; align-items: center; font-size: 10px; padding: 4px 8px; border-radius: 30px; cursor: pointer; }
+        .exchange-btn { background: #c9a03d; margin-top: 10px; width: 100%; }
+        .single-npc-card { background: #e5d5b0; color: #2a2418; border-radius: 24px; padding: 10px; box-shadow: 0 4px 0 #aa8b60; }
+        .npc-name { font-weight: bold; font-size: 1.2rem; }
+        .npc-wishlist { font-size: 0.8rem; background: #fff0cf; padding: 6px; border-radius: 20px; margin: 6px 0; }
+        .sell-to-npc { background: #ca9622; color: white; padding: 4px 12px; width: 60%; }
+        .bg-shop-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; max-height: 80px; overflow-y: auto; justify-content: center; }
+        .bg-option { background: rgba(0, 0, 0, 0.5); border-radius: 30px; padding: 3px 6px; font-size: 9px; cursor: pointer; border: 1px solid gold; text-align: center; min-width: 55px; color: white; }
+        .battle-panel { background: rgba(0, 0, 0, 0.4); border-radius: 28px; padding: 12px; margin-top: 12px; text-align: center; }
+        .monster-hp { font-size: 20px; font-weight: bold; background: black; display: inline-block; padding: 4px 16px; border-radius: 30px; margin: 5px; color: white; }
+        .attack-btn { background: #d64531; color: white; font-size: 18px; padding: 6px 20px; }
+        .attack-btn.charging { background: #44aa44; transform: scale(1.02); }
+        .badge { background: rgba(0, 0, 0, 0.6); padding: 2px 8px; border-radius: 20px; font-size: 9px; display: inline-block; margin-top: 4px; color: white; }
+        .dev-console { position: fixed; bottom: 6px; right: 6px; background: #1a1a1a; border-radius: 8px; padding: 2px 5px; font-size: 8px; opacity: 0.6; cursor: pointer; z-index: 999; color: white; display: none; }
+        .dev-console.visible { display: block; }
+        .inventory-slot { background: rgba(0, 0, 0, 0.3); border-radius: 18px; padding: 6px; margin: 6px 0; text-align: center; border: 2px solid #c7a15e; cursor: pointer; }
+        .slot-item { font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; padding: 2px 6px; background: rgba(0, 0, 0, 0.3); border-radius: 14px; margin-top: 4px; cursor: pointer; }
+        .unequip-btn { background: #aa6644; font-size: 9px; padding: 2px 6px; margin-left: 6px; box-shadow: 0 2px 0 #5a3322; }
+        .collection-category { margin-bottom: 12px; }
+        .collection-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 200px; overflow-y: auto; padding: 6px; background: rgba(0, 0, 0, 0.3); border-radius: 16px; }
+        .collection-item { background: rgba(0, 0, 0, 0.5); border-radius: 12px; padding: 4px; text-align: center; font-size: 9px; border: 1px solid gold; cursor: pointer; color: white; }
+        .collection-item.unlocked { background: #4f6b3e; border-color: #ffd966; }
+        .collection-item.locked { opacity: 0.5; filter: grayscale(0.5); }
+        .enchant-slot { background: rgba(0, 0, 0, 0.3); border-radius: 14px; padding: 4px; margin: 4px 0; text-align: center; display: flex; justify-content: space-between; align-items: center; }
+        .refund-btn { background: #aa8844; font-size: 9px; padding: 2px 5px; margin-left: 5px; }
+        hr { margin: 6px 0; }
+        .storage-slot { background: rgba(0, 0, 0, 0.3); border-radius: 14px; padding: 4px; margin: 4px 0; display: flex; align-items: center; gap: 8px; }
+        .storage-item { flex: 1; font-size: 12px; }
+        .storage-remove { background: #aa4444; font-size: 9px; padding: 2px 6px; border-radius: 20px; }
+        .info-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; color: white; text-align: center; flex-direction: column; }
+        .confirm-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1500; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 15px; text-align: center; padding: 20px; }
+        .footer-buttons { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 12px; }
+        .full-width-btn { width: 100%; background: #c9a03d; color: #2b381c; padding: 8px; font-size: 14px; }
+        .full-width-btn.danger { background: #aa3333; color: white; width: auto; min-width: 200px; padding: 5px 20px; font-size: 11px; }
+        .full-width-btn.rebirth { background: #c9a03d; color: #2b381c; width: auto; min-width: 200px; padding: 5px 20px; font-size: 11px; display: inline-block; margin: 0 auto; }
+        .footer-text { font-size: 10px; color: #aa66ff; text-shadow: 1px 1px 0 #000; display: flex; align-items: center; justify-content: center; gap: 4px; margin: 8px 0; }
+        .support-btn { background: #25d366; color: white; width: auto; min-width: 200px; padding: 5px 20px; font-size: 11px; }
+        .inline-btn { background: #c9a03d; font-size: 10px; padding: 3px 8px; margin-left: 5px; }
+        .info-text { font-size: 13px; margin: 8px 0; line-height: 1.4; }
+        .info-highlight { color: #ffaa66; }
+        .craft-btn { background: #ecd67a; color: #2b381c; }
+        .item-shop-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 10px; max-height: 300px; overflow-y: auto; padding: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 16px; }
+        .shop-item-card { background: rgba(0, 0, 0, 0.5); border-radius: 12px; padding: 6px; text-align: center; cursor: pointer; border: 1px solid #c7a15e; color: white; }
+        .shop-item-card.locked { opacity: 0.4; filter: grayscale(0.6); cursor: not-allowed; }
+        .shop-item-card.unlocked { background: #4f6b3e; border-color: #ffd966; }
+        .shop-item-price { font-size: 9px; margin-top: 4px; color: #ffd966; }
+        .close-shop-btn { background: #aa4444; color: white; margin-top: 10px; width: 100%; }
+        .scroll-corner-btn { position: fixed; right: 6px; background: #4f6b3e; color: white; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: none; opacity: 0.8; }
+        .scroll-corner-btn.down { bottom: 50px; }
+        .scroll-corner-btn.up { bottom: 95px; }
+        .update-notify { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ffaa33; color: #2b381c; padding: 12px 20px; border-radius: 40px; font-weight: bold; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.3); display: flex; gap: 15px; align-items: center; font-size: 14px; }
+        .update-notify button { background: #2b381c; color: #ffaa33; margin: 0; padding: 6px 15px; }
+        .full-energy-btn { background: #c9a03d; color: #2b381c; width: 100%; padding: 6px; font-size: 12px; margin-top: 8px; }
+        .rebirth-wrapper { text-align: center; margin: 12px 0 8px 0; }
+        .save-controls { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+        .save-controls button { font-size: 10px; padding: 4px 10px; }
+        .account-info { font-size: 9px; color: #aa66ff; text-align: center; margin-top: 4px; }
     </style>
 </head>
-<body>
-<div id="app">
-    <div id="header">
-        <span id="counter">🤗 0</span>
-        <button id="settings-btn" aria-label="Настройки">⚙️</button>
+<body class="bg-black">
+<div class="game-container">
+    <div class="header">
+        <div class="title">⚖️ SUNNYGAME</div>
+        <div class="resources">
+            <div class="res-item">🪙 <span id="coins">200</span></div>
+            <div class="res-item">⚡ <span id="energy">0</span></div>
+        </div>
     </div>
-
-    <div id="btn-container">
-        <button id="hug-btn">
-            <span class="btn-text">обнимашки</span>
-        </button>
+    <div class="tabs">
+        <button id="tabCraftBtn" class="tab-btn">🏭 Крафт</button>
+        <button id="tabShopBtn" class="tab-btn">🛒 Магазин</button>
+        <button id="tabStorageBtn" class="tab-btn">📦 Хранилище</button>
+        <button id="tabEnchantBtn" class="tab-btn">✨ Лавка</button>
+        <button id="tabBattleBtn" class="tab-btn">⚔️ Битва</button>
+        <button id="tabCollectionBtn" class="tab-btn">📜 Коллекция</button>
     </div>
-
-    <div id="bottom-bar">
-        <button id="calendar-icon" aria-label="Календарь">📅</button>
-    </div>
-
-    <div id="settings-overlay" class="overlay">
-        <div class="modal" id="settings-modal">
-            <h2>Настройки <button id="close-settings">✕</button></h2>
-            
-            <div class="setting-group">
-                <label>Цвет фона приложения</label>
-                <div class="color-picker-row">
-                    <input type="color" id="bg-color-picker" value="#f7f0fa">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button>
-                </div>
-            </div>
-
-            <div class="setting-group">
-                <label>Фото на фон приложения</label>
-                <div class="file-upload-wrapper">
-                    <label for="bg-image-upload">📁 Загрузить</label>
-                    <input type="file" id="bg-image-upload" accept="image/*">
-                    <button class="edit-btn" id="bg-image-edit" title="Редактировать">✏️</button>
-                    <button class="remove-img" id="remove-bg-image" title="Удалить фото">✕</button>
-                </div>
-                <div class="image-editor" id="bg-image-editor">
-                    <div class="preview-container" id="bg-image-preview">
-                        <span class="no-image">Нет фото</span>
-                    </div>
-                    <div class="slider-group">
-                        <label>Масштаб <span id="bg-image-scale-val">100%</span></label>
-                        <input type="range" id="bg-image-scale" min="50" max="200" value="100">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение X <span id="bg-image-x-val">0%</span></label>
-                        <input type="range" id="bg-image-x" min="-50" max="50" value="0">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение Y <span id="bg-image-y-val">0%</span></label>
-                        <input type="range" id="bg-image-y" min="-50" max="50" value="0">
+    
+    <!-- Вкладка Крафт -->
+    <div id="craftSection">
+        <div class="main-row">
+            <div class="craft-col">
+                <div class="bonus-panel">
+                    <button id="dailyBonusBtn" class="bonus-btn">🎁 Ежедневный бонус (50 монет)</button>
+                    <div class="promo-group">
+                        <input type="text" id="promoCode" placeholder="Промокод">
+                        <button id="applyPromoBtn">Активировать</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="setting-group">
-                <label>Цвет самой кнопки</label>
-                <div class="color-picker-row">
-                    <input type="color" id="btn-color-picker" value="#ffb6c9">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button>
+                <div class="grid" id="grid"></div>
+                <div class="action-bar">
+                    <button id="craftResourceBtn" class="craft-btn">🌾 Материалы -5</button>
+                    <button id="craftWeaponBtn" class="craft-btn" disabled>⚔️ Оружие -10</button>
+                    <button id="craftArmorBtn" class="craft-btn" disabled>🛡️ Броня -20</button>
+                    <button id="craftFoodBtn" class="craft-btn" disabled>🍇 Еда -30</button>
+                    <button id="craftPotionBtn" class="craft-btn" disabled>🧪 Зелья -40</button>
+                    <button id="craftRangedWeaponBtn" class="craft-btn" disabled style="background:#555;">🏹 Луки (после перерождения)</button>
                 </div>
-            </div>
-
-            <div class="setting-group">
-                <label>Фото на кнопку</label>
-                <div class="file-upload-wrapper">
-                    <label for="btn-image-upload">📁 Загрузить</label>
-                    <input type="file" id="btn-image-upload" accept="image/*">
-                    <button class="edit-btn" id="btn-image-edit" title="Редактировать">✏️</button>
-                    <button class="remove-img" id="remove-btn-image" title="Удалить фото">✕</button>
+                <div class="action-row">
+                    <button id="sellSelectedBtn" class="inline-action-btn" style="background:#aa6644;">💸 Продать выбранный</button>
+                    <button id="equipFromGridBtn" class="inline-action-btn">⚔️ Экипировать</button>
+                    <button id="toStorageBtn" class="inline-action-btn">📦 В хранилище</button>
                 </div>
-                <div class="image-editor" id="btn-image-editor">
-                    <div class="preview-container" id="btn-image-preview">
-                        <span class="no-image">Нет фото</span>
-                    </div>
-                    <div class="slider-group">
-                        <label>Масштаб <span id="btn-image-scale-val">100%</span></label>
-                        <input type="range" id="btn-image-scale" min="50" max="200" value="100">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение X <span id="btn-image-x-val">0%</span></label>
-                        <input type="range" id="btn-image-x" min="-50" max="50" value="0">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение Y <span id="btn-image-y-val">0%</span></label>
-                        <input type="range" id="btn-image-y" min="-50" max="50" value="0">
-                    </div>
+                <button id="exchangeEnergyBtnSmall" class="full-energy-btn">🔄 10 Энергии → 10 Монет</button>
+                <div id="itemShopPanel" style="display:none; margin-top:10px;">
+                    <h4>🛒 МАГАЗИН ПРЕДМЕТОВ</h4>
+                    <div class="info-text" style="font-size:11px;">Выберите предмет из списка, кликните на него для покупки</div>
+                    <div id="itemShopGrid"></div>
+                    <button id="closeShopBtn" class="close-shop-btn">🚪 Выйти из магазина</button>
                 </div>
-            </div>
-
-            <div class="setting-group">
-                <label>Цвет текста</label>
-                <div class="color-picker-row">
-                    <input type="color" id="text-color-picker" value="#000000">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button>
+                <div class="npc-section" style="margin-top:12px;">
+                    <h3>📦 ПРОДАЖА NPC</h3>
+                    <div id="npcSingleContainer" class="single-npc-card"></div>
+                    <button id="refreshNpcBtn" style="margin-top:6px; background:#4f6b3e;">🔄 Сменить продавца (10🪙)</button>
                 </div>
-            </div>
-
-            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
-                <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
+                <div class="shop-panel" style="margin-top:12px;">
+                    <h3>🎨 ФОНЫ</h3>
+                    <div id="bgShopContainer" class="bg-shop-row"></div>
+                </div>
+                <div class="rebirth-wrapper">
+                    <button id="rebirthBtn" class="full-width-btn rebirth">🌀 Перерождение 1M</button>
+                </div>
+                <div class="save-controls">
+                    <button id="exportSaveBtn" style="background:#4f6b3e; color:white;">📤 Экспорт</button>
+                    <button id="importSaveBtn" style="background:#4f6b3e; color:white;">📥 Импорт</button>
+                </div>
+                <div class="account-info" id="accountInfo"></div>
+                <div class="footer-buttons">
+                    <button id="fullResetBtn" class="full-width-btn danger">⚠️ ПОЛНЫЙ СБРОС</button>
+                    <div class="footer-text">сделано с любовью <span style="color:#aa66ff;">❤️</span> - EnnVel</div>
+                    <button id="supportBtn" class="support-btn">💬 Поддержка</button>
+                </div>
             </div>
         </div>
     </div>
-
-    <div id="calendar-overlay" class="overlay">
-        <div class="modal" id="calendar-modal">
-            <h2>📅 Календарь <button id="close-calendar">✕</button></h2>
-            <div class="calendar-nav">
-                <button id="prev-month">‹</button>
-                <span id="month-year">Январь 2026</span>
-                <button id="next-month">›</button>
+    
+    <!-- Вкладка Битва -->
+    <div id="battleSection" style="display:none;">
+        <div class="battle-panel">
+            <h2>🐉 ДРЕВНИЙ МОНСТР</h2>
+            <div class="monster-hp">❤️ <span id="monsterHp">10000</span> / 10000</div>
+            <button id="attackBtn" class="attack-btn">💥 АТАКОВАТЬ</button>
+            <div class="badge">🏆 Убийство +<span id="monsterReward">100</span></div>
+            <div id="enchantBonusInfo" style="margin-top:6px; font-size:10px;"></div>
+            <div class="badge">⌛ Луки: зажмите 1с для заряда (+5)</div>
+        </div>
+        <div class="inventory-col" style="margin-top:12px;">
+            <h3>🎒 ИНВЕНТАРЬ</h3>
+            <div class="inventory-slot" id="weaponSlotBattle">
+                <div>⚔️ ОРУЖИЕ</div>
+                <div class="slot-item" id="equippedWeaponBattle">— пусто —</div>
             </div>
-            <div class="weekdays" id="weekdays"></div>
-            <div class="days-grid" id="days-grid"></div>
-            <div id="day-info">Выберите день</div>
+            <div class="inventory-slot" id="rangedSlotBattle">
+                <div>🏹 ЛУКИ</div>
+                <div class="slot-item" id="equippedRangedBattle">— пусто —</div>
+            </div>
         </div>
     </div>
-
-    <div class="confirm-overlay" id="confirm-overlay">
-        <div class="confirm-box">
-            <h3>⚠️ Подтверждение</h3>
-            <p>Вы уверены, что хотите сбросить счётчик обнимашек?</p>
-            <div class="confirm-btns">
-                <button class="confirm-yes" id="confirm-yes">Да</button>
-                <button class="confirm-no" id="confirm-no">Отмена</button>
-            </div>
+    
+    <!-- Вкладка Коллекция -->
+    <div id="collectionSection" style="display:none;">
+        <div class="shop-panel">
+            <h3>📜 КОЛЛЕКЦИЯ</h3>
+            <div id="collectionContainer"></div>
+            <h3>👥 ВСТРЕЧЕННЫЕ NPC</h3>
+            <div id="metNpcContainer" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;"></div>
+        </div>
+    </div>
+    
+    <!-- Вкладка Магазин предметов -->
+    <div id="shopTabSection" style="display:none;">
+        <div class="shop-panel">
+            <h3>🛒 МАГАЗИН ПРЕДМЕТОВ</h3>
+            <div class="info-text" style="font-size:11px;">Выберите предмет из списка, кликните на него для покупки</div>
+            <div id="shopTabGrid"></div>
+        </div>
+        <div class="footer-buttons">
+            <button id="rebirthBtnShop" class="full-width-btn rebirth">🌀 Перерождение 1M</button>
+            <button id="fullResetBtnShop" class="full-width-btn danger">⚠️ ПОЛНЫЙ СБРОС</button>
+            <div class="footer-text">сделано с любовью <span style="color:#aa66ff;">❤️</span> - EnnVel</div>
+            <button id="supportBtnShop" class="support-btn">💬 Поддержка</button>
+        </div>
+    </div>
+    
+    <!-- Вкладка Хранилище -->
+    <div id="storageTabSection" style="display:none;">
+        <div class="shop-panel">
+            <h3>📦 ХРАНИЛИЩЕ <button id="expandStorageBtnTab" class="inline-btn">➕ 1000🪙 (ячейка)</button></h3>
+            <div id="storageTabContainer"></div>
+        </div>
+    </div>
+    
+    <!-- Вкладка Лавка (зачарования) -->
+    <div id="enchantTabSection" style="display:none;">
+        <div class="shop-panel">
+            <h3>✨ ЗАЧАРОВАНИЯ</h3>
+            <div class="badge">Кликните на чарку для её применения</div>
+            <div id="enchantShopContainer" class="enchant-shop"></div>
+            <div class="badge">Снятие чарки: возврат 80% стоимости</div>
+            <hr>
+            <div class="unlock-buttons" id="shopUnlockList"></div>
+            <button id="exchangeEnergyBtn" class="exchange-btn">🔄 10⚡ → 10</button>
+        </div>
+        <div class="footer-buttons">
+            <button id="rebirthBtnEnchant" class="full-width-btn rebirth">🌀 Перерождение 1M</button>
+            <button id="fullResetBtnEnchant" class="full-width-btn danger">⚠️ ПОЛНЫЙ СБРОС</button>
+            <div class="footer-text">сделано с любовью <span style="color:#aa66ff;">❤️</span> - EnnVel</div>
+            <button id="supportBtnEnchant" class="support-btn">💬 Поддержка</button>
         </div>
     </div>
 </div>
+<div class="dev-console" id="devConsoleBtn">🛠️ DEV</div>
+<button class="scroll-corner-btn down" id="scrollDownCorner">⬇</button>
+<button class="scroll-corner-btn up" id="scrollUpCorner">⬆</button>
 
 <script>
-    (function(){
-        // ---- Проверка доступности Telegram CloudStorage ----
-        const tg = window.Telegram?.WebApp;
-        const hasCloudStorage = !!(tg && tg.CloudStorage);
-
-        // ---- Состояние ----
-        let hugCount = 0;
-        let history = {};
-        let currentYear = 2026;
-        let currentMonth = 0;
-        let selectedDate = null;
-
-        const defaultSettings = {
-            bgColor: '#f7f0fa',
-            textColor: '#000000',
-            btnColor: '#ffb6c9',
-            bgImage: null,
-            btnImage: null,
-            bgImageSettings: { scale: 100, x: 0, y: 0 },
-            btnImageSettings: { scale: 100, x: 0, y: 0 },
-        };
-
-        let settings = { ...defaultSettings };
-
-        // ---- Ключи для хранения ----
-        const STORAGE_KEY = 'hugAppData';
-
-        // ---- Сохранение в CloudStorage или localStorage ----
-        function persistData(callback) {
-            const dataToSave = JSON.stringify({
-                count: hugCount,
-                history: history,
-                settings: settings,
-            });
-
-            if (hasCloudStorage) {
-                tg.CloudStorage.setItem(STORAGE_KEY, dataToSave, (err, success) => {
-                    if (err) console.warn('CloudStorage save error:', err);
-                    if (callback) callback();
-                });
-            } else {
-                try {
-                    localStorage.setItem(STORAGE_KEY, dataToSave);
-                } catch (e) {}
-                if (callback) callback();
-            }
-        }
-
-        // ---- Загрузка из CloudStorage или localStorage ----
-        function loadData(callback) {
-            if (hasCloudStorage) {
-                tg.CloudStorage.getItem(STORAGE_KEY, (err, value) => {
-                    if (err || !value) {
-                        // Данных нет — пробуем localStorage как fallback
-                        tryLoadFromLocal(callback);
-                    } else {
-                        try {
-                            const data = JSON.parse(value);
-                            applyLoadedData(data);
-                        } catch (e) {}
-                        if (callback) callback();
-                    }
-                });
-            } else {
-                tryLoadFromLocal(callback);
-            }
-        }
-
-        function tryLoadFromLocal(callback) {
-            try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    applyLoadedData(data);
+    // ========== СИСТЕМА СОХРАНЕНИЙ С ПРИВЯЗКОЙ К TELEGRAM ID ==========
+    // ВАЖНО: localStorage привязан к УСТРОЙСТВУ+ДОМЕНУ, а не к аккаунту Telegram.
+    // Разные аккаунты на ОДНОМ устройстве получат РАЗНЫЕ сохранения (через user.id).
+    // Между устройствами синхронизация БЕЗ сервера НЕВОЗМОЖНА — используйте экспорт/импорт.
+    
+    function getTelegramUserId() {
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const user = window.Telegram.WebApp.initDataUnsafe?.user;
+                if (user && user.id) {
+                    console.log("✅ Telegram user ID:", user.id, "username:", user.username);
+                    return "tg_" + String(user.id);
                 }
-            } catch (e) {}
-            if (callback) callback();
-        }
-
-        function applyLoadedData(data) {
-            if (data.count !== undefined) hugCount = data.count;
-            if (data.history) history = data.history;
-            if (data.settings) {
-                settings = { ...defaultSettings, ...data.settings };
             }
+        } catch(e) {
+            console.warn("Ошибка получения Telegram ID:", e);
         }
-
-        // ---- Применение настроек ----
-        function applyAllSettings() {
-            if (settings.bgImage) {
-                const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                app.style.backgroundImage = `url(${settings.bgImage})`;
-                app.style.backgroundSize = `${s.scale}%`;
-                app.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-                app.style.backgroundColor = 'transparent';
+        // Fallback для не-Telegram окружения: локальный ID
+        let localId = localStorage.getItem('sunnygame_local_id');
+        if (!localId) {
+            localId = 'local_' + Math.random().toString(36).slice(2, 10);
+            localStorage.setItem('sunnygame_local_id', localId);
+        }
+        console.log("⚠️ Игра вне Telegram, использован локальный ID:", localId);
+        return localId;
+    }
+    
+    const TELEGRAM_USER_ID = getTelegramUserId();
+    // Фиксированный префикс ключа — не меняется при обновлениях кода
+    const SAVE_KEY = `sunnygame_save_v1_${TELEGRAM_USER_ID}`;
+    // Показ ID в интерфейсе
+    (function showAccountInfo() {
+        const el = document.getElementById("accountInfo");
+        if (el) {
+            if (TELEGRAM_USER_ID.startsWith("tg_")) {
+                el.textContent = "🔗 Аккаунт привязан к Telegram ID";
             } else {
-                app.style.backgroundImage = 'none';
-                app.style.backgroundColor = settings.bgColor;
-            }
-
-            hugBtn.style.backgroundColor = settings.btnColor;
-            const dark = darkenColor(settings.btnColor, 35);
-            hugBtn.style.boxShadow = `0 10px 0 ${dark}, 0 10px 20px rgba(0,0,0,0.15)`;
-
-            applyTextColor(settings.textColor);
-
-            if (settings.btnImage) {
-                const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                hugBtn.style.backgroundImage = `url(${settings.btnImage})`;
-                hugBtn.style.backgroundSize = `${s.scale}%`;
-                hugBtn.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-                hugBtn.classList.add('has-image');
-            } else {
-                hugBtn.style.backgroundImage = 'none';
-                hugBtn.classList.remove('has-image');
-            }
-
-            updateCounter();
-        }
-
-        function applyTextColor(color) {
-            document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *').forEach(el => {
-                if (el.tagName === 'INPUT' && el.type === 'color') return;
-                if (el.closest('.modal') && !el.closest('.color-picker-row') && !el.closest('.file-upload-wrapper') && !el.closest('.image-editor')) {
-                    el.style.color = color;
-                }
-            });
-            document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
-                .forEach(el => el.style.color = color);
-            document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
-                .forEach(el => el.style.color = color);
-            counterEl.style.color = color;
-            hugBtn.style.color = color;
-            btnText.style.color = color;
-        }
-
-        function updateCounter() {
-            counterEl.innerHTML = `🤗 ${hugCount}`;
-        }
-
-        function darkenColor(hex, percent) {
-            let r = parseInt(hex.slice(1,3), 16);
-            let g = parseInt(hex.slice(3,5), 16);
-            let b = parseInt(hex.slice(5,7), 16);
-            r = Math.max(0, r - (r * percent / 100));
-            g = Math.max(0, g - (g * percent / 100));
-            b = Math.max(0, b - (b * percent / 100));
-            return `#${Math.round(r).toString(16).padStart(2,'0')}${Math.round(g).toString(16).padStart(2,'0')}${Math.round(b).toString(16).padStart(2,'0')}`;
-        }
-
-        // ---- Сохранить и применить ----
-        function saveAndApply() {
-            applyAllSettings();
-            persistData();
-        }
-
-        // ---- DOM ----
-        const app = document.getElementById('app');
-        const hugBtn = document.getElementById('hug-btn');
-        const btnText = hugBtn.querySelector('.btn-text');
-        const counterEl = document.getElementById('counter');
-        const settingsBtn = document.getElementById('settings-btn');
-        const settingsOverlay = document.getElementById('settings-overlay');
-        const closeSettings = document.getElementById('close-settings');
-        const calendarOverlay = document.getElementById('calendar-overlay');
-        const calendarIcon = document.getElementById('calendar-icon');
-        const closeCalendar = document.getElementById('close-calendar');
-
-        const bgPicker = document.getElementById('bg-color-picker');
-        const textPicker = document.getElementById('text-color-picker');
-        const btnColorPicker = document.getElementById('btn-color-picker');
-
-        const resetBg = document.getElementById('reset-bg-color');
-        const resetText = document.getElementById('reset-text-color');
-        const resetBtnColor = document.getElementById('reset-btn-color');
-
-        const bgImageUpload = document.getElementById('bg-image-upload');
-        const btnImageUpload = document.getElementById('btn-image-upload');
-        const removeBgImage = document.getElementById('remove-bg-image');
-        const removeBtnImage = document.getElementById('remove-btn-image');
-
-        const bgImageEdit = document.getElementById('bg-image-edit');
-        const btnImageEdit = document.getElementById('btn-image-edit');
-
-        const resetCounterBtn = document.getElementById('reset-counter-btn');
-        const confirmOverlay = document.getElementById('confirm-overlay');
-        const confirmYes = document.getElementById('confirm-yes');
-        const confirmNo = document.getElementById('confirm-no');
-
-        const monthYearSpan = document.getElementById('month-year');
-        const prevMonthBtn = document.getElementById('prev-month');
-        const nextMonthBtn = document.getElementById('next-month');
-        const daysGrid = document.getElementById('days-grid');
-        const weekdaysEl = document.getElementById('weekdays');
-        const dayInfo = document.getElementById('day-info');
-
-        // ---- Редактор изображений ----
-        function toggleEditor(editorId, imageData) {
-            const editor = document.getElementById(editorId);
-            const isOpen = editor.classList.contains('open');
-            if (imageData) {
-                if (isOpen) {
-                    editor.classList.remove('open');
-                } else {
-                    editor.classList.add('open');
-                    updateEditorPreview(editorId, imageData);
-                }
-            } else {
-                editor.classList.remove('open');
+                el.textContent = "⚠️ Игра вне Telegram (локальное сохранение)";
             }
         }
-
-        function updateEditorPreview(editorId, imageData) {
-            const editor = document.getElementById(editorId);
-            const preview = editor.querySelector('.preview-container');
-            const noImage = preview.querySelector('.no-image');
-            let img = preview.querySelector('img');
-            
-            if (imageData) {
-                if (!img) {
-                    img = document.createElement('img');
-                    preview.appendChild(img);
-                }
-                img.src = imageData;
-                img.style.display = 'block';
-                if (noImage) noImage.style.display = 'none';
-                
-                let scale = 100, x = 0, y = 0;
-                if (editorId === 'bg-image-editor') {
-                    const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                    scale = s.scale; x = s.x; y = s.y;
-                } else if (editorId === 'btn-image-editor') {
-                    const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                    scale = s.scale; x = s.x; y = s.y;
-                }
-                img.style.width = `${scale}%`;
-                img.style.height = `${scale}%`;
-                img.style.transform = `translate(${x}%, ${y}%)`;
-            } else {
-                if (img) img.style.display = 'none';
-                if (noImage) noImage.style.display = 'block';
-            }
-        }
-
-        // ---- Календарь ----
-        function renderCalendar(year, month) {
-            const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь',
-                                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-            monthYearSpan.textContent = monthNames[month] + ' ' + year;
-
-            const shortDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-            weekdaysEl.innerHTML = shortDays.map(d => `<div>${d}</div>`).join('');
-
-            const firstDay = new Date(year, month, 1);
-            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-            const daysInMonth = new Date(year, month+1, 0).getDate();
-
-            let gridHtml = '';
-            for (let i = 0; i < startDay; i++) {
-                gridHtml += `<div class="day-cell empty"></div>`;
-            }
-
-            for (let d = 1; d <= daysInMonth; d++) {
-                const key = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-                const count = history[key] || 0;
-                const isSelected = (selectedDate === key);
-                let classes = 'day-cell';
-                if (isSelected) classes += ' selected';
-                let indicator = count > 0 ? `<span class="hug-indicator">❤️${count}</span>` : '';
-                gridHtml += `<div class="${classes}" data-date="${key}">${d}${indicator}</div>`;
-            }
-
-            daysGrid.innerHTML = gridHtml;
-
-            document.querySelectorAll('.day-cell:not(.empty)').forEach(cell => {
-                cell.addEventListener('click', function() {
-                    const dateKey = this.dataset.date;
-                    if (dateKey) {
-                        selectedDate = dateKey;
-                        renderCalendar(currentYear, currentMonth);
-                        showDayInfo(dateKey);
-                    }
-                });
-            });
-
-            if (selectedDate) {
-                const [y,m] = selectedDate.split('-').map(Number);
-                if (y === year && m-1 === month) {
-                    showDayInfo(selectedDate);
-                } else {
-                    dayInfo.textContent = 'Выберите день';
-                }
-            } else {
-                dayInfo.textContent = 'Выберите день';
-            }
-        }
-
-        function showDayInfo(dateKey) {
-            const count = history[dateKey] || 0;
-            const parts = dateKey.split('-');
-            const d = new Date(parts[0], parts[1]-1, parts[2]);
-            const weekdays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-            const wd = weekdays[d.getDay() === 0 ? 6 : d.getDay()-1];
-            const dateStr = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]} ${d.getFullYear()}`;
-            dayInfo.textContent = `${dateStr} (${wd}) — ${count} обнимашек`;
-        }
-
-        function changeMonth(delta) {
-            currentMonth += delta;
-            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            if (currentYear < 2026) { currentYear = 2026; currentMonth = 0; }
-            renderCalendar(currentYear, currentMonth);
-        }
-
-        // ---- Обработчики ----
-        hugBtn.addEventListener('click', function() {
-            hugCount++;
-            const today = new Date();
-            const key = today.getFullYear() + '-' + 
-                        String(today.getMonth()+1).padStart(2,'0') + '-' + 
-                        String(today.getDate()).padStart(2,'0');
-            history[key] = (history[key] || 0) + 1;
-            updateCounter();
-            persistData();
-            if (calendarOverlay.classList.contains('open') && selectedDate === key) {
-                showDayInfo(key);
-            }
-            if (calendarOverlay.classList.contains('open')) {
-                renderCalendar(currentYear, currentMonth);
-            }
-        });
-
-        settingsBtn.addEventListener('click', function() {
-            bgPicker.value = settings.bgColor;
-            textPicker.value = settings.textColor;
-            btnColorPicker.value = settings.btnColor;
-            document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
-            settingsOverlay.classList.add('open');
-        });
-
-        closeSettings.addEventListener('click', () => settingsOverlay.classList.remove('open'));
-        settingsOverlay.addEventListener('click', function(e) {
-            if (e.target === this) settingsOverlay.classList.remove('open');
-        });
-
-        // Пикеры
-        bgPicker.addEventListener('input', function() {
-            settings.bgColor = this.value;
-            saveAndApply();
-        });
-        textPicker.addEventListener('input', function() {
-            settings.textColor = this.value;
-            saveAndApply();
-        });
-        btnColorPicker.addEventListener('input', function() {
-            settings.btnColor = this.value;
-            saveAndApply();
-        });
-
-        // Сброс цветов
-        resetBg.addEventListener('click', () => {
-            settings.bgColor = '#f7f0fa';
-            bgPicker.value = '#f7f0fa';
-            saveAndApply();
-        });
-        resetText.addEventListener('click', () => {
-            settings.textColor = '#000000';
-            textPicker.value = '#000000';
-            saveAndApply();
-        });
-        resetBtnColor.addEventListener('click', () => {
-            settings.btnColor = '#ffb6c9';
-            btnColorPicker.value = '#ffb6c9';
-            saveAndApply();
-        });
-
-        // Загрузка фото
-        bgImageUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    settings.bgImage = ev.target.result;
-                    if (!settings.bgImageSettings) {
-                        settings.bgImageSettings = { scale: 100, x: 0, y: 0 };
-                    }
-                    saveAndApply();
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        btnImageUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    settings.btnImage = ev.target.result;
-                    if (!settings.btnImageSettings) {
-                        settings.btnImageSettings = { scale: 100, x: 0, y: 0 };
-                    }
-                    saveAndApply();
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Удаление фото
-        removeBgImage.addEventListener('click', function() {
-            settings.bgImage = null;
-            bgImageUpload.value = '';
-            document.getElementById('bg-image-editor').classList.remove('open');
-            saveAndApply();
-        });
-        removeBtnImage.addEventListener('click', function() {
-            settings.btnImage = null;
-            btnImageUpload.value = '';
-            document.getElementById('btn-image-editor').classList.remove('open');
-            saveAndApply();
-        });
-
-        // Кнопки редактирования
-        bgImageEdit.addEventListener('click', function() {
-            if (settings.bgImage) toggleEditor('bg-image-editor', settings.bgImage);
-        });
-        btnImageEdit.addEventListener('click', function() {
-            if (settings.btnImage) toggleEditor('btn-image-editor', settings.btnImage);
-        });
-
-        // Слайдеры
-        function setupSlider(sliderId, valId, editorId, settingsKey) {
-            const slider = document.getElementById(sliderId);
-            const valSpan = document.getElementById(valId);
-            slider.addEventListener('input', function() {
-                const val = parseInt(this.value);
-                valSpan.textContent = val + '%';
-                if (!settings[settingsKey]) {
-                    settings[settingsKey] = { scale: 100, x: 0, y: 0 };
-                }
-                const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
-                settings[settingsKey][key] = val;
-                saveAndApply();
-                let imageData = null;
-                if (settingsKey === 'bgImageSettings') imageData = settings.bgImage;
-                else if (settingsKey === 'btnImageSettings') imageData = settings.btnImage;
-                if (imageData) updateEditorPreview(editorId, imageData);
-            });
-        }
-
-        setupSlider('bg-image-scale', 'bg-image-scale-val', 'bg-image-editor', 'bgImageSettings');
-        setupSlider('bg-image-x', 'bg-image-x-val', 'bg-image-editor', 'bgImageSettings');
-        setupSlider('bg-image-y', 'bg-image-y-val', 'bg-image-editor', 'bgImageSettings');
-        setupSlider('btn-image-scale', 'btn-image-scale-val', 'btn-image-editor', 'btnImageSettings');
-        setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
-        setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
-
-        // Сброс счётчика
-        resetCounterBtn.addEventListener('click', () => confirmOverlay.classList.add('open'));
-        confirmYes.addEventListener('click', function() {
-            hugCount = 0;
-            history = {};
-            updateCounter();
-            persistData();
-            if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
-            selectedDate = null;
-            dayInfo.textContent = 'Выберите день';
-            confirmOverlay.classList.remove('open');
-        });
-        confirmNo.addEventListener('click', () => confirmOverlay.classList.remove('open'));
-        confirmOverlay.addEventListener('click', function(e) {
-            if (e.target === this) confirmOverlay.classList.remove('open');
-        });
-
-        // Календарь
-        calendarIcon.addEventListener('click', function() {
-            calendarOverlay.classList.add('open');
-            if (!selectedDate) {
-                const today = new Date();
-                selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-            }
-            const [y,m] = selectedDate.split('-').map(Number);
-            currentYear = y;
-            currentMonth = m-1;
-            renderCalendar(currentYear, currentMonth);
-        });
-        closeCalendar.addEventListener('click', () => calendarOverlay.classList.remove('open'));
-        calendarOverlay.addEventListener('click', function(e) {
-            if (e.target === this) calendarOverlay.classList.remove('open');
-        });
-        prevMonthBtn.addEventListener('click', () => changeMonth(-1));
-        nextMonthBtn.addEventListener('click', () => changeMonth(1));
-
-        // ---- Инициализация ----
-        loadData(function() {
-            applyAllSettings();
-            const today = new Date();
-            selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-        });
     })();
+    
+    // ========== СИСТЕМА АВТООБНОВЛЕНИЙ (НЕ ТРОГАЕТ СОХРАНЕНИЯ) ==========
+    (function setupAutoUpdate() {
+        const CHECK_INTERVAL = 30000;
+        let updateNotificationShown = false;
+        
+        function checkForUpdates() {
+            fetch(window.location.href + "?v=" + Date.now(), {
+                method: 'HEAD',
+                cache: 'no-store'
+            }).then(response => {
+                const serverEtag = response.headers.get('ETag') || response.headers.get('Last-Modified') || Date.now().toString();
+                const storedEtag = localStorage.getItem('game_etag_v2');
+                if (storedEtag && storedEtag !== serverEtag && !updateNotificationShown) {
+                    updateNotificationShown = true;
+                    showUpdateNotification();
+                }
+                localStorage.setItem('game_etag_v2', serverEtag);
+            }).catch(e => console.log("Update check failed:", e));
+        }
+        
+        function showUpdateNotification() {
+            const notifyDiv = document.createElement('div');
+            notifyDiv.className = 'update-notify';
+            notifyDiv.innerHTML = `
+                🔄 Доступна новая версия игры!
+                <button id="updateNowBtn">Обновить сейчас</button>
+                <button id="updateLaterBtn">Позже</button>
+            `;
+            document.body.appendChild(notifyDiv);
+            document.getElementById('updateNowBtn').onclick = () => {
+                // ВАЖНО: НЕ удаляем ключ сохранения — только etag
+                localStorage.removeItem('game_etag_v2');
+                location.reload();
+            };
+            document.getElementById('updateLaterBtn').onclick = () => notifyDiv.remove();
+        }
+        
+        setInterval(checkForUpdates, CHECK_INTERVAL);
+        checkForUpdates();
+    })();
+    
+    // ========== НАСТРОЙКИ АДМИНИСТРАТОРА ==========
+    const ADMIN_TELEGRAM_ID = 1577899640;
+    
+    function isUserAdmin() {
+        try {
+            if (window.Telegram && window.Telegram.WebApp) {
+                const user = window.Telegram.WebApp.initDataUnsafe?.user;
+                if (user && user.id === ADMIN_TELEGRAM_ID) return true;
+            }
+        } catch(e) {}
+        return false;
+    }
+    
+    function initDevConsole() {
+        const devBtn = document.getElementById("devConsoleBtn");
+        if (isUserAdmin()) {
+            devBtn.classList.add("visible");
+            devBtn.style.display = "block";
+        } else {
+            devBtn.classList.remove("visible");
+            devBtn.style.display = "none";
+        }
+    }
+    
+    // ========== ОСТАЛЬНОЙ КОД ИГРЫ ==========
+    const baseNpPrice = { materials:5, weapons:10, ranged:50, armor:20, food:30, potions:40 };
+    const materialChain = ["grass","wood","stone","iron","gold","diamond","nerite","mithril","adamant","aether"];
+    const weaponChain = ["sword","greatsword","spear","axe","dagger","battle_axe","claymore","halberd","excalibur","legendary_blade"];
+    const rangedChain = ["shortbow","longbow","hunting_bow","recurve_bow","compound_bow","wind_bow","eagle_bow","shadow_bow","dragon_bow","celestial_bow"];
+    const armorChain = ["leather","gambeson","chainmail","plate","chestplate","leggings","helmet","boots","pauldrons","legendary_armor"];
+    const foodChain = ["berry","bread","cheese","meat","fish","soup","cake","pie","elven_bread","ambrosia"];
+    const potionChain = ["vial","weak_potion","medium_potion","strong_potion","elixir","poison","stamina","invisibility","healing","immortality"];
+    
+    const itemNames = {
+        "grass":"🌱 Трава","wood":"🪵 Бревно","stone":"🪨 Камень","iron":"🔩 Железо","gold":"👑 Золото","diamond":"💎 Алмаз","nerite":"⚜️ Нефрит","mithril":"✨ Мифрил","adamant":"🛡️ Адамантий","aether":"🌀 Эфир",
+        "sword":"⚔️ Меч","greatsword":"🗡️ Двуручник","spear":"🔱 Копьё","axe":"🪓 Топор","dagger":"🔪 Кинжал","battle_axe":"⚔️ Боевой топор","claymore":"🗡️ Клеймор","halberd":"🔱 Алебарда","excalibur":"✨ Экскалибур","legendary_blade":"🌟 Легендарный клинок",
+        "shortbow":"🏹 Короткий лук","longbow":"🏹 Длинный лук","hunting_bow":"🏹 Охотничий лук","recurve_bow":"🏹 Рекурсивный лук","compound_bow":"🏹 Блочный лук","wind_bow":"🌪️ Ветровой лук","eagle_bow":"🦅 Орлиный лук","shadow_bow":"🌑 Теневой лук","dragon_bow":"🐉 Драконий лук","celestial_bow":"✨ Небесный лук",
+        "leather":"🧥 Кожаный доспех","gambeson":"🧵 Стёганый доспех","chainmail":"🔗 Кольчуга","plate":"🛡️ Латы","chestplate":"❤️ Нагрудник","leggings":"👖 Поножи","helmet":"⛑️ Шлем","boots":"👢 Сапоги","pauldrons":"🏅 Наплечники","legendary_armor":"✨ Легендарный доспех",
+        "berry":"🍓 Ягоды","bread":"🍞 Хлеб","cheese":"🧀 Сыр","meat":"🍗 Мясо","fish":"🐟 Рыба","soup":"🥣 Суп","cake":"🍰 Торт","pie":"🥧 Пирог","elven_bread":"🌿 Эльфийский хлеб","ambrosia":"✨ Амброзия",
+        "vial":"🧴 Бутылёк","weak_potion":"🧪 Малое зелье","medium_potion":"🧪 Среднее зелье","strong_potion":"⚡ Сильное зелье","elixir":"✨ Эликсир","poison":"☠️ Яд","stamina":"💪 Бодрящее зелье","invisibility":"👻 Зелье невидимости","healing":"💚 Лечебное зелье","immortality":"🌟 Бессмертие"
+    };
+    
+    let shopUnlocks = {
+        materials: new Set(),
+        weapons: new Set(),
+        armor: new Set(),
+        food: new Set(),
+        potions: new Set(),
+        ranged: new Set()
+    };
+    
+    function initDefaultShopUnlocks() {
+        if(rebirthLevel >= 1) {
+            if(unlocked.weapons && !shopUnlocks.weapons.has(0)) shopUnlocks.weapons.add(0);
+            if(unlocked.armor && !shopUnlocks.armor.has(0)) shopUnlocks.armor.add(0);
+            if(unlocked.food && !shopUnlocks.food.has(0)) shopUnlocks.food.add(0);
+            if(unlocked.potions && !shopUnlocks.potions.has(0)) shopUnlocks.potions.add(0);
+            if(rangedUnlocked && !shopUnlocks.ranged.has(0)) shopUnlocks.ranged.add(0);
+            if(!shopUnlocks.materials.has(0)) shopUnlocks.materials.add(0);
+        }
+    }
+    
+    function getMaxItemPriceInCategory(chain, basePrice) {
+        let maxIdx = chain.length - 1;
+        return basePrice * Math.pow(2, maxIdx);
+    }
+    
+    function unlockShopItem(type, itemIndex) {
+        if(!shopUnlocks[type].has(itemIndex)) {
+            let cost = getMaxItemPriceInCategory(
+                type === 'materials' ? materialChain :
+                type === 'weapons' ? weaponChain :
+                type === 'armor' ? armorChain :
+                type === 'food' ? foodChain :
+                type === 'potions' ? potionChain : rangedChain,
+                baseNpPrice[type]
+            );
+            if(coins >= cost) {
+                coins -= cost;
+                shopUnlocks[type].add(itemIndex);
+                updateUI();
+                saveGame();
+                renderItemShop();
+                renderShopTab();
+                alert(`Открыта покупка предмета! Стоимость открытия: ${cost}🪙`);
+                return true;
+            } else {
+                alert(`Не хватает монет! Нужно ${cost}🪙 для открытия покупки этого предмета.`);
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    function getItemCategory(item) {
+        if(materialChain.includes(item)) return { chain: materialChain, basePrice: baseNpPrice.materials, type: 'materials' };
+        if(weaponChain.includes(item)) return { chain: weaponChain, basePrice: baseNpPrice.weapons, type: 'weapons' };
+        if(rangedChain.includes(item)) return { chain: rangedChain, basePrice: baseNpPrice.ranged, type: 'ranged' };
+        if(armorChain.includes(item)) return { chain: armorChain, basePrice: baseNpPrice.armor, type: 'armor' };
+        if(foodChain.includes(item)) return { chain: foodChain, basePrice: baseNpPrice.food, type: 'food' };
+        if(potionChain.includes(item)) return { chain: potionChain, basePrice: baseNpPrice.potions, type: 'potions' };
+        return null;
+    }
+    function getItemRealPrice(item) { let cat = getItemCategory(item); if(!cat) return 5; return cat.basePrice * Math.pow(2, cat.chain.indexOf(item)); }
+    function getItemSellPrice(item) { return Math.floor(getItemRealPrice(item) / 2); }
+    function getNpcSellPriceForItem(item) { return Math.floor(getItemRealPrice(item) * 1.3); }
+    function getCraftFrom(item) { let cat = getItemCategory(item); if(!cat) return "?"; let idx = cat.chain.indexOf(item); if(idx === 0) return "Начальный"; return `${Math.pow(2, idx)} × ${itemNames[cat.chain[0]]}`; }
+    function getCraftPrice(item) { let cat = getItemCategory(item); if(!cat) return 0; let idx = cat.chain.indexOf(item); return cat.basePrice * Math.pow(2, idx); }
+    function getMergeResult(item) { let cat = getItemCategory(item); if(cat){ let i = cat.chain.indexOf(item); if(i < cat.chain.length-1) return cat.chain[i+1]; } return null; }
+    function getItemTier(item, chain) { return chain.indexOf(item)+1; }
+    function getEnchantCost(level) { return 500 + (level * 500); }
+    function getRefundCost(level) { return Math.floor(getEnchantCost(level) * 0.8); }
+    
+    let unlocked = { weapons:false, armor:false, food:false, potions:false };
+    let unlocksCount = { weapons:0, armor:0, food:0, potions:0 };
+    let coins = 200, energy = 0;
+    let grid = Array(16).fill(null);
+    let selectedIndex = null;
+    let rebirthLevel = 0;
+    let enchantWeapons = 0, enchantRanged = 0;
+    let equippedWeapon = null, equippedRanged = null;
+    let discoveredItems = new Set();
+    let metNpcs = new Set();
+    let storage = [null, null, null];
+    let monsterHp = 10000;
+    let monsterKills = 0;
+    let currentMonsterReward = 100;
+    let chargeTimeout = null, isCharging = false, chargedAttackReady = false;
+    let rangedUnlocked = false;
+    let usedPromoCodes = new Set();
+    const BONUS_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+    let lastBonusTime = 0;
+    
+    const backgrounds = [
+        {id:"black",name:"⬛ Чёрный",price:0}, {id:"white",name:"⬜ Белый",price:0},
+        {id:"red",name:"🔴 Красный",price:1000}, {id:"orange",name:"🟠 Оранжевый",price:1000},
+        {id:"yellow",name:"🟡 Жёлтый",price:1000}, {id:"green",name:"🟢 Зелёный",price:1000},
+        {id:"cyan",name:"🔵 Голубой",price:1000}, {id:"blue",name:"💙 Синий",price:1000},
+        {id:"purple",name:"🟣 Фиолетовый",price:1000}, {id:"stars",name:"✨ Звёздный",price:1000},
+        {id:"fire",name:"🔥 Огненный",price:1000}, {id:"forest",name:"🌲 Лесной",price:1000},
+        {id:"castle",name:"🏰 Замковый",price:1000}, {id:"volcano",name:"🌋 Вулкан",price:1000},
+        {id:"ice",name:"❄️ Ледяной",price:1000}, {id:"dark",name:"🌑 Тьма",price:1000},
+        {id:"ocean",name:"🌊 Океан",price:1000}, {id:"desert",name:"🏜️ Пустыня",price:1000},
+        {id:"sunset",name:"🌅 Закат",price:1000}, {id:"meadow",name:"🌿 Поляна",price:1000}
+    ];
+    let ownedBgs=["black","white"]; let currentBg="black";
+    
+    function loadPromoState() { let saved = localStorage.getItem("usedPromoCodes_" + TELEGRAM_USER_ID); if(saved) usedPromoCodes = new Set(JSON.parse(saved)); }
+    function savePromoState() { localStorage.setItem("usedPromoCodes_" + TELEGRAM_USER_ID, JSON.stringify(Array.from(usedPromoCodes))); }
+    function loadBonusState() { let saved = localStorage.getItem("lastBonusTime_" + TELEGRAM_USER_ID); if(saved) lastBonusTime = parseInt(saved); }
+    function saveBonusState() { localStorage.setItem("lastBonusTime_" + TELEGRAM_USER_ID, lastBonusTime); }
+    function resetBonusCooldown() { lastBonusTime = 0; saveBonusState(); alert("Кулдаун ежедневного бонуса сброшен!"); }
+    function canGetBonus() { return Date.now() - lastBonusTime >= BONUS_COOLDOWN_MS; }
+    
+    function claimDailyBonus() {
+        if(canGetBonus()) {
+            coins += 50;
+            lastBonusTime = Date.now();
+            saveBonusState();
+            updateUI();
+            saveGame();
+            alert('✅ Вы получили 50 монет! Следующий бонус через 24 часа.');
+        } else {
+            let remaining = BONUS_COOLDOWN_MS - (Date.now() - lastBonusTime);
+            let hours = Math.floor(remaining / (60 * 60 * 1000));
+            let minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
+            alert(`⏳ Бонус уже получен! Следующий через ${hours} ч ${minutes} мин.`);
+        }
+    }
+    
+    function applyPromo() { 
+        let code = document.getElementById("promoCode").value.trim(); 
+        if(usedPromoCodes.has(code)) { 
+            alert("Этот промокод уже был использован!"); 
+            return; 
+        }
+        let reward = 0;
+        let promoName = "";
+        if(code === "SunnyGame") { reward = 150; promoName = "SunnyGame"; }
+        else if(code === "EnnVel") { reward = 150; promoName = "EnnVel"; }
+        else if(code === "Kilьka27") { reward = 150; promoName = "Kilьka27"; }
+        else if(code === "kirka") { reward = 150; promoName = "kirka"; }
+        if(reward > 0) {
+            coins += reward;
+            usedPromoCodes.add(code);
+            savePromoState();
+            updateUI(); 
+            saveGame(); 
+            alert(`Промокод ${promoName} активирован! +${reward} монет`); 
+            document.getElementById("promoCode").value = ""; 
+        } else { 
+            alert("Неверный промокод"); 
+        } 
+    }
+    
+    function discoverItem(item) { 
+        if(item && !discoveredItems.has(item)) { 
+            discoveredItems.add(item); 
+            renderCollection(); 
+            saveGame();
+        } 
+    }
+    
+    function addToGridAndDiscover(itemId) { 
+        let empty = grid.findIndex(c => c === null); 
+        if(empty !== -1) {
+            grid[empty] = itemId; 
+            discoverItem(itemId); 
+            renderGrid(); 
+            return true; 
+        }
+        return false; 
+    }
+    
+    function recalcDamage() { return 1 + (enchantWeapons + enchantRanged) + (equippedWeapon ? getItemTier(equippedWeapon, weaponChain) : 0) + (equippedRanged ? getItemTier(equippedRanged, rangedChain) : 0); }
+    
+    function attackMonster(normal=true) { 
+        let dmg = recalcDamage(); 
+        if(!normal && chargedAttackReady && equippedRanged) { dmg += 5; chargedAttackReady = false; } 
+        monsterHp = Math.max(0, monsterHp - dmg); 
+        document.getElementById("monsterHp").innerText = monsterHp; 
+        if(monsterHp === 0){ 
+            monsterKills++;
+            coins += currentMonsterReward; 
+            currentMonsterReward += 50;
+            updateUI(); 
+            monsterHp = 10000; 
+            document.getElementById("monsterHp").innerText = 10000;
+            document.getElementById("monsterReward").innerText = currentMonsterReward;
+            alert(`Вы убили монстра! +${currentMonsterReward-50} монет. Следующая награда: ${currentMonsterReward}`); 
+        } 
+        updateUI(); saveGame(); 
+    }
+    function startCharge() { if(!equippedRanged) { attackMonster(true); return; } isCharging = true; const btn = document.getElementById("attackBtn"); btn.classList.remove("charging"); if(chargeTimeout) clearTimeout(chargeTimeout); chargeTimeout = setTimeout(() => { chargedAttackReady = true; btn.classList.add("charging"); }, 1000); }
+    function endCharge() { if(chargeTimeout) clearTimeout(chargeTimeout); const btn = document.getElementById("attackBtn"); btn.classList.remove("charging"); if(isCharging) { if(chargedAttackReady) attackMonster(false); else attackMonster(true); } isCharging = false; chargedAttackReady = false; }
+
+    const npcNames = ["Северус Снейп","Арагорн","Геральт","Эльза","Торин","Сэм","Бриенна","Добби","Мерлин","Красная Шапочка","Да Винчи","Рипли","Джон Сноу","Лара Крофт","Шрек","Фродо","Гэндальф","Клеопатра","Зевс","Артур Морган"];
+    let npcList = [], currentNpc = null;
+    let npcWishlistsLocked = false;
+    function getAvailableItemsForWish() { let items = [...materialChain]; if(unlocked.weapons) items.push(...weaponChain); if(rangedUnlocked) items.push(...rangedChain); if(unlocked.armor) items.push(...armorChain); if(unlocked.food) items.push(...foodChain); if(unlocked.potions) items.push(...potionChain); return items; }
+    function generateWishlistBalanced() {
+        let pool = getAvailableItemsForWish();
+        if(pool.length === 0) return ["grass", "grass", "grass"];
+        let maxTotalCost = coins;
+        let bestWishlist = null;
+        let bestTotal = 0;
+        for(let attempt = 0; attempt < 200; attempt++) {
+            let candidate = [];
+            for(let i = 0; i < 3; i++) {
+                let randomItem = pool[Math.floor(Math.random() * pool.length)];
+                candidate.push(randomItem);
+            }
+            let total = candidate.reduce((sum, item) => sum + getItemRealPrice(item), 0);
+            if(total <= maxTotalCost && total > bestTotal) {
+                bestTotal = total;
+                bestWishlist = [...candidate];
+            }
+            if(bestTotal === maxTotalCost) break;
+        }
+        if(bestWishlist === null) {
+            let sortedByPrice = [...pool].sort((a,b) => getItemRealPrice(a) - getItemRealPrice(b));
+            bestWishlist = [sortedByPrice[0], sortedByPrice[0], sortedByPrice[0]];
+        }
+        return bestWishlist;
+    }
+    function initNPC() { npcList = npcNames.map((name,idx)=>({ id:idx, name:name, wishlist:generateWishlistBalanced() })); currentNpc = npcList[0]; renderNPC(); }
+    function nextNPC() { let idx = npcList.findIndex(n=>n===currentNpc); let next = (idx+1)%npcList.length; currentNpc = npcList[next]; currentNpc.wishlist = generateWishlistBalanced(); metNpcs.add(currentNpc.name); renderCollection(); renderNPC(); }
+    function refreshNPC() { if(coins>=10){ coins-=10; nextNPC(); updateUI(); saveGame(); alert("Продавец обновлён!"); } else alert("Нужно 10 монет"); }
+    function updateAllNpcWishlists() { if(!npcWishlistsLocked) { for(let npc of npcList) { npc.wishlist = generateWishlistBalanced(); } if(currentNpc) renderNPC(); } }
+    function lockNpcWishlists(lock) { npcWishlistsLocked = lock; }
+    function calculateNpcSellPrice(wishlist) { let totalCraftCost = 0; for(let item of wishlist) { totalCraftCost += getItemRealPrice(item); } return Math.floor(totalCraftCost * 1.3); }
+    
+    function getAllItemsFromGridAndStorage() {
+        let allItems = [...grid];
+        for(let item of storage) if(item) allItems.push(item);
+        return allItems;
+    }
+    
+    function sellToNPC() { 
+        if(!currentNpc) return; 
+        let wishlist = currentNpc.wishlist;
+        let itemCounts = new Map();
+        let allItems = getAllItemsFromGridAndStorage();
+        for(let item of allItems) {
+            if(item) itemCounts.set(item, (itemCounts.get(item) || 0) + 1);
+        }
+        
+        let neededItems = [...wishlist];
+        let canFulfill = true;
+        for(let item of neededItems) {
+            if(!itemCounts.has(item) || itemCounts.get(item) < 1) {
+                canFulfill = false;
+                break;
+            }
+        }
+        
+        if(!canFulfill) {
+            alert(`Для продажи нужны все 3 предмета!\nНужно: ${wishlist.map(w=>itemNames[w]).join(", ")}`);
+            return;
+        }
+        
+        let useStorage = false;
+        let totalPrice = calculateNpcSellPrice(wishlist);
+        
+        let hasInStorage = false;
+        for(let item of neededItems) {
+            if(storage.includes(item)) hasInStorage = true;
+        }
+        
+        if(hasInStorage) {
+            useStorage = confirm(`Некоторые предметы находятся в хранилище. Взять их оттуда для продажи?`);
+        }
+        
+        for(let item of neededItems) {
+            let found = false;
+            for(let i = 0; i < grid.length; i++) {
+                if(grid[i] === item && !found) {
+                    grid[i] = null;
+                    found = true;
+                    break;
+                }
+            }
+            if(!found && useStorage) {
+                for(let i = 0; i < storage.length; i++) {
+                    if(storage[i] === item && !found) {
+                        storage[i] = null;
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        coins += totalPrice;
+        selectedIndex = null;
+        renderGrid();
+        renderStorage();
+        renderStorageTab();
+        updateUI();
+        lockNpcWishlists(false);
+        updateAllNpcWishlists();
+        nextNPC();
+        saveGame();
+        alert(`Продано! Получено ${totalPrice}🪙`);
+    }
+    
+    function sellSelectedItem() { 
+        if(selectedIndex !== null && grid[selectedIndex] !== null) { 
+            let item = grid[selectedIndex]; 
+            let price = getItemSellPrice(item); 
+            if(confirm(`Продать ${itemNames[item]} за ${price} монет?`)) { 
+                coins += price; 
+                grid[selectedIndex] = null; 
+                selectedIndex = null; 
+                renderGrid(); 
+                updateUI(); 
+                saveGame(); 
+                alert(`Продано за ${price}🪙`); 
+            } 
+        } else alert("Выберите предмет в сетке"); 
+    }
+    
+    function addToStorage() { 
+        if(selectedIndex !== null && grid[selectedIndex] !== null) { 
+            let emptyIdx = storage.findIndex(s => s === null); 
+            if(emptyIdx === -1) alert("Хранилище заполнено"); 
+            else { 
+                storage[emptyIdx] = grid[selectedIndex]; 
+                grid[selectedIndex] = null; 
+                selectedIndex = null; 
+                renderGrid(); 
+                renderStorage();
+                renderStorageTab();
+                saveGame(); 
+            } 
+        } else alert("Выберите предмет в сетке"); 
+    }
+    
+    function equipFromGridAction() {
+        if(selectedIndex === null || grid[selectedIndex] === null) {
+            alert("Выберите предмет в сетке");
+            return;
+        }
+        let item = grid[selectedIndex];
+        if(weaponChain.includes(item)) {
+            if(equippedWeapon) addToGridAndDiscover(equippedWeapon);
+            equippedWeapon = item;
+            grid[selectedIndex] = null;
+            alert(`⚔️ ${itemNames[item]} экипирован в оружие`);
+        } else if(rangedChain.includes(item) && rangedUnlocked) {
+            if(equippedRanged) addToGridAndDiscover(equippedRanged);
+            equippedRanged = item;
+            grid[selectedIndex] = null;
+            alert(`🏹 ${itemNames[item]} экипирован в луки`);
+        } else {
+            alert("Этот предмет нельзя экипировать (нужны оружие или лук)");
+            return;
+        }
+        selectedIndex = null;
+        renderGrid();
+        updateUI();
+        updateEquippedDisplay();
+        saveGame();
+    }
+    
+    function updateEquippedDisplay() {
+        let weaponHtml = equippedWeapon ? itemNames[equippedWeapon] + ' <button class="unequip-btn" onclick="window.unequipItem(\'weapon\')">Снять</button>' : "— пусто —";
+        let rangedHtml = equippedRanged ? itemNames[equippedRanged] + ' <button class="unequip-btn" onclick="window.unequipItem(\'ranged\')">Снять</button>' : "— пусто —";
+        document.getElementById("equippedWeaponBattle").innerHTML = weaponHtml;
+        document.getElementById("equippedRangedBattle").innerHTML = rangedHtml;
+    }
+    
+    function removeFromStorage(idx) { 
+        if(storage[idx] !== null) { 
+            if(addToGridAndDiscover(storage[idx])) { 
+                storage[idx] = null; 
+                renderStorage();
+                renderStorageTab();
+                saveGame(); 
+            } else alert("Нет места в сетке"); 
+        } 
+    }
+    
+    function expandStorage() { 
+        if(coins>=1000 && storage.length < 10){ 
+            coins-=1000; 
+            storage.push(null); 
+            renderStorage();
+            renderStorageTab();
+            updateUI(); 
+            saveGame(); 
+            alert("Ячейка хранилища добавлена!"); 
+        } else if(storage.length>=10) alert("Максимум 10 ячеек"); 
+        else alert("Нужно 1000 монет"); 
+    }
+
+    function craftBase(cost, item, unlockedFlag, needRebirth=false){ 
+        if(needRebirth && !rangedUnlocked){ alert("Луки доступны только после перерождения!"); return; } 
+        if(!unlockedFlag){ alert("Категория не разблокирована"); return; } 
+        if(coins>=cost){ 
+            lockNpcWishlists(true);
+            coins-=cost; 
+            if(addToGridAndDiscover(item)) { 
+                updateUI(); 
+                saveGame(); 
+            } 
+            lockNpcWishlists(false);
+        } else alert(`Нужно ${cost} монет`); 
+    }
+    
+    function moveItem(from, to) { if(grid[from] === null) return false; if(grid[to] === null) { grid[to] = grid[from]; grid[from] = null; renderGrid(); saveGame(); return true; } return false; }
+    function swapItems(idx1, idx2) { let temp = grid[idx1]; grid[idx1] = grid[idx2]; grid[idx2] = temp; renderGrid(); saveGame(); }
+    
+    function clickCell(idx){ 
+        if(selectedIndex === null){ 
+            if(grid[idx] !== null) {
+                selectedIndex = idx; 
+                renderGrid(); 
+            } else {
+                selectedIndex = null;
+                renderGrid();
+            }
+            return; 
+        } 
+        let first = selectedIndex; 
+        let second = idx; 
+        selectedIndex = null; 
+        if(first === second){ 
+            renderGrid(); 
+            return; 
+        } 
+        let item1 = grid[first], item2 = grid[second]; 
+        if(item1 && item2 && item1 === item2 && getMergeResult(item1)) { 
+            let next = getMergeResult(item1); 
+            lockNpcWishlists(true); 
+            grid[second] = next; 
+            grid[first] = null; 
+            discoverItem(next); 
+            coins += 3; 
+            updateUI(); 
+            saveGame(); 
+            lockNpcWishlists(false); 
+            renderGrid(); 
+        } else if(item1 && item2) {
+            swapItems(first, second);
+        } else if(item1 && !item2) {
+            moveItem(first, second);
+        } else {
+            renderGrid();
+        }
+    }
+    
+    function showItemInfo(item) { 
+        let cat = getItemCategory(item); 
+        let tier = cat.chain.indexOf(item); 
+        let npcPrice = getNpcSellPriceForItem(item);
+        let craftPrice = getCraftPrice(item);
+        alert(`🔍 ${itemNames[item]}\nСоединение: ${tier+1}\nСостоит из: ${Math.pow(2, tier)} × ${itemNames[cat.chain[0]]}\nЦена крафта: ${craftPrice}🪙\nСтоимость удаления: ${getItemSellPrice(item)}🪙\nЦена продажи NPC: ${npcPrice}🪙\nЧары: ${(cat.type === 'weapons' ? enchantWeapons : (cat.type === 'ranged' ? enchantRanged : 0))}/10`); 
+    }
+    
+    function unequipItem(slotType) { 
+        let item = null; 
+        if(slotType === 'weapon' && equippedWeapon) { 
+            item = equippedWeapon; 
+            if(addToGridAndDiscover(equippedWeapon)) { 
+                equippedWeapon = null; 
+                alert(`Снято: ${itemNames[item]}`); 
+            } else { 
+                alert("Нет места в сетке"); 
+                return; 
+            } 
+        } else if(slotType === 'ranged' && equippedRanged) { 
+            item = equippedRanged; 
+            if(addToGridAndDiscover(equippedRanged)) { 
+                equippedRanged = null; 
+                alert(`Снято: ${itemNames[item]}`); 
+            } else { 
+                alert("Нет места в сетке"); 
+                return; 
+            } 
+        } else { 
+            alert("Нет предмета для снятия"); 
+            return; 
+        } 
+        updateEquippedDisplay();
+        renderGrid(); 
+        updateUI(); 
+        saveGame(); 
+    }
+    window.unequipItem = unequipItem;
+    
+    function selectEquipmentSlot(slotType) { 
+        if(slotType === 'weapon' && equippedWeapon) showItemInfo(equippedWeapon); 
+        else if(slotType === 'ranged' && equippedRanged) showItemInfo(equippedRanged); 
+        else if(slotType === 'weapon' && !equippedWeapon) alert("Слот оружия пуст"); 
+        else if(slotType === 'ranged' && !equippedRanged) alert("Слот луков пуст"); 
+    }
+    
+    function applyEnchant(type) { 
+        if(rebirthLevel===0){ alert("Переродитесь для чарок (1 млн монет)"); return; } 
+        if(type === 'weapon' && equippedWeapon === null){ alert("Сначала экипируйте оружие в слот!"); return; } 
+        if(type === 'ranged' && equippedRanged === null){ alert("Сначала экипируйте лук в слот!"); return; } 
+        let currentLevel = (type === 'weapon') ? enchantWeapons : enchantRanged; 
+        if(currentLevel >= 10) { alert("Максимум 10 чарок на этот предмет!"); return; } 
+        let cost = getEnchantCost(currentLevel); 
+        if(coins >= cost) { 
+            if(type === 'weapon') enchantWeapons++; 
+            else enchantRanged++; 
+            coins -= cost; 
+            updateUI(); 
+            renderEnchantShop(); 
+            saveGame(); 
+            alert(`Чара на ${type === 'weapon' ? 'оружие' : 'луки'} активирована! Урон +1. Уровень: ${currentLevel+1}/10`); 
+        } else alert(`Нужно ${cost} монет`); 
+    }
+    
+    function refundEnchant(type) { 
+        let currentLevel = (type === 'weapon') ? enchantWeapons : enchantRanged; 
+        if(currentLevel === 0) { alert("Нет чарок для снятия"); return; } 
+        let refund = getRefundCost(currentLevel - 1); 
+        if(type === 'weapon') enchantWeapons--; 
+        else enchantRanged--; 
+        coins += refund; 
+        updateUI(); 
+        renderEnchantShop(); 
+        saveGame(); 
+        alert(`Чара снята! Возвращено ${refund} монет (80% стоимости)`); 
+    }
+    
+    function renderEnchantShop() { 
+        let cont = document.getElementById("enchantShopContainer"); 
+        if(!cont) return; 
+        if(rebirthLevel===0){ cont.innerHTML="<div class='badge'>🔒 Переродитесь (1M монет)</div>"; return; } 
+        cont.innerHTML = `<div><b>⚔️ ОРУЖИЕ</b> (${enchantWeapons}/10) ${enchantWeapons<10 ? `<button class="enchant-btn" onclick="window.applyEnchant('weapon')">Купить чару ${getEnchantCost(enchantWeapons)}🪙 (+1 урон)</button>` : '✅ MAX'}</div><div><b>🏹 ЛУКИ</b> (${enchantRanged}/10) ${enchantRanged<10 ? `<button class="enchant-btn" onclick="window.applyEnchant('ranged')">Купить чару ${getEnchantCost(enchantRanged)}🪙 (+1 урон)</button>` : '✅ MAX'}</div><div><button class="refund-btn" onclick="window.refundEnchant('weapon')">Снять последнюю чару с оружия (+${enchantWeapons>0?getRefundCost(enchantWeapons-1):0}🪙)</button><button class="refund-btn" onclick="window.refundEnchant('ranged')">Снять последнюю чару с луков (+${enchantRanged>0?getRefundCost(enchantRanged-1):0}🪙)</button></div>`; 
+    }
+    window.applyEnchant = applyEnchant; 
+    window.refundEnchant = refundEnchant;
+    
+    function unlockCategory(cat, display){ 
+        let cost=1000+(unlocksCount[cat]*150); 
+        if(unlocked[cat]){ alert("Уже открыто"); return; } 
+        if(coins>=cost){ 
+            coins-=cost; 
+            unlocked[cat]=true; 
+            unlocksCount[cat]++; 
+            initDefaultShopUnlocks();
+            updateCraftBtns(); 
+            renderShop(); 
+            updateUI(); 
+            updateAllNpcWishlists(); 
+            alert(`${display} разблокирована!`); 
+            saveGame();
+            renderItemShop();
+            renderShopTab();
+        } else alert(`Нужно ${cost} монет`); 
+    }
+    
+    function updateCraftBtns(){ 
+        document.getElementById("craftWeaponBtn").disabled=!unlocked.weapons; 
+        document.getElementById("craftArmorBtn").disabled=!unlocked.armor; 
+        document.getElementById("craftFoodBtn").disabled=!unlocked.food; 
+        document.getElementById("craftPotionBtn").disabled=!unlocked.potions; 
+        document.getElementById("craftRangedWeaponBtn").disabled=!rangedUnlocked; 
+        if(rangedUnlocked) {
+            document.getElementById("craftRangedWeaponBtn").innerHTML = "🏹 Луки -50";
+            document.getElementById("craftRangedWeaponBtn").style.background = "#ecd67a";
+            document.getElementById("craftRangedWeaponBtn").style.color = "#2b381c";
+        } else {
+            document.getElementById("craftRangedWeaponBtn").innerHTML = "🏹 Луки (после перерождения)";
+            document.getElementById("craftRangedWeaponBtn").style.background = "#555";
+            document.getElementById("craftRangedWeaponBtn").style.color = "#aaa";
+        }
+    }
+    
+    function renderShop(){ 
+        let cont=document.getElementById("shopUnlockList"); 
+        cont.innerHTML=""; 
+        let cats=[{id:"weapons",name:"⚔️ ОРУЖИЕ"},{id:"armor",name:"🛡️ БРОНЯ"},{id:"food",name:"🍇 ЕДА"},{id:"potions",name:"🧪 ЗЕЛЬЯ"}]; 
+        for(let c of cats){ 
+            let isUnlock=unlocked[c.id]; 
+            let cost=1000+(unlocksCount[c.id]*150); 
+            let btn=document.createElement("button"); 
+            btn.className="unlock-btn"+(isUnlock?" unlocked":""); 
+            btn.innerHTML=`<span>${c.name}</span><span>${isUnlock?"✅":cost+"🪙"}</span>`; 
+            if(!isUnlock) btn.onclick=()=>unlockCategory(c.id,c.name); 
+            else btn.disabled=true; 
+            cont.appendChild(btn); 
+        } 
+        let rangedBtn = document.createElement("button"); 
+        if(rangedUnlocked) { 
+            rangedBtn.className="unlock-btn unlocked"; 
+            rangedBtn.innerHTML=`<span>🏹 ЛУКИ</span><span>✅</span>`; 
+            rangedBtn.disabled=true; 
+        } 
+        else if(rebirthLevel===0) { 
+            rangedBtn.className="unlock-btn"; 
+            rangedBtn.innerHTML=`<span>🏹 ЛУКИ</span><span>🔒 переродитесь</span>`; 
+            rangedBtn.disabled=true; 
+        } 
+        else { 
+            rangedBtn.className="unlock-btn"; 
+            rangedBtn.innerHTML=`<span>🏹 ЛУКИ</span><span>1000🪙</span>`; 
+            rangedBtn.onclick=()=>{ if(coins>=1000 && rebirthLevel>=1 && !rangedUnlocked){ coins-=1000; rangedUnlocked=true; initDefaultShopUnlocks(); updateCraftBtns(); renderShop(); updateUI(); updateAllNpcWishlists(); saveGame(); alert("Луки разблокированы!"); renderItemShop(); renderShopTab(); } else alert("Нужно 1000 монет и перерождение"); }; 
+        } 
+        cont.appendChild(rangedBtn); 
+    }
+    
+    function renderItemShop() {
+        const container = document.getElementById("itemShopGrid");
+        if(!container) return;
+        if(rebirthLevel === 0) {
+            container.innerHTML = "<div class='badge'>🔒 Магазин предметов доступен только после перерождения</div>";
+            return;
+        }
+        container.innerHTML = "";
+        const categories = [
+            { name: "🌾 Материалы", chain: materialChain, type: 'materials', unlockCondition: () => true, basePrice: baseNpPrice.materials },
+            { name: "⚔️ Оружие", chain: weaponChain, type: 'weapons', unlockCondition: () => unlocked.weapons, basePrice: baseNpPrice.weapons },
+            { name: "🛡️ Броня", chain: armorChain, type: 'armor', unlockCondition: () => unlocked.armor, basePrice: baseNpPrice.armor },
+            { name: "🍇 Еда", chain: foodChain, type: 'food', unlockCondition: () => unlocked.food, basePrice: baseNpPrice.food },
+            { name: "🧪 Зелья", chain: potionChain, type: 'potions', unlockCondition: () => unlocked.potions, basePrice: baseNpPrice.potions },
+            { name: "🏹 Луки", chain: rangedChain, type: 'ranged', unlockCondition: () => rangedUnlocked, basePrice: baseNpPrice.ranged }
+        ];
+        
+        for(let category of categories) {
+            const catDiv = document.createElement("div");
+            catDiv.style.marginBottom = "15px";
+            catDiv.innerHTML = `<h5 style="margin:5px 0;">${category.name}</h5><div class="item-shop-grid" id="shopGrid_${category.type}"></div>`;
+            container.appendChild(catDiv);
+            const gridDiv = catDiv.querySelector(`.item-shop-grid`);
+            for(let i = 0; i < category.chain.length; i++) {
+                const item = category.chain[i];
+                const isUnlocked = category.unlockCondition();
+                const isPurchasable = shopUnlocks[category.type].has(i);
+                const price = getItemRealPrice(item);
+                const unlockCost = getMaxItemPriceInCategory(category.chain, category.basePrice);
+                const card = document.createElement("div");
+                
+                if(isUnlocked && isPurchasable) {
+                    card.className = "shop-item-card unlocked";
+                    card.innerHTML = `<div>${itemNames[item]}</div><div class="shop-item-price">${price}🪙</div>`;
+                    card.onclick = () => {
+                        if(coins >= price) {
+                            if(addToGridAndDiscover(item)) {
+                                coins -= price;
+                                updateUI();
+                                saveGame();
+                                alert(`Куплено: ${itemNames[item]} за ${price}🪙`);
+                            } else {
+                                alert("Нет места в инвентаре!");
+                            }
+                        } else {
+                            alert(`Не хватает монет! Нужно ${price}🪙`);
+                        }
+                    };
+                } else if(isUnlocked && !isPurchasable) {
+                    card.className = "shop-item-card locked";
+                    card.innerHTML = `<div>${itemNames[item]}</div><div class="shop-item-price">🔒 ${unlockCost}🪙</div>`;
+                    card.onclick = () => {
+                        unlockShopItem(category.type, i);
+                        renderItemShop();
+                        renderShopTab();
+                    };
+                } else {
+                    card.className = "shop-item-card locked";
+                    card.innerHTML = `<div>${itemNames[item]}</div><div class="shop-item-price">🔒 Категория закрыта</div>`;
+                    card.onclick = () => alert("Категория не разблокирована в магазине!");
+                }
+                gridDiv.appendChild(card);
+            }
+        }
+    }
+    
+    function renderShopTab() {
+        const container = document.getElementById("shopTabGrid");
+        if(!container) return;
+        if(rebirthLevel === 0) {
+            container.innerHTML = "<div class='badge'>🔒 Магазин предметов доступен только после перерождения</div>";
+            return;
+        }
+        container.innerHTML = "";
+        const categories = [
+            { name: "🌾 Материалы", chain: materialChain, type: 'materials', unlockCondition: () => true, basePrice: baseNpPrice.materials },
+            { name: "⚔️ Оружие", chain: weaponChain, type: 'weapons', unlockCondition: () => unlocked.weapons, basePrice: baseNpPrice.weapons },
+            { name: "🛡️ Броня", chain: armorChain, type: 'armor', unlockCondition: () => unlocked.armor, basePrice: baseNpPrice.armor },
+            { name: "🍇 Еда", chain: foodChain, type: 'food', unlockCondition: () => unlocked.food, basePrice: baseNpPrice.food },
+            { name: "🧪 Зелья", chain: potionChain, type: 'potions', unlockCondition: () => unlocked.potions, basePrice: baseNpPrice.potions },
+            { name: "🏹 Луки", chain: rangedChain, type: 'ranged', unlockCondition: () => rangedUnlocked, basePrice: baseNpPrice.ranged }
+        ];
+        
+        for(let category of categories) {
+            const catDiv = document.createElement("div");
+            catDiv.style.marginBottom = "15px";
+            catDiv.innerHTML = `<h5 style="margin:5px 0;">${category.name}</h5><div class="item-shop-grid" id="shopTabGrid_${category.type}"></div>`;
+            container.appendChild(catDiv);
+            const gridDiv = catDiv.querySelector(`.item-shop-grid`);
+            for(let i = 0; i < category.chain.length; i++) {
+                const item = category.chain[i];
+                const isUnlocked = category.unlockCondition();
+                const isPurchasable = shopUnlocks[category.type].has(i);
+                const price = getItemRealPrice(item);
+                const unlockCost = getMaxItemPriceInCategory(category.chain, category.basePrice);
+                const card = document.createElement("div");
+                
+                if(isUnlocked && isPurchasable) {
+                    card.className = "shop-item-card unlocked";
+                    card.innerHTML = `<div>${itemNames[item]}</div><div class="shop-item-price">${price}🪙</div>`;
+                    card.onclick = () => {
+                        if(coins >= price) {
+                            if(addToGridAndDiscover(item)) {
+                                coins -= price;
+                                updateUI();
+                                saveGame();
+                                alert(`Куплено: ${itemNames[item]} за ${price}🪙`);
+                            } else {
+                                alert("Нет места в инвентаре!");
+                            }
+                        } else {
+                            alert(`Не хватает монет! Нужно ${price}🪙`);
+                        }
+                    };
+                } else if(isUnlocked && !isPurchasable) {
+                    card.className = "shop-item-card locked";
+                    card.innerHTML = `<div>${itemNames[item]}</div><div class="shop-item-price">🔒 ${unlockCost}🪙</div>`;
+                    card.onclick = () => {
+                        unlockShopItem(category.type, i);
+                        renderItemShop();
+                        renderShopTab();
+                    };
+                } else {
+                    card.className = "shop-item-card locked";
+                    card.innerHTML = `<div>${itemNames[item]}</div><div class="shop-item-price">🔒 Категория закрыта</div>`;
+                    card.onclick = () => alert("Категория не разблокирована в магазине!");
+                }
+                gridDiv.appendChild(card);
+            }
+        }
+    }
+    
+    function renderGrid(){ 
+        let cont=document.getElementById("grid"); 
+        cont.innerHTML=""; 
+        for(let i=0;i<grid.length;i++){ 
+            let key=grid[i]; 
+            let div=document.createElement("div"); 
+            div.className="cell"; 
+            if(selectedIndex===i) div.classList.add("selected"); 
+            div.textContent=key?itemNames[key]:"⬚"; 
+            if(!key) div.classList.add("empty"); 
+            div.onclick=(idx=>()=>clickCell(idx))(i); 
+            cont.appendChild(div); 
+        } 
+    }
+    
+    function renderStorage(){ 
+        let cont=document.getElementById("storageContainer"); 
+        if(!cont) return;
+        cont.innerHTML="<div style='display:flex; flex-wrap:wrap; gap:6px;'>"; 
+        for(let i=0;i<storage.length;i++){ 
+            let item=storage[i]; 
+            cont.innerHTML+=`<div class="storage-slot" style="flex:1; min-width:80px;"><div class="storage-item">${item?itemNames[item]:"⬚ пусто"}</div>${item?`<button class="storage-remove" onclick="window.removeFromStorage(${i})">✖</button>`:""}</div>`; 
+        } 
+        cont.innerHTML+="</div>"; 
+    }
+    
+    function renderStorageTab(){ 
+        let cont=document.getElementById("storageTabContainer"); 
+        if(!cont) return;
+        cont.innerHTML="<div style='display:flex; flex-wrap:wrap; gap:6px;'>"; 
+        for(let i=0;i<storage.length;i++){ 
+            let item=storage[i]; 
+            cont.innerHTML+=`<div class="storage-slot" style="flex:1; min-width:80px;"><div class="storage-item">${item?itemNames[item]:"⬚ пусто"}</div>${item?`<button class="storage-remove" onclick="window.removeFromStorage(${i})">✖</button>`:""}</div>`; 
+        } 
+        cont.innerHTML+="</div><button onclick='window.addToStorage()' style='margin-top:4px;'>📦 В хранилище (из сетки)</button>"; 
+    }
+    window.removeFromStorage = removeFromStorage;
+    window.addToStorage = addToStorage;
+    
+    function renderNPC(){ 
+        let cont=document.getElementById("npcSingleContainer"); 
+        if(!currentNpc) return; 
+        let wishText=currentNpc.wishlist.map(w=>itemNames[w]||w).join(", "); 
+        let totalPrice = calculateNpcSellPrice(currentNpc.wishlist); 
+        cont.innerHTML=`<div class="npc-name">🧙 ${currentNpc.name}</div><div class="npc-wishlist">📋 ХОЧЕТ КУПИТЬ:<br> ${wishText}</div><div class="badge" style="margin:4px 0;">💰 Предлагает: ${totalPrice}🪙</div><button class="sell-to-npc" id="sellToNpcBtn">💰 ПРОДАТЬ ВСЕ</button>`; 
+        document.getElementById("sellToNpcBtn")?.addEventListener("click",sellToNPC); 
+    }
+    
+    function updateUI(){ 
+        document.getElementById("coins").innerText=Math.floor(coins); 
+        document.getElementById("energy").innerText=energy; 
+        document.getElementById("enchantBonusInfo").innerHTML=`✨ Чарки: +${enchantWeapons+enchantRanged} урона (всего ${recalcDamage()})`; 
+        document.getElementById("monsterReward").innerText = currentMonsterReward; 
+    }
+    
+    function exchangeEnergy(){ 
+        if(energy>=10){ 
+            energy-=10; 
+            coins+=10; 
+            updateUI(); 
+            saveGame(); 
+            updateAllNpcWishlists(); 
+        } else alert(`Не хватает 10⚡`); 
+    }
+    
+    function support() { 
+        if(window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.openTelegramLink("https://t.me/SunnySide20_bot");
+            setTimeout(() => {
+                if(window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.sendData("/game_help");
+                }
+            }, 500);
+        } else {
+            window.open("https://t.me/SunnySide20_bot", "_blank");
+            alert("Отправьте /game_help в чат с ботом");
+        }
+    }
+
+    function applyBackground(id){ 
+        document.body.className = `bg-${id}`; 
+        currentBg = id; 
+        renderBgShop();
+        saveGame(); 
+    }
+    
+    function purchaseBg(bg){ 
+        if(ownedBgs.includes(bg.id)){ 
+            applyBackground(bg.id); 
+            return; 
+        } 
+        if(coins>=bg.price){ 
+            coins-=bg.price; 
+            ownedBgs.push(bg.id); 
+            applyBackground(bg.id); 
+            updateUI(); 
+            renderBgShop(); 
+            saveGame(); 
+        } else alert(`Нужно ${bg.price} монет`); 
+    }
+    
+    function renderBgShop(){ 
+        let cont=document.getElementById("bgShopContainer"); 
+        if(!cont) return; 
+        cont.innerHTML=""; 
+        for(let bg of backgrounds){ 
+            let owned=ownedBgs.includes(bg.id); 
+            let active=currentBg===bg.id; 
+            let btn=document.createElement("div"); 
+            btn.className="bg-option"; 
+            btn.innerHTML=`${bg.name} ${owned?(active?"✅":"📀"):bg.price+"🪙"}`; 
+            btn.onclick=()=>purchaseBg(bg); 
+            cont.appendChild(btn); 
+        } 
+    }
+    
+    function renderCollection() { 
+        let container=document.getElementById("collectionContainer"); 
+        if(!container) return;
+        let categories = [
+            {name:"🌾 Материалы", items:materialChain, basePrice:baseNpPrice.materials},
+            {name:"⚔️ Оружие", items:weaponChain, basePrice:baseNpPrice.weapons},
+            {name:"🛡️ Броня", items:armorChain, basePrice:baseNpPrice.armor},
+            {name:"🍇 Еда", items:foodChain, basePrice:baseNpPrice.food},
+            {name:"🧪 Зелья", items:potionChain, basePrice:baseNpPrice.potions},
+            {name:"🏹 Луки", items:rangedChain, basePrice:baseNpPrice.ranged}
+        ];
+        container.innerHTML=""; 
+        for(let cat of categories){ 
+            let catDiv=document.createElement("div"); 
+            catDiv.className="collection-category"; 
+            catDiv.innerHTML=`<h4>${cat.name}</h4><div class="collection-grid"></div>`; 
+            let gridDiv=catDiv.querySelector(".collection-grid"); 
+            for(let item of cat.items){ 
+                let unlocked=discoveredItems.has(item); 
+                let realPrice = cat.basePrice * Math.pow(2, cat.items.indexOf(item)); 
+                let npcPrice = Math.floor(realPrice * 1.3);
+                let craftPrice = getCraftPrice(item);
+                let div=document.createElement("div"); 
+                div.className=`collection-item ${unlocked?"unlocked":"locked"}`; 
+                div.innerHTML=`<div style="font-size:14px;">${itemNames[item]?.split(" ")[0]||"?"}</div><div style="font-size:8px;">${realPrice}🪙</div>`; 
+                div.onclick=(e)=>{ alert(`${itemNames[item]}\nКрафтится из: ${getCraftFrom(item)}\nЦена крафта: ${craftPrice}🪙\nСтоимость удаления: ${Math.floor(realPrice/2)}🪙\nЦена продажи NPC: ${npcPrice}🪙`); }; 
+                gridDiv.appendChild(div); 
+            } 
+            container.appendChild(catDiv); 
+        } 
+        let metContainer=document.getElementById("metNpcContainer"); 
+        metContainer.innerHTML=""; 
+        for(let name of metNpcs){ 
+            metContainer.innerHTML+=`<span class="badge">${name}</span>`; 
+        } 
+        if(metNpcs.size===0) metContainer.innerHTML="<span class='badge'>Пока никого</span>"; 
+    }
+    
+    function showFullResetConfirm() { 
+        let confirmDiv = document.createElement("div"); 
+        confirmDiv.className = "confirm-overlay"; 
+        confirmDiv.innerHTML = `<div style="background:#1a1a1a; padding:20px; border-radius:30px; max-width:90%;"><h2>⚠️ ПОДТВЕРЖДЕНИЕ СБРОСА</h2><p>Вы уверены, что хотите полностью сбросить игру?</p><p>Будут удалены: монеты, энергия, предметы, прогресс крафта, зачарования, разблокировки, хранилище, коллекция, встреченные NPC.</p><p style="color:#ff6666;">Это действие необратимо!</p><div style="display:flex; gap:10px; justify-content:center; margin-top:15px;"><button id="confirmResetBtn" style="background:#aa3333;">✅ ДА, СБРОСИТЬ</button><button id="cancelResetBtn" style="background:#4f6b3e;">❌ ОТМЕНА</button></div></div>`; 
+        document.body.appendChild(confirmDiv); 
+        document.getElementById("confirmResetBtn").onclick = () => { 
+            // Удаляем ТОЛЬКО сохранения текущего Telegram-аккаунта, не трогаем другие аккаунты на устройстве
+            localStorage.removeItem(SAVE_KEY); 
+            localStorage.removeItem("usedPromoCodes_" + TELEGRAM_USER_ID);
+            localStorage.removeItem("lastBonusTime_" + TELEGRAM_USER_ID);
+            location.reload(); 
+        }; 
+        document.getElementById("cancelResetBtn").onclick = () => confirmDiv.remove(); 
+    }
+    
+    function rebirth() { 
+        if(rebirthLevel>=1){ alert("Вы уже переродились!"); return; } 
+        if(coins>=1000000){ 
+            if(confirm("ПЕРЕРОЖДЕНИЕ! Прогресс сбросится, но фоны останутся. Продолжить?")){
+                coins -= 1000000; 
+                rebirthLevel = 1; 
+                let savedBgs = ownedBgs; 
+                let savedCurrentBg = currentBg; 
+                unlocked = { weapons:false, armor:false, food:false, potions:false }; 
+                unlocksCount = { weapons:0, armor:0, food:0, potions:0 }; 
+                coins = 200; 
+                energy = 0; 
+                grid = Array(16).fill(null); 
+                selectedIndex = null; 
+                enchantWeapons = 0; 
+                enchantRanged = 0; 
+                equippedWeapon = null; 
+                equippedRanged = null; 
+                monsterHp = 10000; 
+                monsterKills = 0; 
+                currentMonsterReward = 100; 
+                discoveredItems.clear(); 
+                storage = [null, null, null]; 
+                metNpcs.clear(); 
+                ownedBgs = savedBgs; 
+                currentBg = savedCurrentBg; 
+                shopUnlocks = { materials: new Set(), weapons: new Set(), armor: new Set(), food: new Set(), potions: new Set(), ranged: new Set() };
+                initDefaultShopUnlocks();
+                applyBackground(currentBg); 
+                renderBgShop(); 
+                document.getElementById("monsterHp").innerText = 10000; 
+                updateEquippedDisplay();
+                renderShop(); 
+                renderEnchantShop(); 
+                updateCraftBtns(); 
+                initNPC(); 
+                renderGrid(); 
+                updateUI(); 
+                renderCollection(); 
+                renderStorage();
+                renderStorageTab();
+                renderItemShop(); 
+                renderShopTab();
+                saveGame(); 
+                alert("ПЕРЕРОЖДЕНИЕ! Открыты зачарования, магазин предметов и возможность купить луки за 1000 монет в магазине!"); 
+                updateCraftBtns(); 
+                renderShop(); 
+                renderEnchantShop(); 
+                if(currentNpc) currentNpc.wishlist = generateWishlistBalanced(); 
+                renderNPC(); 
+                saveGame(); 
+            } 
+        } else alert("Нужно 1.000.000 монет"); 
+    }
+    
+    // ========== СОХРАНЕНИЕ / ЗАГРУЗКА (привязка к Telegram ID) ==========
+    function saveGame() { 
+        let save = { 
+            unlocked, unlocksCount, coins, energy, grid, rebirthLevel, 
+            enchantWeapons, enchantRanged, equippedWeapon, equippedRanged, 
+            monsterHp, ownedBgs, currentBg, 
+            discoveredItems:Array.from(discoveredItems), 
+            metNpcs:Array.from(metNpcs), 
+            storage, rangedUnlocked, lastBonusTime, 
+            usedPromoCodes:Array.from(usedPromoCodes), 
+            monsterKills, currentMonsterReward, 
+            shopUnlocks: { 
+                materials: Array.from(shopUnlocks.materials), 
+                weapons: Array.from(shopUnlocks.weapons), 
+                armor: Array.from(shopUnlocks.armor), 
+                food: Array.from(shopUnlocks.food), 
+                potions: Array.from(shopUnlocks.potions), 
+                ranged: Array.from(shopUnlocks.ranged) 
+            },
+            _meta: { userId: TELEGRAM_USER_ID, savedAt: Date.now() }
+        }; 
+        try {
+            localStorage.setItem(SAVE_KEY, JSON.stringify(save)); 
+        } catch(e) {
+            console.error("Ошибка сохранения:", e);
+        }
+    }
+    
+    function loadGame() { 
+        let data = localStorage.getItem(SAVE_KEY); 
+        if(!data) {
+            // Проверяем старый ключ для миграции
+            let oldData = localStorage.getItem("balanceSave");
+            if(oldData) {
+                console.log("🔄 Миграция старого сохранения...");
+                data = oldData;
+                localStorage.setItem(SAVE_KEY, oldData);
+                localStorage.removeItem("balanceSave");
+            } else {
+                return false; 
+            }
+        }
+        try{ 
+            let s=JSON.parse(data); 
+            unlocked=s.unlocked || { weapons:false, armor:false, food:false, potions:false }; 
+            unlocksCount=s.unlocksCount || { weapons:0, armor:0, food:0, potions:0 }; 
+            coins=s.coins || 200; 
+            energy=s.energy || 0; 
+            grid=s.grid || Array(16).fill(null); 
+            if(grid.length !== 16) grid = Array(16).fill(null); 
+            rebirthLevel=s.rebirthLevel || 0; 
+            enchantWeapons=s.enchantWeapons||0; 
+            enchantRanged=s.enchantRanged||0; 
+            equippedWeapon=s.equippedWeapon; 
+            equippedRanged=s.equippedRanged; 
+            monsterHp=s.monsterHp || 10000; 
+            ownedBgs=s.ownedBgs||["black","white"]; 
+            currentBg=s.currentBg||"black"; 
+            discoveredItems=new Set(s.discoveredItems||[]); 
+            metNpcs=new Set(s.metNpcs||[]); 
+            storage=s.storage||[null,null,null]; 
+            rangedUnlocked=s.rangedUnlocked||false; 
+            lastBonusTime=s.lastBonusTime||0; 
+            usedPromoCodes=new Set(s.usedPromoCodes||[]); 
+            monsterKills = s.monsterKills || 0; 
+            currentMonsterReward = s.currentMonsterReward || 100; 
+            if(s.shopUnlocks) {
+                shopUnlocks.materials = new Set(s.shopUnlocks.materials || []);
+                shopUnlocks.weapons = new Set(s.shopUnlocks.weapons || []);
+                shopUnlocks.armor = new Set(s.shopUnlocks.armor || []);
+                shopUnlocks.food = new Set(s.shopUnlocks.food || []);
+                shopUnlocks.potions = new Set(s.shopUnlocks.potions || []);
+                shopUnlocks.ranged = new Set(s.shopUnlocks.ranged || []);
+            }
+            initDefaultShopUnlocks();
+            applyBackground(currentBg); 
+            document.getElementById("monsterHp").innerText=monsterHp; 
+            updateEquippedDisplay();
+            renderGrid(); 
+            updateUI(); 
+            renderShop(); 
+            renderEnchantShop(); 
+            updateCraftBtns(); 
+            initNPC(); 
+            renderBgShop(); 
+            renderCollection(); 
+            renderStorage();
+            renderStorageTab();
+            renderItemShop(); 
+            renderShopTab();
+            return true; 
+        } catch(e){ 
+            console.error("Ошибка загрузки:", e);
+            return false; 
+        } 
+    }
+    
+    // ========== ЭКСПОРТ / ИМПОРТ СОХРАНЕНИЯ ==========
+    function exportSave() {
+        let data = localStorage.getItem(SAVE_KEY);
+        if(!data) { alert("Нет сохранения для экспорта!"); return; }
+        // Копируем в буфер обмена
+        try {
+            navigator.clipboard.writeText(data).then(() => {
+                alert("✅ Сохранение скопировано в буфер обмена!\n\nВставьте его в другом устройстве через кнопку '📥 Импорт'.");
+            }).catch(() => {
+                // Fallback: показываем текст
+                prompt("Скопируйте текст сохранения:", data);
+            });
+        } catch(e) {
+            prompt("Скопируйте текст сохранения:", data);
+        }
+    }
+    
+    function importSave() {
+        let data = prompt("Вставьте текст сохранения:");
+        if(!data) return;
+        try {
+            let parsed = JSON.parse(data);
+            if(!parsed.coins && parsed.coins !== 0) throw new Error("Неверный формат");
+            localStorage.setItem(SAVE_KEY, data);
+            alert("✅ Сохранение импортировано! Перезагрузка...");
+            location.reload();
+        } catch(e) {
+            alert("❌ Ошибка импорта: неверный формат сохранения.");
+        }
+    }
+    
+    // ========== КОНСОЛЬ (ТОЛЬКО ДЛЯ АДМИНА) ==========
+    function openDevConsole() {
+        if (!isUserAdmin()) {
+            alert("⛔ Доступ запрещён. Вы не являетесь администратором.");
+            return;
+        }
+        
+        let rusToEng = {};
+        for (let [eng, rus] of Object.entries(itemNames)) { 
+            let cleanRus = rus.replace(/[^\w\sа-яА-ЯёЁ]/g, '').trim(); 
+            rusToEng[cleanRus.toLowerCase()] = eng; 
+            rusToEng[rus.toLowerCase()] = eng; 
+        }
+        const synonyms = { "трава":"grass","бревно":"wood","камень":"stone","железо":"iron","золото":"gold","алмаз":"diamond","меч":"sword","лук":"shortbow","кожа":"leather","ягоды":"berry","бутылёк":"vial" };
+        for (let [rusName, engKey] of Object.entries(synonyms)) rusToEng[rusName.toLowerCase()] = engKey;
+        
+        function findItemByRussianName(russianName) { 
+            if(!russianName) return null; 
+            let search=russianName.toLowerCase().trim(); 
+            if(rusToEng[search]) return rusToEng[search]; 
+            for(let [eng,rus] of Object.entries(itemNames)){ 
+                if(rus.toLowerCase().includes(search)) return eng; 
+            } 
+            return null; 
+        }
+        
+        let cmd = prompt("🔧 КОНСОЛЬ АДМИНИСТРАТОРА\n\nДоступные команды:\nMoney [сумма] - добавить монеты\nGive [предмет] [число] - выдать предмет(ы)\nUnlockAll - разблокировать всё\nEnergy [кол-во] - добавить энергию\nList - список предметов\nKillAura - убить монстра\nResetDailyBonus - сбросить кулдаун");
+        if(!cmd) return;
+        let lowerCmd=cmd.toLowerCase();
+        
+        if(lowerCmd.startsWith("money ")){ 
+            let amount = parseInt(cmd.split(" ")[1]); 
+            if(!isNaN(amount) && amount>0){ 
+                coins += amount; 
+                updateUI(); saveGame(); updateAllNpcWishlists(); 
+                alert(`+${amount}🪙`); 
+            } else alert("Неверная сумма"); 
+        }
+        else if(lowerCmd.startsWith("give ")){ 
+            let giveArg = cmd.substring(5).trim();
+            let parts = giveArg.split(',').map(p => p.trim());
+            let itemsToGive = [];
+            for(let part of parts) {
+                let match = part.match(/^(.+?)(?:\s+(\d+))?$/);
+                if(match) {
+                    let itemName = match[1];
+                    let count = match[2] ? parseInt(match[2]) : 1;
+                    let itemKey = findItemByRussianName(itemName);
+                    if(itemKey && itemNames[itemKey]) {
+                        for(let i = 0; i < count; i++) itemsToGive.push(itemKey);
+                    } else { alert(`Предмет "${itemName}" не найден`); return; }
+                }
+            }
+            let added = 0;
+            for(let item of itemsToGive) {
+                if(addToGridAndDiscover(item)) added++;
+                else { alert(`Нет места, добавлено ${added} из ${itemsToGive.length}`); break; }
+            }
+            updateUI(); saveGame();
+            alert(`Выдано ${added} предметов`);
+        }
+        else if(lowerCmd==="unlockall"){ 
+            unlocked = { weapons:true, armor:true, food:true, potions:true }; 
+            rebirthLevel = 1; rangedUnlocked = true;
+            enchantWeapons = 10; enchantRanged = 10;
+            for(let bg of backgrounds) { if(!ownedBgs.includes(bg.id)) ownedBgs.push(bg.id); }
+            for(let name of npcNames) { metNpcs.add(name); }
+            for(let chain of [materialChain, weaponChain, rangedChain, armorChain, foodChain, potionChain]) {
+                for(let item of chain) { discoveredItems.add(item); }
+            }
+            for(let type in shopUnlocks) {
+                for(let i = 0; i < 10; i++) shopUnlocks[type].add(i);
+            }
+            initDefaultShopUnlocks();
+            updateCraftBtns(); renderShop(); renderEnchantShop(); renderBgShop(); renderCollection(); 
+            updateAllNpcWishlists(); renderItemShop(); renderShopTab(); saveGame(); 
+            alert("Всё разблокировано!"); 
+        }
+        else if(lowerCmd.startsWith("energy ")){ 
+            let amount = parseInt(cmd.split(" ")[1]); 
+            if(!isNaN(amount) && amount>0){ 
+                energy += amount; updateUI(); saveGame(); 
+                alert(`+${amount} энергии`); 
+            } else alert("Неверная сумма"); 
+        }
+        else if(lowerCmd==="list"){ 
+            let itemsList = Object.keys(itemNames).map(key => `${itemNames[key]}`).join("\n");
+            alert(`📋 ВСЕ ПРЕДМЕТЫ:\n\n${itemsList}`);
+        }
+        else if(lowerCmd==="resetdailybonus"){ resetBonusCooldown(); }
+        else if(lowerCmd === "killaura") { 
+            monsterHp = 0; monsterKills++;
+            coins += currentMonsterReward; currentMonsterReward += 50;
+            monsterHp = 10000;
+            updateUI();
+            document.getElementById("monsterHp").innerText = monsterHp;
+            document.getElementById("monsterReward").innerText = currentMonsterReward;
+            saveGame();
+            alert("KillAura активирована!");
+        }
+        else alert("Неизвестная команда.");
+    }
+    
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    if(!localStorage.getItem(SAVE_KEY) && !localStorage.getItem("balanceSave")) {
+        let infoDiv = document.createElement("div");
+        infoDiv.className = "info-overlay";
+        infoDiv.innerHTML = `<div style="background:#1a1a1a; padding:20px; border-radius:30px; max-width:90%;">
+            <h2>⚖️ SUNNYGAME</h2>
+            <div class="info-text">🔨 <span class="info-highlight">КРАФТ</span> — объединяй 2 одинаковых предмета, чтобы создать более сильный</div>
+            <div class="info-text">⚔️ <span class="info-highlight">БИТВА</span> — атакуй монстра, получай монеты за убийство</div>
+            <div class="info-text">🏹 <span class="info-highlight">ЛУКИ</span> — зажми кнопку атаки на 1 секунду для заряженного удара (+5 урона)</div>
+            <div class="info-text">✨ <span class="info-highlight">ЗАЧАРОВАНИЯ</span> — 10 чарок на каждое оружие</div>
+            <div class="info-text">🌀 <span class="info-highlight">ПЕРЕРОЖДЕНИЕ</span> — за 1 млн монет сбрасывает прогресс</div>
+            <div class="info-text">🛒 <span class="info-highlight">МАГАЗИН</span> — открывается после перерождения</div>
+            <hr>
+            <div class="info-text">💾 Прогресс <span class="info-highlight">привязан к Telegram-аккаунту</span> на этом устройстве. Для переноса на другое устройство используйте Экспорт/Импорт.</div>
+            <button id="closeInfo" style="margin-top:15px;">▶ НАЧАТЬ ИГРУ</button>
+        </div>`;
+        document.body.appendChild(infoDiv);
+        document.getElementById("closeInfo").onclick = () => infoDiv.remove();
+    }
+    
+    loadPromoState();
+    loadBonusState();
+    if(!loadGame()) {
+        initNPC(); renderShop(); renderGrid(); updateUI(); renderBgShop(); renderEnchantShop(); updateCraftBtns(); renderCollection(); renderStorage(); renderStorageTab(); applyBackground("black");
+    }
+    
+    initDevConsole();
+    const devBtn = document.getElementById("devConsoleBtn");
+    if (devBtn) devBtn.onclick = openDevConsole;
+    
+    // Кнопки скролла
+    document.getElementById("scrollUpCorner").onclick = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById("scrollDownCorner").onclick = () => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    
+    // Переключение вкладок
+    const craftSection = document.getElementById("craftSection");
+    const battleSection = document.getElementById("battleSection");
+    const collectionSection = document.getElementById("collectionSection");
+    const shopTabSection = document.getElementById("shopTabSection");
+    const storageTabSection = document.getElementById("storageTabSection");
+    const enchantTabSection = document.getElementById("enchantTabSection");
+    
+    function showTab(tab) {
+        craftSection.style.display = "none";
+        battleSection.style.display = "none";
+        collectionSection.style.display = "none";
+        shopTabSection.style.display = "none";
+        storageTabSection.style.display = "none";
+        enchantTabSection.style.display = "none";
+        
+        if(tab === 'craft') craftSection.style.display = "block";
+        else if(tab === 'battle') battleSection.style.display = "block";
+        else if(tab === 'collection') { collectionSection.style.display = "block"; renderCollection(); }
+        else if(tab === 'shop') { shopTabSection.style.display = "block"; renderShopTab(); }
+        else if(tab === 'storage') { storageTabSection.style.display = "block"; renderStorageTab(); }
+        else if(tab === 'enchant') { enchantTabSection.style.display = "block"; renderEnchantShop(); renderBgShop(); renderShop(); }
+    }
+    
+    document.getElementById("tabCraftBtn").onclick = () => showTab('craft');
+    document.getElementById("tabBattleBtn").onclick = () => showTab('battle');
+    document.getElementById("tabCollectionBtn").onclick = () => showTab('collection');
+    document.getElementById("tabShopBtn").onclick = () => showTab('shop');
+    document.getElementById("tabStorageBtn").onclick = () => showTab('storage');
+    document.getElementById("tabEnchantBtn").onclick = () => showTab('enchant');
+    
+    window.addEventListener('popstate', function(event) {
+        if(craftSection.style.display !== "block") {
+            showTab('craft');
+            event.preventDefault();
+            history.pushState(null, null, location.href);
+        }
+    });
+    history.pushState(null, null, location.href);
+    
+    document.getElementById("dailyBonusBtn").onclick = claimDailyBonus;
+    document.getElementById("applyPromoBtn").onclick = applyPromo;
+    document.getElementById("craftResourceBtn").onclick = () => craftBase(5,"grass",true);
+    document.getElementById("craftWeaponBtn").onclick = () => craftBase(10,"sword",unlocked.weapons);
+    document.getElementById("craftArmorBtn").onclick = () => craftBase(20,"leather",unlocked.armor);
+    document.getElementById("craftFoodBtn").onclick = () => craftBase(30,"berry",unlocked.food);
+    document.getElementById("craftPotionBtn").onclick = () => craftBase(40,"vial",unlocked.potions);
+    document.getElementById("craftRangedWeaponBtn").onclick = () => craftBase(50,"shortbow",rangedUnlocked, true);
+    document.getElementById("exchangeEnergyBtnSmall").onclick = exchangeEnergy;
+    
+    const rebirthBtns = ["rebirthBtn", "rebirthBtnShop", "rebirthBtnEnchant"];
+    const resetBtns = ["fullResetBtn", "fullResetBtnShop", "fullResetBtnEnchant", "fullResetBtnBattle", "fullResetBtnCollection", "fullResetBtnStorage"];
+    const supportBtns = ["supportBtn", "supportBtnShop", "supportBtnEnchant", "supportBtnBattle", "supportBtnCollection", "supportBtnStorage"];
+    
+    rebirthBtns.forEach(id => { const btn = document.getElementById(id); if(btn) btn.onclick = rebirth; });
+    resetBtns.forEach(id => { const btn = document.getElementById(id); if(btn) btn.onclick = showFullResetConfirm; });
+    supportBtns.forEach(id => { const btn = document.getElementById(id); if(btn) btn.onclick = support; });
+    
+    document.getElementById("exchangeEnergyBtn").onclick = exchangeEnergy;
+    document.getElementById("refreshNpcBtn").onclick = refreshNPC;
+    document.getElementById("expandStorageBtnTab").onclick = expandStorage;
+    document.getElementById("sellSelectedBtn").onclick = sellSelectedItem;
+    document.getElementById("equipFromGridBtn").onclick = equipFromGridAction;
+    document.getElementById("toStorageBtn").onclick = addToStorage;
+    document.getElementById("exportSaveBtn").onclick = exportSave;
+    document.getElementById("importSaveBtn").onclick = importSave;
+    
+    document.getElementById("weaponSlotBattle").onclick = () => selectEquipmentSlot('weapon');
+    document.getElementById("rangedSlotBattle").onclick = () => selectEquipmentSlot('ranged');
+    
+    let attackBtn = document.getElementById("attackBtn");
+    attackBtn.addEventListener("mousedown", startCharge);
+    attackBtn.addEventListener("mouseup", endCharge);
+    attackBtn.addEventListener("mouseleave", endCharge);
+    attackBtn.addEventListener("touchstart",(e)=>{ e.preventDefault(); startCharge(); });
+    attackBtn.addEventListener("touchend",(e)=>{ e.preventDefault(); endCharge(); });
+    
+    let energyInterval = setInterval(()=>{ energy = Math.min(energy+1,999); updateUI(); saveGame(); },60000);
+    
+    const itemShopPanel = document.getElementById("itemShopPanel");
+    const openShopBtn = document.getElementById("openItemShopBtn");
+    if(openShopBtn) openShopBtn.onclick = () => { itemShopPanel.style.display = itemShopPanel.style.display === "none" ? "block" : "none"; renderItemShop(); };
+    document.getElementById("closeShopBtn").onclick = () => { itemShopPanel.style.display = "none"; };
+    
+    showTab('craft');
 </script>
 </body>
 </html>
