@@ -765,42 +765,58 @@
 
 <script>
     (function(){
-        // ---- Telegram CloudStorage ----
+        // ============================================================
+        // СИСТЕМА ХРАНЕНИЯ
+        // ============================================================
+        // CloudStorage имеет лимит 4096 байт на КЛЮЧ и 1024 ключа.
+        // Поэтому:
+        //   - счётчик -> отдельный ключ (tiny)
+        //   - настройки (без картинок) -> отдельный ключ (small)
+        //   - картинки -> только localStorage (big base64)
+        //   - история -> разбивается на чанки по ~3.5 КБ: history_0, history_1, ...
+        // ============================================================
+
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
-        const STORAGE_KEY = 'hugAppData';
+        const VERSION = 2;
 
-        // ---- Данные ----
-        // history теперь хранит: { "YYYY-MM-DD": [ {t: timestamp_ms, h: tzOffsetMinutes}, ... ] }
+        const K_VERSION   = 'hugApp_v';
+        const K_COUNT     = 'hugApp_count';
+        const K_SETTINGS  = 'hugApp_settings';
+        const K_HISTORY_META = 'hugApp_history_meta'; // { chunks: N, tz: offset }
+        const K_HISTORY_CHUNK = (i) => 'hugApp_history_' + i;
+
+        // Картинки — только localStorage, т.к. base64 не влезает в 4КБ CloudStorage
+        const LS_IMAGES = 'hugApp_images';
+
+        const CLOUD_LIMIT = 3800; // оставляем запас от 4096
+
+        // ---- Данные в памяти ----
         let hugCount = 0;
+        // history: { "YYYY-MM-DD": [ {t: ms, h: tzOffsetMin, approx?:true} ] }
         let history = {};
 
-        // Текущий часовой пояс устройства (в минутах, как Date.getTimezoneOffset() * -1)
-        function getTzOffsetMinutes() {
-            return -new Date().getTimezoneOffset();
-        }
-
-        // Сохранённый часовой пояс (в котором были сделаны прошлые клики)
-        let savedTzOffset = getTzOffsetMinutes();
-
-        // Для совместимости со старым форматом
-        const defaultSettings = {
+        let settings = {
             bgColor: '#f7f0fa',
             textColor: '#000000',
             btnColor: '#ffb6c9',
-            bgImage: null,
-            btnImage: null,
             bgImageSettings: { scale: 100, x: 0, y: 0 },
             btnImageSettings: { scale: 100, x: 0, y: 0 },
         };
-        let settings = { ...defaultSettings };
+        // Картинки отдельно (не улетают в CloudStorage)
+        let images = { bgImage: null, btnImage: null };
 
-        // Календарь
-        let currentYear = 2026;
-        let currentMonth = 0;
+        function getTzOffsetMinutes() {
+            return -new Date().getTimezoneOffset();
+        }
+        let savedTzOffset = getTzOffsetMinutes();
+
+        // ---- Календарь ----
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
         let selectedDate = null;
 
-        // DOM
+        // ---- DOM ----
         const app = document.getElementById('app');
         const hugBtn = document.getElementById('hug-btn');
         const btnText = hugBtn.querySelector('.btn-text');
@@ -846,7 +862,22 @@
         const dayInfo = document.getElementById('day-info');
         const dayClicksList = document.getElementById('day-clicks-list');
 
-        // ---- Утилиты ----
+        // ============================================================
+        // УТИЛИТЫ
+        // ============================================================
+        function byteSize(str) {
+            // Приблизительная оценка размера UTF-8 строки
+            let bytes = 0;
+            for (let i = 0; i < str.length; i++) {
+                const c = str.charCodeAt(i);
+                if (c < 0x80) bytes += 1;
+                else if (c < 0x800) bytes += 2;
+                else if (c < 0xd800 || c >= 0xe000) bytes += 3;
+                else { bytes += 4; i++; }
+            }
+            return bytes;
+        }
+
         function darkenColor(hex, percent) {
             let r = parseInt(hex.slice(1,3), 16);
             let g = parseInt(hex.slice(3,5), 16);
@@ -862,7 +893,6 @@
             hugBtn.style.boxShadow = `0 10px 0 ${dark}, 0 10px 20px rgba(0,0,0,0.15)`;
         }
 
-        // Форматирование времени по timestamp с учётом текущего часового пояса устройства
         function formatClickTime(timestamp) {
             const d = new Date(timestamp);
             const hh = String(d.getHours()).padStart(2, '0');
@@ -871,121 +901,302 @@
             return `${hh}:${mm}:${ss}`;
         }
 
-        // ---- Миграция старого формата в новый ----
-        // Старый: history = { "YYYY-MM-DD": число }
-        // Новый:  history = { "YYYY-MM-DD": [ {t: ms, h: tzOffset} ] }
-        function migrateHistory(rawHistory) {
-            if (!rawHistory) return {};
-            const newHistory = {};
-            for (const date in rawHistory) {
-                const value = rawHistory[date];
-                if (Array.isArray(value)) {
-                    // Уже новый формат
-                    newHistory[date] = value.filter(x => x && typeof x.t === 'number');
-                } else if (typeof value === 'number') {
-                    // Старый формат: N кликов без точного времени
-                    // Присваиваем им приблизительное время — 12:00:00 того дня с сохранённым TZ
-                    const [y, m, d] = date.split('-').map(Number);
-                    const clicks = [];
-                    const tz = savedTzOffset;
-                    for (let i = 0; i < value; i++) {
-                        // Каждому клику — 12:00 + i секунд, чтобы различались
-                        const base = new Date(y, m - 1, d, 12, 0, 0, i * 1000);
-                        clicks.push({ t: base.getTime(), h: tz, approx: true });
-                    }
-                    newHistory[date] = clicks;
-                }
-            }
-            return newHistory;
+        // ============================================================
+        // ОБЁРТКА НАД CLOUDSTORAGE (промис)
+        // ============================================================
+        function cloudSet(key, value) {
+            return new Promise((resolve) => {
+                if (!hasCloudStorage) return resolve(false);
+                try {
+                    tg.CloudStorage.setItem(key, value, (err) => {
+                        if (err) resolve(false); else resolve(true);
+                    });
+                } catch (e) { resolve(false); }
+            });
+        }
+        function cloudGet(key) {
+            return new Promise((resolve) => {
+                if (!hasCloudStorage) return resolve(null);
+                try {
+                    tg.CloudStorage.getItem(key, (err, value) => {
+                        if (err || !value) resolve(null); else resolve(value);
+                    });
+                } catch (e) { resolve(null); }
+            });
+        }
+        function cloudRemove(key) {
+            return new Promise((resolve) => {
+                if (!hasCloudStorage) return resolve(false);
+                try {
+                    tg.CloudStorage.removeItem(key, () => resolve(true));
+                } catch (e) { resolve(false); }
+            });
+        }
+        function cloudGetAllKeys() {
+            return new Promise((resolve) => {
+                if (!hasCloudStorage) return resolve([]);
+                try {
+                    tg.CloudStorage.getKeys((err, keys) => {
+                        if (err || !keys) resolve([]); else resolve(keys);
+                    });
+                } catch (e) { resolve([]); }
+            });
         }
 
-        // ---- Загрузка / сохранение ----
-        function applyLoadedData(data) {
-            if (data.count !== undefined) hugCount = data.count;
-            if (data.history) {
-                history = migrateHistory(data.history);
+        // ============================================================
+        // СЕРИАЛИЗАЦИЯ ИСТОРИИ (компактная + чанками)
+        // ============================================================
+        // Компактный формат: { "YYYY-MM-DD": [[t, h, approx?], ...] }
+        // Это экономит ~50% места против объектов {t:..., h:...}
+        function serializeHistory() {
+            const out = {};
+            for (const date in history) {
+                out[date] = history[date].map(c => c.approx ? [c.t, c.h, 1] : [c.t, c.h]);
             }
-            if (data.settings) {
-                settings = { ...defaultSettings, ...data.settings };
-            }
-            if (typeof data.savedTzOffset === 'number') {
-                savedTzOffset = data.savedTzOffset;
-            } else {
-                savedTzOffset = getTzOffsetMinutes();
-            }
+            return out;
         }
+
+        function deserializeHistory(obj) {
+            const out = {};
+            for (const date in obj) {
+                const arr = obj[date];
+                if (!Array.isArray(arr)) continue;
+                out[date] = arr
+                    .filter(x => Array.isArray(x) && typeof x[0] === 'number')
+                    .map(x => ({ t: x[0], h: x[1] || 0, approx: x[2] === 1 }));
+            }
+            return out;
+        }
+
+        // Разбиваем историю на чанки так, чтобы каждый чанк был < CLOUD_LIMIT
+        function splitHistoryIntoChunks(serialized) {
+            const dates = Object.keys(serialized);
+            const chunks = [];
+            let current = {};
+            let currentSize = 2; // '{}'
+
+            for (const date of dates) {
+                const entry = JSON.stringify({ [date]: serialized[date] });
+                const entrySize = byteSize(entry);
+                // +1 на запятую между записями
+                if (currentSize + entrySize + 1 > CLOUD_LIMIT && Object.keys(current).length > 0) {
+                    chunks.push(current);
+                    current = {};
+                    currentSize = 2;
+                }
+                current[date] = serialized[date];
+                currentSize += entrySize + 1;
+            }
+            if (Object.keys(current).length > 0) chunks.push(current);
+            return chunks;
+        }
+
+        // ============================================================
+        // СОХРАНЕНИЕ
+        // ============================================================
+        let saveTimer = null;
+        let savePending = false;
 
         function persistData() {
-            const payload = {
-                count: hugCount,
-                history: history,
-                settings: settings,
-                savedTzOffset: savedTzOffset,
-            };
-            const json = JSON.stringify(payload);
-
-            if (hasCloudStorage) {
-                try {
-                    tg.CloudStorage.setItem(STORAGE_KEY, json, (err) => {
-                        if (err) {
-                            try { localStorage.setItem(STORAGE_KEY, json); } catch (e) {}
-                        }
-                    });
-                } catch (e) {
-                    try { localStorage.setItem(STORAGE_KEY, json); } catch (e2) {}
-                }
-            } else {
-                try { localStorage.setItem(STORAGE_KEY, json); } catch (e) {}
-            }
+            // Дебаунс: CloudStorage не любит частые вызовы
+            if (saveTimer) { savePending = true; return; }
+            doPersist();
+            saveTimer = setTimeout(() => {
+                saveTimer = null;
+                if (savePending) { savePending = false; doPersist(); }
+            }, 250);
         }
 
-        function loadData(callback) {
-            const finish = (parsed) => {
-                if (parsed) {
-                    try { applyLoadedData(parsed); } catch (e) {}
-                }
-                if (callback) callback();
-            };
-
-            if (hasCloudStorage) {
-                try {
-                    tg.CloudStorage.getItem(STORAGE_KEY, (err, value) => {
-                        if (err || !value) {
-                            tryLocal(finish);
-                        } else {
-                            try {
-                                finish(JSON.parse(value));
-                            } catch (e) {
-                                tryLocal(finish);
-                            }
-                        }
-                    });
-                } catch (e) {
-                    tryLocal(finish);
-                }
-            } else {
-                tryLocal(finish);
-            }
-        }
-
-        function tryLocal(finish) {
+        async function doPersist() {
+            // 1) Картинки — в localStorage (base64 не влезает в 4КБ cloud)
             try {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) {
-                    finish(JSON.parse(saved));
-                } else {
-                    finish(null);
-                }
+                localStorage.setItem(LS_IMAGES, JSON.stringify(images));
             } catch (e) {
-                finish(null);
+                // Если переполнено — жертвуем картинками, чистим старьё
+                try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
+            }
+
+            // 2) Настройки (без картинок) — в CloudStorage
+            const settingsJson = JSON.stringify({
+                bgColor: settings.bgColor,
+                textColor: settings.textColor,
+                btnColor: settings.btnColor,
+                bgImageSettings: settings.bgImageSettings,
+                btnImageSettings: settings.btnImageSettings,
+            });
+
+            // 3) История — чанками
+            const serialized = serializeHistory();
+            const chunks = splitHistoryIntoChunks(serialized);
+
+            const results = await Promise.all([
+                cloudSet(K_VERSION, String(VERSION)),
+                cloudSet(K_COUNT, String(hugCount)),
+                cloudSet(K_SETTINGS, settingsJson),
+                cloudSet(K_HISTORY_META, JSON.stringify({
+                    chunks: chunks.length,
+                    tz: savedTzOffset,
+                })),
+                ...chunks.map((chunk, i) => cloudSet(K_HISTORY_CHUNK(i), JSON.stringify(chunk))),
+            ]);
+
+            const allOk = results.every(r => r);
+
+            // 4) Резервная копия в localStorage (на случай если CloudStorage отвалился)
+            try {
+                localStorage.setItem(K_COUNT, String(hugCount));
+                localStorage.setItem(K_SETTINGS, settingsJson);
+                localStorage.setItem(K_HISTORY_META, JSON.stringify({
+                    chunks: chunks.length,
+                    tz: savedTzOffset,
+                }));
+                chunks.forEach((chunk, i) => {
+                    try { localStorage.setItem(K_HISTORY_CHUNK(i), JSON.stringify(chunk)); } catch (e) {}
+                });
+
+                // Чистим лишние чанки (если история сжалась)
+                const allKeys = await cloudGetAllKeys();
+                const ourChunkKeys = allKeys.filter(k => k.startsWith('hugApp_history_') && k !== 'hugApp_history_meta');
+                for (const k of ourChunkKeys) {
+                    const idx = parseInt(k.replace('hugApp_history_', ''), 10);
+                    if (!isNaN(idx) && idx >= chunks.length) {
+                        cloudRemove(k);
+                    }
+                }
+            } catch (e) {}
+
+            if (!allOk && hasCloudStorage) {
+                console.warn('Часть данных не сохранилась в CloudStorage');
             }
         }
 
-        // ---- Применение настроек ----
+        // ============================================================
+        // ЗАГРУЗКА
+        // ============================================================
+        async function loadData() {
+            // 1) Сначала пробуем CloudStorage
+            let countStr = await cloudGet(K_COUNT);
+            let settingsStr = await cloudGet(K_SETTINGS);
+            let metaStr = await cloudGet(K_HISTORY_META);
+
+            // 2) Если cloud пустой — читаем из localStorage
+            if (countStr === null) countStr = localStorage.getItem(K_COUNT);
+            if (settingsStr === null) settingsStr = localStorage.getItem(K_SETTINGS);
+            if (metaStr === null) metaStr = localStorage.getItem(K_HISTORY_META);
+
+            // ---- Счётчик ----
+            if (countStr !== null) {
+                const n = parseInt(countStr, 10);
+                if (!isNaN(n) && n >= 0) hugCount = n;
+            }
+
+            // ---- Настройки ----
+            if (settingsStr) {
+                try {
+                    const s = JSON.parse(settingsStr);
+                    settings = {
+                        bgColor: s.bgColor || '#f7f0fa',
+                        textColor: s.textColor || '#000000',
+                        btnColor: s.btnColor || '#ffb6c9',
+                        bgImageSettings: s.bgImageSettings || { scale: 100, x: 0, y: 0 },
+                        btnImageSettings: s.btnImageSettings || { scale: 100, x: 0, y: 0 },
+                    };
+                } catch (e) {}
+            }
+
+            // ---- Картинки ----
+            try {
+                const imgStr = localStorage.getItem(LS_IMAGES);
+                if (imgStr) {
+                    const im = JSON.parse(imgStr);
+                    images.bgImage = im.bgImage || null;
+                    images.btnImage = im.btnImage || null;
+                }
+            } catch (e) {}
+
+            // ---- Мета истории ----
+            let meta = null;
+            if (metaStr) {
+                try { meta = JSON.parse(metaStr); } catch (e) {}
+            }
+
+            // ---- История ----
+            if (meta && meta.chunks > 0) {
+                // Новый формат: чанки
+                const merged = {};
+                for (let i = 0; i < meta.chunks; i++) {
+                    let chunkStr = await cloudGet(K_HISTORY_CHUNK(i));
+                    if (chunkStr === null) chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
+                    if (!chunkStr) continue;
+                    try {
+                        const chunkObj = JSON.parse(chunkStr);
+                        for (const date in chunkObj) merged[date] = chunkObj[date];
+                    } catch (e) {}
+                }
+                history = deserializeHistory(merged);
+            } else {
+                // Попытка прочитать СТАРЫЙ формат (монолитный ключ hugAppData)
+                // и мигрировать в новый
+                let legacy = await cloudGet('hugAppData');
+                if (!legacy) legacy = localStorage.getItem('hugAppData');
+                if (legacy) {
+                    try {
+                        const parsed = JSON.parse(legacy);
+                        if (parsed.settings) {
+                            settings = {
+                                bgColor: parsed.settings.bgColor || settings.bgColor,
+                                textColor: parsed.settings.textColor || settings.textColor,
+                                btnColor: parsed.settings.btnColor || settings.btnColor,
+                                bgImageSettings: parsed.settings.bgImageSettings || settings.bgImageSettings,
+                                btnImageSettings: parsed.settings.btnImageSettings || settings.btnImageSettings,
+                            };
+                            // Картинки из старого формата переносим в images
+                            if (parsed.settings.bgImage) images.bgImage = parsed.settings.bgImage;
+                            if (parsed.settings.btnImage) images.btnImage = parsed.settings.btnImage;
+                        }
+                        if (typeof parsed.savedTzOffset === 'number') savedTzOffset = parsed.savedTzOffset;
+                        if (typeof parsed.count === 'number' && parsed.count > hugCount) hugCount = parsed.count;
+                        if (parsed.history) {
+                            // Может быть старый формат (число) или новый (массив)
+                            const h = {};
+                            for (const date in parsed.history) {
+                                const v = parsed.history[date];
+                                if (Array.isArray(v)) {
+                                    h[date] = v
+                                        .filter(x => x && typeof x.t === 'number')
+                                        .map(x => ({ t: x.t, h: x.h || 0, approx: !!x.approx }));
+                                } else if (typeof v === 'number') {
+                                    // Древний формат: N кликов без времени
+                                    const [y, m, d] = date.split('-').map(Number);
+                                    const arr = [];
+                                    for (let k = 0; k < v; k++) {
+                                        const base = new Date(y, m - 1, d, 12, 0, 0, k * 1000);
+                                        arr.push({ t: base.getTime(), h: savedTzOffset, approx: true });
+                                    }
+                                    h[date] = arr;
+                                }
+                            }
+                            history = h;
+                        }
+                        // После миграции сохраним в новом формате
+                        // (сделаем это в init после применения настроек)
+                    } catch (e) {}
+                }
+            }
+
+            // Если savedTzOffset не был загружен — берём текущий
+            if (meta && typeof meta.tz === 'number') {
+                savedTzOffset = meta.tz;
+            }
+        }
+
+        // ============================================================
+        // ПРИМЕНЕНИЕ НАСТРОЕК
+        // ============================================================
         function applyAllSettings() {
-            if (settings.bgImage) {
+            if (images.bgImage) {
                 const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                app.style.backgroundImage = `url(${settings.bgImage})`;
+                app.style.backgroundImage = `url(${images.bgImage})`;
                 app.style.backgroundSize = `${s.scale}%`;
                 app.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
                 app.style.backgroundColor = 'transparent';
@@ -999,9 +1210,9 @@
 
             applyTextColor(settings.textColor);
 
-            if (settings.btnImage) {
+            if (images.btnImage) {
                 const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                hugBtn.style.backgroundImage = `url(${settings.btnImage})`;
+                hugBtn.style.backgroundImage = `url(${images.btnImage})`;
                 hugBtn.style.backgroundSize = `${s.scale}%`;
                 hugBtn.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
                 hugBtn.classList.add('has-image');
@@ -1038,7 +1249,42 @@
             persistData();
         }
 
-        // ---- Редактор изображений ----
+        // ============================================================
+        // СЖАТИЕ КАРТИНОК (чтобы не раздувать localStorage)
+        // ============================================================
+        function compressImage(file, maxDim, quality) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let w = img.width, h = img.height;
+                        const ratio = Math.min(1, maxDim / Math.max(w, h));
+                        w = Math.round(w * ratio);
+                        h = Math.round(h * ratio);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        try {
+                            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                            resolve(dataUrl);
+                        } catch (e) {
+                            resolve(ev.target.result);
+                        }
+                    };
+                    img.onerror = () => resolve(ev.target.result);
+                    img.src = ev.target.result;
+                };
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ============================================================
+        // РЕДАКТОР ИЗОБРАЖЕНИЙ
+        // ============================================================
         function toggleEditor(editorId, imageData) {
             const editor = document.getElementById(editorId);
             const isOpen = editor.classList.contains('open');
@@ -1085,7 +1331,9 @@
             }
         }
 
-        // ---- Настройки ----
+        // ============================================================
+        // НАСТРОЙКИ
+        // ============================================================
         function openSettings() {
             bgPicker.value = settings.bgColor;
             textPicker.value = settings.textColor;
@@ -1098,7 +1346,9 @@
             settingsOverlay.classList.remove('open');
         }
 
-        // ---- Календарь ----
+        // ============================================================
+        // КАЛЕНДАРЬ
+        // ============================================================
         function renderCalendar(year, month) {
             const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь',
                                 'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -1163,13 +1413,11 @@
             const dateStr = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]} ${d.getFullYear()}`;
             dayInfo.textContent = `${dateStr} (${wd}) — ${clicks.length} обнимашек`;
 
-            // Список с точным временем
             if (clicks.length === 0) {
                 dayClicksList.innerHTML = `<div class="no-clicks">Нет кликов в этот день</div>`;
                 return;
             }
 
-            // Сортируем по времени
             const sorted = [...clicks].sort((a, b) => a.t - b.t);
 
             let html = '';
@@ -1190,7 +1438,6 @@
             currentMonth += delta;
             if (currentMonth < 0) { currentMonth = 11; currentYear--; }
             if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            if (currentYear < 2026) { currentYear = 2026; currentMonth = 0; }
             renderCalendar(currentYear, currentMonth);
         }
 
@@ -1206,7 +1453,9 @@
             renderCalendar(currentYear, currentMonth);
         }
 
-        // ---- Обработчик клика по кнопке ----
+        // ============================================================
+        // КЛИК ПО КНОПКЕ
+        // ============================================================
         function handleHugClick() {
             hugCount++;
             const now = new Date();
@@ -1214,7 +1463,6 @@
                         String(now.getMonth()+1).padStart(2,'0') + '-' +
                         String(now.getDate()).padStart(2,'0');
 
-            // Текущий часовой пояс
             const tz = getTzOffsetMinutes();
 
             if (!history[key]) history[key] = [];
@@ -1231,7 +1479,9 @@
             }
         }
 
-        // ---- События ----
+        // ============================================================
+        // СОБЫТИЯ
+        // ============================================================
         hugBtn.addEventListener('click', handleHugClick);
 
         settingsBtn.addEventListener('click', openSettings);
@@ -1240,7 +1490,6 @@
             if (e.target === this) closeSettingsFn();
         });
 
-        // Пикеры
         bgPicker.addEventListener('input', function() {
             settings.bgColor = this.value;
             saveAndApply();
@@ -1254,7 +1503,6 @@
             saveAndApply();
         });
 
-        // Сброс цветов
         resetBg.addEventListener('click', () => {
             settings.bgColor = '#f7f0fa';
             bgPicker.value = '#f7f0fa';
@@ -1271,56 +1519,53 @@
             saveAndApply();
         });
 
-        // Загрузка фото
-        bgImageUpload.addEventListener('change', function(e) {
+        // Загрузка фото со сжатием
+        bgImageUpload.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    settings.bgImage = ev.target.result;
+                const dataUrl = await compressImage(file, 1280, 0.82);
+                if (dataUrl) {
+                    images.bgImage = dataUrl;
                     if (!settings.bgImageSettings) settings.bgImageSettings = { scale: 100, x: 0, y: 0 };
                     saveAndApply();
-                };
-                reader.readAsDataURL(file);
+                }
             }
+            e.target.value = '';
         });
 
-        btnImageUpload.addEventListener('change', function(e) {
+        btnImageUpload.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    settings.btnImage = ev.target.result;
+                const dataUrl = await compressImage(file, 800, 0.85);
+                if (dataUrl) {
+                    images.btnImage = dataUrl;
                     if (!settings.btnImageSettings) settings.btnImageSettings = { scale: 100, x: 0, y: 0 };
                     saveAndApply();
-                };
-                reader.readAsDataURL(file);
+                }
             }
+            e.target.value = '';
         });
 
-        // Удаление фото
         removeBgImage.addEventListener('click', function() {
-            settings.bgImage = null;
+            images.bgImage = null;
             bgImageUpload.value = '';
             document.getElementById('bg-image-editor').classList.remove('open');
             saveAndApply();
         });
         removeBtnImage.addEventListener('click', function() {
-            settings.btnImage = null;
+            images.btnImage = null;
             btnImageUpload.value = '';
             document.getElementById('btn-image-editor').classList.remove('open');
             saveAndApply();
         });
 
-        // Кнопки редактирования
         bgImageEdit.addEventListener('click', function() {
-            if (settings.bgImage) toggleEditor('bg-image-editor', settings.bgImage);
+            if (images.bgImage) toggleEditor('bg-image-editor', images.bgImage);
         });
         btnImageEdit.addEventListener('click', function() {
-            if (settings.btnImage) toggleEditor('btn-image-editor', settings.btnImage);
+            if (images.btnImage) toggleEditor('btn-image-editor', images.btnImage);
         });
 
-        // Слайдеры
         function setupSlider(sliderId, valId, editorId, settingsKey) {
             const slider = document.getElementById(sliderId);
             const valSpan = document.getElementById(valId);
@@ -1332,8 +1577,8 @@
                 settings[settingsKey][key] = val;
                 saveAndApply();
                 let imageData = null;
-                if (settingsKey === 'bgImageSettings') imageData = settings.bgImage;
-                else if (settingsKey === 'btnImageSettings') imageData = settings.btnImage;
+                if (settingsKey === 'bgImageSettings') imageData = images.bgImage;
+                else if (settingsKey === 'btnImageSettings') imageData = images.btnImage;
                 if (imageData) updateEditorPreview(editorId, imageData);
             });
         }
@@ -1345,7 +1590,6 @@
         setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
         setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
 
-        // Сброс счётчика
         resetCounterBtn.addEventListener('click', function() {
             confirmMessage.textContent = 'Вы уверены, что хотите сбросить счётчик обнимашек?';
             confirmOverlay.classList.add('open');
@@ -1366,7 +1610,6 @@
             if (e.target === this) confirmOverlay.classList.remove('open');
         });
 
-        // Календарь события
         calendarIcon.addEventListener('click', openCalendar);
         closeCalendar.addEventListener('click', () => calendarOverlay.classList.remove('open'));
         calendarOverlay.addEventListener('click', function(e) {
@@ -1375,7 +1618,9 @@
         prevMonthBtn.addEventListener('click', () => changeMonth(-1));
         nextMonthBtn.addEventListener('click', () => changeMonth(1));
 
-        // ---- Проверка смены часового пояса ----
+        // ============================================================
+        // СМЕНА ЧАСОВОГО ПОЯСА
+        // ============================================================
         function checkTimezoneChange() {
             const currentTz = getTzOffsetMinutes();
             if (currentTz !== savedTzOffset) {
@@ -1389,7 +1634,6 @@
         }
 
         tzYes.addEventListener('click', function() {
-            // Пересчитываем: прибавляем разницу ко всем timestamp
             const currentTz = getTzOffsetMinutes();
             const diffMs = (currentTz - savedTzOffset) * 60 * 1000;
             for (const date in history) {
@@ -1406,22 +1650,25 @@
         });
 
         tzNo.addEventListener('click', function() {
-            // Оставляем прошлые клики как есть, но запоминаем новый TZ для будущих кликов
             savedTzOffset = getTzOffsetMinutes();
             persistData();
             tzOverlay.classList.remove('open');
         });
 
-        // ---- Инициализация ----
-        function init() {
-            loadData(function() {
-                applyAllSettings();
-                const today = new Date();
-                selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+        // ============================================================
+        // INIT
+        // ============================================================
+        async function init() {
+            await loadData();
+            applyAllSettings();
 
-                // Проверяем смену часового пояса
-                setTimeout(checkTimezoneChange, 800);
-            });
+            // После миграции — сохраняем в новом формате
+            persistData();
+
+            const today = new Date();
+            selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+            setTimeout(checkTimezoneChange, 800);
         }
 
         init();
