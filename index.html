@@ -163,6 +163,186 @@
             background: rgba(0,0,0,0.04);
         }
 
+        /* ---- DEV-КНОПКА ---- */
+        #dev-btn {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(60, 40, 80, 0.55);
+            color: #fff;
+            border: none;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 10;
+            display: none; /* показывается только для dev */
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            transition: 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            opacity: 0.7;
+        }
+        #dev-btn.show { display: flex; }
+        #dev-btn:hover { opacity: 1; transform: scale(1.08); }
+        #dev-btn:active { transform: scale(0.92); }
+
+        /* ---- DEV-ПАНЕЛЬ ---- */
+        #dev-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(5px);
+            z-index: 50;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+        #dev-overlay.open { display: flex; }
+
+        .dev-panel {
+            background: #1a1424;
+            color: #e8e0f0;
+            width: 100%;
+            max-width: 400px;
+            max-height: 92%;
+            border-radius: 20px;
+            padding: 14px 14px 12px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+            border: 1px solid #3a2a4a;
+            font-family: 'SF Mono', Menlo, Consolas, monospace;
+        }
+
+        .dev-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #33284a;
+            margin-bottom: 8px;
+        }
+        .dev-header .dev-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #d4b0e0;
+            letter-spacing: 0.5px;
+        }
+        .dev-header .dev-user {
+            font-size: 10px;
+            color: #8878a0;
+            margin-left: 6px;
+        }
+        .dev-close {
+            background: none;
+            border: none;
+            color: #c0a0d0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 6px;
+        }
+        .dev-close:hover { color: #fff; }
+
+        .dev-hints {
+            background: #241a30;
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            line-height: 1.55;
+            color: #b8a0c8;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .dev-hints .hint-title {
+            color: #d4b0e0;
+            font-weight: 700;
+            margin-bottom: 4px;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+        }
+        .dev-hints .hint-cmd {
+            color: #ffd78a;
+            font-weight: 700;
+        }
+        .dev-hints .hint-desc {
+            color: #9988aa;
+            font-size: 10px;
+        }
+        .dev-hints .hint-line {
+            margin-bottom: 3px;
+            padding: 2px 0;
+        }
+        .dev-hints code {
+            color: #8ce0c0;
+            font-size: 10px;
+        }
+
+        .dev-log {
+            flex: 1;
+            min-height: 80px;
+            max-height: 180px;
+            overflow-y: auto;
+            background: #120c1a;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 11px;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            color: #b0a0c0;
+            border: 1px solid #2a2038;
+        }
+        .dev-log .log-line { padding: 1px 0; word-break: break-word; }
+        .dev-log .log-ok { color: #7ce0a0; }
+        .dev-log .log-err { color: #ff8080; }
+        .dev-log .log-info { color: #a0b8e0; }
+        .dev-log .log-sys { color: #8878a0; font-style: italic; }
+
+        .dev-input-row {
+            display: flex;
+            gap: 6px;
+        }
+        .dev-input {
+            flex: 1;
+            background: #241a30;
+            border: 1px solid #3a2a4a;
+            border-radius: 10px;
+            padding: 9px 11px;
+            color: #e8e0f0;
+            font-size: 12px;
+            font-family: inherit;
+            outline: none;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+        .dev-input:focus { border-color: #8a6ab0; }
+        .dev-run {
+            background: #6a4a8a;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 0 16px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .dev-run:hover { background: #7c5a9e; }
+        .dev-run:active { transform: scale(0.96); }
+
+        /* скроллбар */
+        .dev-hints::-webkit-scrollbar,
+        .dev-log::-webkit-scrollbar { width: 4px; }
+        .dev-hints::-webkit-scrollbar-thumb,
+        .dev-log::-webkit-scrollbar-thumb { background: #4a3a5a; border-radius: 4px; }
+        .dev-hints::-webkit-scrollbar-track,
+        .dev-log::-webkit-scrollbar-track { background: transparent; }
+
         .overlay {
             position: absolute;
             inset: 0;
@@ -633,6 +813,56 @@
         <button id="calendar-icon" aria-label="Календарь">📅</button>
     </div>
 
+    <!-- DEV-КНОПКА (только для @Enn_Vel) -->
+    <button id="dev-btn" title="Dev">{"</>"}</button>
+
+    <!-- DEV-ПАНЕЛЬ -->
+    <div id="dev-overlay">
+        <div class="dev-panel">
+            <div class="dev-header">
+                <div>
+                    <span class="dev-title">⚡ DEV PANEL</span>
+                    <span class="dev-user" id="dev-user-label"></span>
+                </div>
+                <button class="dev-close" id="dev-close">✕</button>
+            </div>
+
+            <div class="dev-hints" id="dev-hints">
+                <div class="hint-title">📋 ДОСТУПНЫЕ КОМАНДЫ</div>
+                <div class="hint-line">
+                    <span class="hint-cmd">Счётчик +5</span> / <span class="hint-cmd">Счётчик -3</span><br>
+                    <span class="hint-desc">изменяет число счётчика (календарь не трогает)</span>
+                </div>
+                <div class="hint-line">
+                    <span class="hint-cmd">+ обнимашка 2026-09-29 14:30:45</span><br>
+                    <span class="hint-desc">добавляет обнимашку в указанную дату и время</span>
+                </div>
+                <div class="hint-line">
+                    <span class="hint-cmd">- обнимашка 2026-09-29 14:30:45</span><br>
+                    <span class="hint-desc">удаляет ближайшую обнимашку к указанному времени (±30 сек)</span>
+                </div>
+                <div class="hint-line" style="margin-top:5px; padding-top:5px; border-top:1px solid #33284a;">
+                    <span class="hint-desc">
+                        <b style="color:#c0a0d0;">Форматы даты:</b><br>
+                        <code>2026-09-29</code> — точная дата<br>
+                        <code>сегодня</code> / <code>вчера</code> / <code>завтра</code><br>
+                        <b style="color:#c0a0d0;">Форматы времени:</b><br>
+                        <code>14:30</code> или <code>14:30:45</code> (секунды опциональны)
+                    </span>
+                </div>
+            </div>
+
+            <div class="dev-log" id="dev-log">
+                <div class="log-line log-sys">Панель готова. Введите команду ниже.</div>
+            </div>
+
+            <div class="dev-input-row">
+                <input type="text" class="dev-input" id="dev-input" placeholder="Счётчик +5" autocomplete="off" autocapitalize="off" spellcheck="false">
+                <button class="dev-run" id="dev-run">RUN</button>
+            </div>
+        </div>
+    </div>
+
     <div id="settings-overlay" class="overlay">
         <div class="modal" id="settings-modal">
             <h2>Настройки <button id="close-settings">✕</button></h2>
@@ -766,16 +996,35 @@
 <script>
     (function(){
         // ============================================================
+        // DEV-ДОСТУП
+        // ============================================================
+        // Разрешённый username (без @, в нижнем регистре для сравнения)
+        const DEV_USERNAME = 'enn_vel';
+
+        function checkDevAccess() {
+            // 1) Если открыт в Telegram WebApp — читаем username
+            try {
+                const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
+                if (u && u.username && u.username.toLowerCase() === DEV_USERNAME) return true;
+            } catch (e) {}
+
+            // 2) Отладка в браузере: ?dev=Enn_Vel в URL
+            try {
+                const params = new URLSearchParams(location.search);
+                if ((params.get('dev') || '').toLowerCase() === DEV_USERNAME) return true;
+            } catch (e) {}
+
+            // 3) Отладка: localStorage.setItem('dev_mode', '1')
+            try {
+                if (localStorage.getItem('dev_mode') === '1') return true;
+            } catch (e) {}
+
+            return false;
+        }
+
+        // ============================================================
         // СИСТЕМА ХРАНЕНИЯ
         // ============================================================
-        // CloudStorage имеет лимит 4096 байт на КЛЮЧ и 1024 ключа.
-        // Поэтому:
-        //   - счётчик -> отдельный ключ (tiny)
-        //   - настройки (без картинок) -> отдельный ключ (small)
-        //   - картинки -> только localStorage (big base64)
-        //   - история -> разбивается на чанки по ~3.5 КБ: history_0, history_1, ...
-        // ============================================================
-
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
         const VERSION = 2;
@@ -783,17 +1032,13 @@
         const K_VERSION   = 'hugApp_v';
         const K_COUNT     = 'hugApp_count';
         const K_SETTINGS  = 'hugApp_settings';
-        const K_HISTORY_META = 'hugApp_history_meta'; // { chunks: N, tz: offset }
+        const K_HISTORY_META = 'hugApp_history_meta';
         const K_HISTORY_CHUNK = (i) => 'hugApp_history_' + i;
 
-        // Картинки — только localStorage, т.к. base64 не влезает в 4КБ CloudStorage
         const LS_IMAGES = 'hugApp_images';
+        const CLOUD_LIMIT = 3800;
 
-        const CLOUD_LIMIT = 3800; // оставляем запас от 4096
-
-        // ---- Данные в памяти ----
         let hugCount = 0;
-        // history: { "YYYY-MM-DD": [ {t: ms, h: tzOffsetMin, approx?:true} ] }
         let history = {};
 
         let settings = {
@@ -803,7 +1048,6 @@
             bgImageSettings: { scale: 100, x: 0, y: 0 },
             btnImageSettings: { scale: 100, x: 0, y: 0 },
         };
-        // Картинки отдельно (не улетают в CloudStorage)
         let images = { bgImage: null, btnImage: null };
 
         function getTzOffsetMinutes() {
@@ -811,12 +1055,11 @@
         }
         let savedTzOffset = getTzOffsetMinutes();
 
-        // ---- Календарь ----
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
         let selectedDate = null;
 
-        // ---- DOM ----
+        // DOM
         const app = document.getElementById('app');
         const hugBtn = document.getElementById('hug-btn');
         const btnText = hugBtn.querySelector('.btn-text');
@@ -862,11 +1105,19 @@
         const dayInfo = document.getElementById('day-info');
         const dayClicksList = document.getElementById('day-clicks-list');
 
+        // DEV DOM
+        const devBtn = document.getElementById('dev-btn');
+        const devOverlay = document.getElementById('dev-overlay');
+        const devClose = document.getElementById('dev-close');
+        const devInput = document.getElementById('dev-input');
+        const devRun = document.getElementById('dev-run');
+        const devLog = document.getElementById('dev-log');
+        const devUserLabel = document.getElementById('dev-user-label');
+
         // ============================================================
         // УТИЛИТЫ
         // ============================================================
         function byteSize(str) {
-            // Приблизительная оценка размера UTF-8 строки
             let bytes = 0;
             for (let i = 0; i < str.length; i++) {
                 const c = str.charCodeAt(i);
@@ -902,15 +1153,13 @@
         }
 
         // ============================================================
-        // ОБЁРТКА НАД CLOUDSTORAGE (промис)
+        // CLOUD STORAGE
         // ============================================================
         function cloudSet(key, value) {
             return new Promise((resolve) => {
                 if (!hasCloudStorage) return resolve(false);
                 try {
-                    tg.CloudStorage.setItem(key, value, (err) => {
-                        if (err) resolve(false); else resolve(true);
-                    });
+                    tg.CloudStorage.setItem(key, value, (err) => resolve(!err));
                 } catch (e) { resolve(false); }
             });
         }
@@ -918,9 +1167,7 @@
             return new Promise((resolve) => {
                 if (!hasCloudStorage) return resolve(null);
                 try {
-                    tg.CloudStorage.getItem(key, (err, value) => {
-                        if (err || !value) resolve(null); else resolve(value);
-                    });
+                    tg.CloudStorage.getItem(key, (err, value) => resolve(err ? null : value));
                 } catch (e) { resolve(null); }
             });
         }
@@ -936,18 +1183,14 @@
             return new Promise((resolve) => {
                 if (!hasCloudStorage) return resolve([]);
                 try {
-                    tg.CloudStorage.getKeys((err, keys) => {
-                        if (err || !keys) resolve([]); else resolve(keys);
-                    });
+                    tg.CloudStorage.getKeys((err, keys) => resolve(err || !keys ? [] : keys));
                 } catch (e) { resolve([]); }
             });
         }
 
         // ============================================================
-        // СЕРИАЛИЗАЦИЯ ИСТОРИИ (компактная + чанками)
+        // ИСТОРИЯ: сериализация + чанки
         // ============================================================
-        // Компактный формат: { "YYYY-MM-DD": [[t, h, approx?], ...] }
-        // Это экономит ~50% места против объектов {t:..., h:...}
         function serializeHistory() {
             const out = {};
             for (const date in history) {
@@ -968,17 +1211,15 @@
             return out;
         }
 
-        // Разбиваем историю на чанки так, чтобы каждый чанк был < CLOUD_LIMIT
         function splitHistoryIntoChunks(serialized) {
             const dates = Object.keys(serialized);
             const chunks = [];
             let current = {};
-            let currentSize = 2; // '{}'
+            let currentSize = 2;
 
             for (const date of dates) {
                 const entry = JSON.stringify({ [date]: serialized[date] });
                 const entrySize = byteSize(entry);
-                // +1 на запятую между записями
                 if (currentSize + entrySize + 1 > CLOUD_LIMIT && Object.keys(current).length > 0) {
                     chunks.push(current);
                     current = {};
@@ -998,7 +1239,6 @@
         let savePending = false;
 
         function persistData() {
-            // Дебаунс: CloudStorage не любит частые вызовы
             if (saveTimer) { savePending = true; return; }
             doPersist();
             saveTimer = setTimeout(() => {
@@ -1008,15 +1248,12 @@
         }
 
         async function doPersist() {
-            // 1) Картинки — в localStorage (base64 не влезает в 4КБ cloud)
             try {
                 localStorage.setItem(LS_IMAGES, JSON.stringify(images));
             } catch (e) {
-                // Если переполнено — жертвуем картинками, чистим старьё
                 try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
             }
 
-            // 2) Настройки (без картинок) — в CloudStorage
             const settingsJson = JSON.stringify({
                 bgColor: settings.bgColor,
                 textColor: settings.textColor,
@@ -1025,7 +1262,6 @@
                 btnImageSettings: settings.btnImageSettings,
             });
 
-            // 3) История — чанками
             const serialized = serializeHistory();
             const chunks = splitHistoryIntoChunks(serialized);
 
@@ -1042,7 +1278,6 @@
 
             const allOk = results.every(r => r);
 
-            // 4) Резервная копия в localStorage (на случай если CloudStorage отвалился)
             try {
                 localStorage.setItem(K_COUNT, String(hugCount));
                 localStorage.setItem(K_SETTINGS, settingsJson);
@@ -1054,7 +1289,6 @@
                     try { localStorage.setItem(K_HISTORY_CHUNK(i), JSON.stringify(chunk)); } catch (e) {}
                 });
 
-                // Чистим лишние чанки (если история сжалась)
                 const allKeys = await cloudGetAllKeys();
                 const ourChunkKeys = allKeys.filter(k => k.startsWith('hugApp_history_') && k !== 'hugApp_history_meta');
                 for (const k of ourChunkKeys) {
@@ -1074,23 +1308,19 @@
         // ЗАГРУЗКА
         // ============================================================
         async function loadData() {
-            // 1) Сначала пробуем CloudStorage
             let countStr = await cloudGet(K_COUNT);
             let settingsStr = await cloudGet(K_SETTINGS);
             let metaStr = await cloudGet(K_HISTORY_META);
 
-            // 2) Если cloud пустой — читаем из localStorage
             if (countStr === null) countStr = localStorage.getItem(K_COUNT);
             if (settingsStr === null) settingsStr = localStorage.getItem(K_SETTINGS);
             if (metaStr === null) metaStr = localStorage.getItem(K_HISTORY_META);
 
-            // ---- Счётчик ----
             if (countStr !== null) {
                 const n = parseInt(countStr, 10);
                 if (!isNaN(n) && n >= 0) hugCount = n;
             }
 
-            // ---- Настройки ----
             if (settingsStr) {
                 try {
                     const s = JSON.parse(settingsStr);
@@ -1104,7 +1334,6 @@
                 } catch (e) {}
             }
 
-            // ---- Картинки ----
             try {
                 const imgStr = localStorage.getItem(LS_IMAGES);
                 if (imgStr) {
@@ -1114,15 +1343,12 @@
                 }
             } catch (e) {}
 
-            // ---- Мета истории ----
             let meta = null;
             if (metaStr) {
                 try { meta = JSON.parse(metaStr); } catch (e) {}
             }
 
-            // ---- История ----
             if (meta && meta.chunks > 0) {
-                // Новый формат: чанки
                 const merged = {};
                 for (let i = 0; i < meta.chunks; i++) {
                     let chunkStr = await cloudGet(K_HISTORY_CHUNK(i));
@@ -1135,8 +1361,6 @@
                 }
                 history = deserializeHistory(merged);
             } else {
-                // Попытка прочитать СТАРЫЙ формат (монолитный ключ hugAppData)
-                // и мигрировать в новый
                 let legacy = await cloudGet('hugAppData');
                 if (!legacy) legacy = localStorage.getItem('hugAppData');
                 if (legacy) {
@@ -1150,14 +1374,12 @@
                                 bgImageSettings: parsed.settings.bgImageSettings || settings.bgImageSettings,
                                 btnImageSettings: parsed.settings.btnImageSettings || settings.btnImageSettings,
                             };
-                            // Картинки из старого формата переносим в images
                             if (parsed.settings.bgImage) images.bgImage = parsed.settings.bgImage;
                             if (parsed.settings.btnImage) images.btnImage = parsed.settings.btnImage;
                         }
                         if (typeof parsed.savedTzOffset === 'number') savedTzOffset = parsed.savedTzOffset;
                         if (typeof parsed.count === 'number' && parsed.count > hugCount) hugCount = parsed.count;
                         if (parsed.history) {
-                            // Может быть старый формат (число) или новый (массив)
                             const h = {};
                             for (const date in parsed.history) {
                                 const v = parsed.history[date];
@@ -1166,7 +1388,6 @@
                                         .filter(x => x && typeof x.t === 'number')
                                         .map(x => ({ t: x.t, h: x.h || 0, approx: !!x.approx }));
                                 } else if (typeof v === 'number') {
-                                    // Древний формат: N кликов без времени
                                     const [y, m, d] = date.split('-').map(Number);
                                     const arr = [];
                                     for (let k = 0; k < v; k++) {
@@ -1178,13 +1399,10 @@
                             }
                             history = h;
                         }
-                        // После миграции сохраним в новом формате
-                        // (сделаем это в init после применения настроек)
                     } catch (e) {}
                 }
             }
 
-            // Если savedTzOffset не был загружен — берём текущий
             if (meta && typeof meta.tz === 'number') {
                 savedTzOffset = meta.tz;
             }
@@ -1250,7 +1468,7 @@
         }
 
         // ============================================================
-        // СЖАТИЕ КАРТИНОК (чтобы не раздувать localStorage)
+        // СЖАТИЕ КАРТИНОК
         // ============================================================
         function compressImage(file, maxDim, quality) {
             return new Promise((resolve) => {
@@ -1268,8 +1486,7 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, w, h);
                         try {
-                            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                            resolve(dataUrl);
+                            resolve(canvas.toDataURL('image/jpeg', quality));
                         } catch (e) {
                             resolve(ev.target.result);
                         }
@@ -1480,6 +1697,193 @@
         }
 
         // ============================================================
+        // DEV-ПАНЕЛЬ: логика
+        // ============================================================
+        function devLogLine(text, type) {
+            const div = document.createElement('div');
+            div.className = 'log-line ' + (type || 'log-info');
+            div.textContent = text;
+            devLog.appendChild(div);
+            devLog.scrollTop = devLog.scrollHeight;
+        }
+
+        // Парсер даты: "2026-09-29" | "сегодня" | "вчера" | "завтра"
+        function parseDevDate(s) {
+            if (!s) return null;
+            const low = s.toLowerCase();
+            const today = new Date();
+            if (low === 'сегодня') {
+                return {
+                    y: today.getFullYear(),
+                    m: today.getMonth() + 1,
+                    d: today.getDate()
+                };
+            }
+            if (low === 'вчера') {
+                const yest = new Date(today.getTime() - 86400000);
+                return { y: yest.getFullYear(), m: yest.getMonth()+1, d: yest.getDate() };
+            }
+            if (low === 'завтра') {
+                const tm = new Date(today.getTime() + 86400000);
+                return { y: tm.getFullYear(), m: tm.getMonth()+1, d: tm.getDate() };
+            }
+            const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+            if (!m) return null;
+            return { y: parseInt(m[1],10), m: parseInt(m[2],10), d: parseInt(m[3],10) };
+        }
+
+        // Парсер времени: "14:30" | "14:30:45"
+        function parseDevTime(s) {
+            if (!s) return { h: 12, mi: 0, se: 0 };
+            const parts = s.split(':').map(x => parseInt(x, 10));
+            if (parts.length < 2 || parts.some(isNaN)) return null;
+            const h = parts[0], mi = parts[1], se = parts[2] || 0;
+            if (h < 0 || h > 23 || mi < 0 || mi > 59 || se < 0 || se > 59) return null;
+            return { h, mi, se };
+        }
+
+        function dateKeyFromParts(p) {
+            return p.y + '-' + String(p.m).padStart(2,'0') + '-' + String(p.d).padStart(2,'0');
+        }
+
+        // ---- Команда: Счётчик +/- N ----
+        function cmdCounter(amountStr) {
+            const amount = parseInt(amountStr, 10);
+            if (isNaN(amount)) {
+                devLogLine('❌ Неверное число: ' + amountStr, 'log-err');
+                return;
+            }
+            const before = hugCount;
+            hugCount = Math.max(0, hugCount + amount);
+            updateCounter();
+            persistData();
+            devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}). Календарь не тронут.`, 'log-ok');
+        }
+
+        // ---- Команда: +/- обнимашка <дата> <время> ----
+        function cmdHug(sign, dateStr, timeStr) {
+            const dp = parseDevDate(dateStr);
+            if (!dp) {
+                devLogLine('❌ Неверная дата: ' + dateStr, 'log-err');
+                return;
+            }
+            const tp = parseDevTime(timeStr);
+            if (!tp) {
+                devLogLine('❌ Неверное время: ' + timeStr, 'log-err');
+                return;
+            }
+
+            // Локальный timestamp
+            const dt = new Date(dp.y, dp.m - 1, dp.d, tp.h, tp.mi, tp.se, 0);
+            const ts = dt.getTime();
+            const key = dateKeyFromParts(dp);
+            const tz = getTzOffsetMinutes();
+
+            if (sign === '+') {
+                if (!history[key]) history[key] = [];
+                history[key].push({ t: ts, h: tz });
+                hugCount++;
+                updateCounter();
+                persistData();
+                devLogLine(`✅ Добавлена обнимашка: ${key} ${String(tp.h).padStart(2,'0')}:${String(tp.mi).padStart(2,'0')}:${String(tp.se).padStart(2,'0')} (счётчик: ${hugCount})`, 'log-ok');
+            } else {
+                const arr = history[key];
+                if (!arr || arr.length === 0) {
+                    devLogLine(`❌ В ${key} нет обнимашек для удаления`, 'log-err');
+                    return;
+                }
+                // Находим ближайшую по времени (±30 сек окно, но если не найдено — берём самую близкую)
+                let bestIdx = -1;
+                let bestDiff = Infinity;
+                for (let i = 0; i < arr.length; i++) {
+                    const diff = Math.abs(arr[i].t - ts);
+                    if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+                }
+                if (bestIdx === -1) {
+                    devLogLine(`❌ Не удалось найти обнимашку`, 'log-err');
+                    return;
+                }
+                const removed = arr.splice(bestIdx, 1)[0];
+                if (arr.length === 0) delete history[key];
+                hugCount = Math.max(0, hugCount - 1);
+                updateCounter();
+                persistData();
+
+                const rTime = formatClickTime(removed.t);
+                const diffSec = Math.round(bestDiff / 1000);
+                devLogLine(`✅ Удалена обнимашка из ${key} (${rTime}), разница ${diffSec} сек (счётчик: ${hugCount})`, 'log-ok');
+            }
+
+            // Обновляем календарь, если он открыт (для отображения изменений)
+            if (calendarOverlay.classList.contains('open')) {
+                renderCalendar(currentYear, currentMonth);
+            }
+        }
+
+        function runDevCommand(raw) {
+            const cmd = (raw || '').trim();
+            if (!cmd) return;
+
+            devLogLine('> ' + cmd, 'log-sys');
+
+            // 1) Счётчик +N / Счётчик -N / Counter +N
+            let m = cmd.match(/^(?:счётчик|счетчик|counter)\s*([+-]?\d+)\s*$/i);
+            if (m) {
+                cmdCounter(m[1]);
+                return;
+            }
+
+            // 2) +/- обнимашка <дата> <время>
+            //    + обнимашка 2026-09-29 14:30
+            //    -обнимашка сегодня 14:30:45
+            m = cmd.match(/^([+-])\s*обнимашка\s+(\S+)(?:\s+(\S+))?\s*$/i);
+            if (m) {
+                const sign = m[1];
+                const dateStr = m[2];
+                const timeStr = m[3] || null;
+                cmdHug(sign, dateStr, timeStr);
+                return;
+            }
+
+            devLogLine('❌ Неизвестная команда. Смотри подсказки сверху.', 'log-err');
+        }
+
+        // DEV UI
+        function openDevPanel() {
+            devOverlay.classList.add('open');
+            // Показать username, если есть
+            try {
+                const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
+                if (u && u.username) devUserLabel.textContent = '@' + u.username;
+                else devUserLabel.textContent = '(local)';
+            } catch (e) { devUserLabel.textContent = ''; }
+            setTimeout(() => devInput.focus(), 100);
+        }
+        function closeDevPanel() {
+            devOverlay.classList.remove('open');
+            devInput.blur();
+        }
+
+        devBtn.addEventListener('click', openDevPanel);
+        devClose.addEventListener('click', closeDevPanel);
+        devOverlay.addEventListener('click', function(e) {
+            if (e.target === this) closeDevPanel();
+        });
+        devRun.addEventListener('click', function() {
+            const v = devInput.value;
+            devInput.value = '';
+            runDevCommand(v);
+        });
+        devInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const v = devInput.value;
+                devInput.value = '';
+                runDevCommand(v);
+            }
+        });
+
+        // ============================================================
         // СОБЫТИЯ
         // ============================================================
         hugBtn.addEventListener('click', handleHugClick);
@@ -1519,7 +1923,6 @@
             saveAndApply();
         });
 
-        // Загрузка фото со сжатием
         bgImageUpload.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -1661,9 +2064,12 @@
         async function init() {
             await loadData();
             applyAllSettings();
-
-            // После миграции — сохраняем в новом формате
             persistData();
+
+            // Проверка доступа к dev-панели
+            if (checkDevAccess()) {
+                devBtn.classList.add('show');
+            }
 
             const today = new Date();
             selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
