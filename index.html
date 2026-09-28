@@ -168,176 +168,6 @@
             background: rgba(0,0,0,0.04);
         }
 
-        /* ====== DEV BUTTON ====== */
-        #dev-btn {
-            display: none;
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            z-index: 15;
-            background: rgba(0,0,0,0.65);
-            color: #ffffff;
-            border: none;
-            border-radius: 14px;
-            padding: 4px 9px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            cursor: pointer;
-            opacity: 0.55;
-            transition: opacity 0.2s;
-            font-family: monospace;
-        }
-        #dev-btn:hover {
-            opacity: 1;
-        }
-        #dev-btn.visible {
-            display: block;
-        }
-
-        /* ====== DEV PANEL ====== */
-        #dev-panel {
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            max-height: 70%;
-            background: #1a1a20;
-            color: #e0e0e0;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-        }
-        #dev-panel.open {
-            transform: translateY(0);
-        }
-        #dev-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px 8px;
-            border-bottom: 1px solid #2a2a35;
-            flex-shrink: 0;
-        }
-        #dev-panel-header h3 {
-            font-size: 14px;
-            color: #7ec8ff;
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
-        #dev-panel-close {
-            background: none;
-            border: none;
-            color: #a0a0b0;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0 4px;
-            line-height: 1;
-        }
-        #dev-panel-close:hover {
-            color: #ffffff;
-        }
-        #dev-panel-hints {
-            padding: 8px 16px;
-            background: #15151b;
-            font-size: 11px;
-            color: #8888a0;
-            font-family: monospace;
-            line-height: 1.5;
-            flex-shrink: 0;
-            border-bottom: 1px solid #2a2a35;
-        }
-        #dev-panel-hints .hint-title {
-            color: #7ec8ff;
-            font-weight: 700;
-            margin-bottom: 3px;
-            font-size: 10px;
-            letter-spacing: 1px;
-        }
-        #dev-panel-hints .hint-line {
-            color: #b0b0c0;
-        }
-        #dev-panel-hints .hint-line .cmd {
-            color: #ffd479;
-        }
-        #dev-panel-log {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px 16px;
-            font-family: monospace;
-            font-size: 12px;
-            line-height: 1.5;
-            min-height: 60px;
-            max-height: 140px;
-        }
-        #dev-panel-log .log-entry {
-            margin-bottom: 3px;
-            word-break: break-word;
-        }
-        #dev-panel-log .log-entry.ok { color: #7ee787; }
-        #dev-panel-log .log-entry.err { color: #ff8080; }
-        #dev-panel-log .log-entry.info { color: #7ec8ff; }
-        #dev-panel-log .log-entry.cmd { color: #ffd479; }
-        #dev-panel-input-wrap {
-            display: flex;
-            gap: 6px;
-            padding: 10px 12px 14px;
-            border-top: 1px solid #2a2a35;
-            background: #15151b;
-            flex-shrink: 0;
-        }
-        #dev-panel-input {
-            flex: 1;
-            background: #252530;
-            border: 1px solid #3a3a48;
-            border-radius: 10px;
-            color: #e0e0e0;
-            padding: 8px 12px;
-            font-family: monospace;
-            font-size: 13px;
-            outline: none;
-            min-width: 0;
-        }
-        #dev-panel-input:focus {
-            border-color: #7ec8ff;
-        }
-        #dev-panel-input::placeholder {
-            color: #5a5a6a;
-        }
-        #dev-panel-run {
-            background: #7ec8ff;
-            color: #0a0a10;
-            border: none;
-            border-radius: 10px;
-            padding: 8px 14px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        #dev-panel-run:hover {
-            background: #9dd4ff;
-        }
-        #dev-panel-run:active {
-            background: #5aaee0;
-        }
-        #dev-panel-log::-webkit-scrollbar {
-            width: 4px;
-        }
-        #dev-panel-log::-webkit-scrollbar-track {
-            background: #15151b;
-        }
-        #dev-panel-log::-webkit-scrollbar-thumb {
-            background: #3a3a48;
-            border-radius: 2px;
-        }
-
         .overlay {
             position: absolute;
             inset: 0;
@@ -808,28 +638,6 @@
         <button id="calendar-icon" aria-label="Календарь">📅</button>
     </div>
 
-    <!-- DEV кнопка (видна только @Enn_Vel) -->
-    <button id="dev-btn" title="Dev">dev</button>
-
-    <!-- DEV панель -->
-    <div id="dev-panel">
-        <div id="dev-panel-header">
-            <h3>DEV CONSOLE</h3>
-            <button id="dev-panel-close">✕</button>
-        </div>
-        <div id="dev-panel-hints">
-            <div class="hint-title">КОМАНДЫ</div>
-            <div class="hint-line"><span class="cmd">Счётчик +5</span> / <span class="cmd">Счётчик -3</span> — изменить счётчик (календарь не трогается)</div>
-            <div class="hint-line"><span class="cmd">+ обнимашка 2026-09-15 14:30</span> — добавить клик</div>
-            <div class="hint-line"><span class="cmd">- обнимашка 2026-09-15 14:30</span> — удалить клик (±1 мин)</div>
-        </div>
-        <div id="dev-panel-log"></div>
-        <div id="dev-panel-input-wrap">
-            <input type="text" id="dev-panel-input" placeholder="Введите команду..." autocomplete="off">
-            <button id="dev-panel-run">Выполнить</button>
-        </div>
-    </div>
-
     <div id="settings-overlay" class="overlay">
         <div class="modal" id="settings-modal">
             <h2>Настройки <button id="close-settings">✕</button></h2>
@@ -961,22 +769,10 @@
 
 <script>
     (function(){
-        // ---- Telegram ----
+        // ---- Telegram CloudStorage ----
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
         const STORAGE_KEY = 'hugAppData';
-
-        // Username владельца dev-панели
-        const DEV_USERNAME = 'Enn_Vel';
-        let isDevUser = false;
-
-        // Проверяем username
-        try {
-            const tgUser = tg?.initDataUnsafe?.user;
-            if (tgUser && tgUser.username === DEV_USERNAME) {
-                isDevUser = true;
-            }
-        } catch (e) {}
 
         // ---- Данные ----
         let hugCount = 0;
@@ -994,15 +790,17 @@
         };
         let settings = { ...defaultSettings };
 
+        // Календарь
         let currentYear = 2026;
         let currentMonth = 0;
         let selectedDate = null;
 
-        let isLoaded = false;
-        let saveTimer = null;
-        let saveInProgress = false;
-        let savePending = false;
-        let lastSavedJson = '';
+        // === Флаги для защиты от гонок ===
+        let isLoaded = false;           // данные загружены из хранилища
+        let saveTimer = null;           // таймер debounce для сохранения
+        let saveInProgress = false;     // сохранение уже выполняется
+        let savePending = false;        // нужно ещё раз сохранить после текущего
+        let lastSavedJson = '';         // последнее сохранённое значение
 
         // DOM
         const app = document.getElementById('app');
@@ -1050,14 +848,6 @@
         const dayInfo = document.getElementById('day-info');
         const dayClicksList = document.getElementById('day-clicks-list');
 
-        // DEV elements
-        const devBtn = document.getElementById('dev-btn');
-        const devPanel = document.getElementById('dev-panel');
-        const devPanelClose = document.getElementById('dev-panel-close');
-        const devPanelInput = document.getElementById('dev-panel-input');
-        const devPanelRun = document.getElementById('dev-panel-run');
-        const devPanelLog = document.getElementById('dev-panel-log');
-
         // ---- Утилиты ----
         function getTzOffsetMinutes() {
             return -new Date().getTimezoneOffset();
@@ -1086,6 +876,7 @@
             return `${hh}:${mm}:${ss}`;
         }
 
+        // ---- Миграция старого формата ----
         function migrateHistory(rawHistory, tz) {
             if (!rawHistory) return {};
             const newHistory = {};
@@ -1106,6 +897,7 @@
             return newHistory;
         }
 
+        // ---- Применение загруженных данных ----
         function applyLoadedData(data) {
             if (data.count !== undefined) hugCount = data.count;
             if (data.history) {
@@ -1121,6 +913,7 @@
             }
         }
 
+        // ---- Сохранение (с debounce + защитой от гонок) ----
         function buildPayload() {
             return JSON.stringify({
                 count: hugCount,
@@ -1130,11 +923,16 @@
             });
         }
 
+        // Мгновенное сохранение (для beforeunload)
         function saveNow() {
             if (!isLoaded) return;
             const json = buildPayload();
             lastSavedJson = json;
+
+            // Всегда дублируем в localStorage — он синхронный и надёжный
             try { localStorage.setItem(STORAGE_KEY, json); } catch (e) {}
+
+            // И в CloudStorage — но не ждём результата
             if (hasCloudStorage) {
                 try {
                     tg.CloudStorage.setItem(STORAGE_KEY, json, () => {});
@@ -1142,14 +940,18 @@
             }
         }
 
+        // Отложенное сохранение (для частых кликов)
         function persistData() {
             if (!isLoaded) return;
+
+            // Дублируем в localStorage сразу — чтобы при закрытии ничего не потерялось
             try {
                 const json = buildPayload();
                 localStorage.setItem(STORAGE_KEY, json);
                 lastSavedJson = json;
             } catch (e) {}
 
+            // CloudStorage — с debounce, чтобы не спамить
             if (saveTimer) clearTimeout(saveTimer);
             saveTimer = setTimeout(() => {
                 if (saveInProgress) {
@@ -1163,11 +965,18 @@
         function sendToCloud() {
             if (!hasCloudStorage || !isLoaded) return;
             const json = buildPayload();
+            // Если ничего не изменилось — не отправляем
+            if (json === lastSavedJson && saveInProgress === false) {
+                // всё равно отправим один раз для надёжности, если был pending
+            }
+
             saveInProgress = true;
             try {
                 tg.CloudStorage.setItem(STORAGE_KEY, json, (err) => {
                     saveInProgress = false;
-                    if (!err) lastSavedJson = json;
+                    if (!err) {
+                        lastSavedJson = json;
+                    }
                     if (savePending) {
                         savePending = false;
                         sendToCloud();
@@ -1182,6 +991,7 @@
             }
         }
 
+        // ---- Загрузка ----
         function loadData(callback) {
             const finish = (parsed) => {
                 if (parsed) {
@@ -1194,10 +1004,14 @@
             if (hasCloudStorage) {
                 try {
                     tg.CloudStorage.getItem(STORAGE_KEY, (err, value) => {
-                        if (err || !value) tryLocal(finish);
-                        else {
-                            try { finish(JSON.parse(value)); }
-                            catch (e) { tryLocal(finish); }
+                        if (err || !value) {
+                            tryLocal(finish);
+                        } else {
+                            try {
+                                finish(JSON.parse(value));
+                            } catch (e) {
+                                tryLocal(finish);
+                            }
                         }
                     });
                 } catch (e) {
@@ -1211,13 +1025,17 @@
         function tryLocal(finish) {
             try {
                 const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) finish(JSON.parse(saved));
-                else finish(null);
+                if (saved) {
+                    finish(JSON.parse(saved));
+                } else {
+                    finish(null);
+                }
             } catch (e) {
                 finish(null);
             }
         }
 
+        // ---- Применение настроек ----
         function applyAllSettings() {
             if (settings.bgImage) {
                 const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
@@ -1232,6 +1050,7 @@
 
             hugBtn.style.backgroundColor = settings.btnColor;
             updateButtonShadow(settings.btnColor);
+
             applyTextColor(settings.textColor);
 
             if (settings.btnImage) {
@@ -1438,7 +1257,9 @@
             renderCalendar(currentYear, currentMonth);
         }
 
+        // ---- Клик по кнопке ----
         function handleHugClick() {
+            // Не принимаем клики пока данные не загружены — иначе затрём облачные данные локальными нулями
             if (!isLoaded) return;
 
             hugCount++;
@@ -1463,7 +1284,7 @@
             }
         }
 
-        // ---- Основные события ----
+        // ---- События ----
         hugBtn.addEventListener('click', handleHugClick);
 
         settingsBtn.addEventListener('click', openSettings);
@@ -1571,6 +1392,7 @@
         setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
         setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
 
+        // Сброс счётчика
         resetCounterBtn.addEventListener('click', function() {
             confirmMessage.textContent = 'Вы уверены, что хотите сбросить счётчик обнимашек?';
             confirmOverlay.classList.add('open');
@@ -1579,6 +1401,7 @@
             hugCount = 0;
             history = {};
             updateCounter();
+            // При сбросе сохраняем сразу, без debounce
             persistData();
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             selectedDate = null;
@@ -1591,6 +1414,7 @@
             if (e.target === this) confirmOverlay.classList.remove('open');
         });
 
+        // Календарь
         calendarIcon.addEventListener('click', openCalendar);
         closeCalendar.addEventListener('click', () => calendarOverlay.classList.remove('open'));
         calendarOverlay.addEventListener('click', function(e) {
@@ -1599,6 +1423,7 @@
         prevMonthBtn.addEventListener('click', () => changeMonth(-1));
         nextMonthBtn.addEventListener('click', () => changeMonth(1));
 
+        // ---- Проверка часового пояса ----
         function checkTimezoneChange() {
             const currentTz = getTzOffsetMinutes();
             if (currentTz !== savedTzOffset) {
@@ -1633,178 +1458,21 @@
             tzOverlay.classList.remove('open');
         });
 
+        // ---- Сохранение перед уходом ----
         window.addEventListener('beforeunload', saveNow);
         window.addEventListener('pagehide', saveNow);
         document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') saveNow();
-        });
-
-        // ================= DEV PANEL =================
-
-        function devLog(msg, type) {
-            const entry = document.createElement('div');
-            entry.className = 'log-entry ' + (type || 'info');
-            const time = new Date();
-            const tStr = String(time.getHours()).padStart(2,'0') + ':' +
-                         String(time.getMinutes()).padStart(2,'0') + ':' +
-                         String(time.getSeconds()).padStart(2,'0');
-            entry.textContent = `[${tStr}] ${msg}`;
-            devPanelLog.appendChild(entry);
-            devPanelLog.scrollTop = devPanelLog.scrollHeight;
-        }
-
-        // Парсинг команды
-        function runDevCommand(raw) {
-            const cmd = raw.trim();
-            if (!cmd) return;
-
-            devLog('> ' + cmd, 'cmd');
-
-            // ---- Счётчик +/- N ----
-            // Формат: "Счётчик +5", "счётчик -3", "counter +10"
-            let m = cmd.match(/^(?:счётчик|counter)\s*([+\-])\s*(\d+)$/i);
-            if (m) {
-                const sign = m[1] === '+' ? 1 : -1;
-                const num = parseInt(m[2], 10);
-                if (isNaN(num)) {
-                    devLog('Ошибка: неверное число', 'err');
-                    return;
-                }
-                hugCount += sign * num;
-                updateCounter();
-                persistData();
-                devLog(`Счётчик изменён на ${sign > 0 ? '+' : '-'}${num}. Теперь: ${hugCount}`, 'ok');
-                return;
-            }
-
-            // ---- + обнимашка YYYY-MM-DD HH:MM ----
-            m = cmd.match(/^\+\s*обнимашка\s+(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/i);
-            if (m) {
-                const dateStr = m[1];
-                const hh = parseInt(m[2], 10);
-                const mm = parseInt(m[3], 10);
-                const ss = m[4] ? parseInt(m[4], 10) : 0;
-                if (hh > 23 || mm > 59 || ss > 59) {
-                    devLog('Ошибка: неверное время', 'err');
-                    return;
-                }
-                const [y, mo, d] = dateStr.split('-').map(Number);
-                const dt = new Date(y, mo - 1, d, hh, mm, ss);
-                if (isNaN(dt.getTime())) {
-                    devLog('Ошибка: неверная дата', 'err');
-                    return;
-                }
-                const key = dateStr;
-                if (!history[key]) history[key] = [];
-                history[key].push({ t: dt.getTime(), h: getTzOffsetMinutes() });
-                hugCount++;
-                updateCounter();
-                persistData();
-                if (calendarOverlay.classList.contains('open')) {
-                    if (selectedDate === key) showDayInfo(key);
-                    renderCalendar(currentYear, currentMonth);
-                }
-                devLog(`Добавлена обнимашка: ${dateStr} ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`, 'ok');
-                return;
-            }
-
-            // ---- - обнимашка YYYY-MM-DD HH:MM ----
-            m = cmd.match(/^\-\s*обнимашка\s+(\d{4}-\d{2}-\d{2})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/i);
-            if (m) {
-                const dateStr = m[1];
-                const hh = parseInt(m[2], 10);
-                const mm = parseInt(m[3], 10);
-                const ss = m[4] ? parseInt(m[4], 10) : 0;
-                if (hh > 23 || mm > 59 || ss > 59) {
-                    devLog('Ошибка: неверное время', 'err');
-                    return;
-                }
-                const [y, mo, d] = dateStr.split('-').map(Number);
-                const target = new Date(y, mo - 1, d, hh, mm, ss).getTime();
-                const tolerance = 60 * 1000; // ±1 минута
-
-                const clicks = history[dateStr] || [];
-                if (clicks.length === 0) {
-                    devLog(`В ${dateStr} нет обнимашек`, 'err');
-                    return;
-                }
-
-                // Находим ближайший клик по времени
-                let bestIdx = -1;
-                let bestDiff = Infinity;
-                clicks.forEach((c, i) => {
-                    const diff = Math.abs(c.t - target);
-                    if (diff < bestDiff) {
-                        bestDiff = diff;
-                        bestIdx = i;
-                    }
-                });
-
-                if (bestIdx === -1 || bestDiff > tolerance) {
-                    devLog(`Рядом с ${dateStr} ${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')} нет обнимашек (±1 мин)`, 'err');
-                    return;
-                }
-
-                const removedTime = formatClickTime(clicks[bestIdx].t);
-                clicks.splice(bestIdx, 1);
-                if (clicks.length === 0) delete history[dateStr];
-                hugCount = Math.max(0, hugCount - 1);
-                updateCounter();
-                persistData();
-                if (calendarOverlay.classList.contains('open')) {
-                    if (selectedDate === dateStr) showDayInfo(dateStr);
-                    renderCalendar(currentYear, currentMonth);
-                }
-                devLog(`Удалена обнимашка в ${dateStr} около ${removedTime}`, 'ok');
-                return;
-            }
-
-            devLog('Неизвестная команда. Смотри подсказки сверху.', 'err');
-        }
-
-        // Открыть/закрыть панель
-        function openDevPanel() {
-            devPanel.classList.add('open');
-            setTimeout(() => devPanelInput.focus(), 300);
-        }
-        function closeDevPanel() {
-            devPanel.classList.remove('open');
-            devPanelInput.blur();
-        }
-
-        devBtn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (devPanel.classList.contains('open')) closeDevPanel();
-            else openDevPanel();
-        });
-        devPanelClose.addEventListener('click', closeDevPanel);
-
-        devPanelRun.addEventListener('click', function() {
-            runDevCommand(devPanelInput.value);
-            devPanelInput.value = '';
-            devPanelInput.focus();
-        });
-
-        devPanelInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                runDevCommand(this.value);
-                this.value = '';
+            if (document.visibilityState === 'hidden') {
+                saveNow();
             }
         });
 
-        // ================= INIT =================
+        // ---- Инициализация ----
         function init() {
             loadData(function() {
+                // Разблокируем кнопку после загрузки
                 hugBtn.classList.remove('loading');
                 applyAllSettings();
-
-                // Показать dev-кнопку только для @Enn_Vel
-                if (isDevUser) {
-                    devBtn.classList.add('visible');
-                    devLog('Dev-панель активна. Введите "help" для подсказки.', 'info');
-                }
-
                 const today = new Date();
                 selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
                 setTimeout(checkTimezoneChange, 800);
