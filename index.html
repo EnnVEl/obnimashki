@@ -168,9 +168,10 @@
             position: absolute;
             right: 8px;
             bottom: 8px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
+            min-width: 34px;
+            height: 26px;
+            padding: 0 10px;
+            border-radius: 14px;
             background: rgba(60, 40, 80, 0.55);
             color: #fff;
             border: none;
@@ -185,10 +186,12 @@
             transition: 0.2s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             opacity: 0.7;
+            letter-spacing: 0.5px;
+            font-family: 'SF Mono', Menlo, Consolas, monospace;
         }
         #dev-btn.show { display: flex; }
-        #dev-btn:hover { opacity: 1; transform: scale(1.08); }
-        #dev-btn:active { transform: scale(0.92); }
+        #dev-btn:hover { opacity: 1; transform: scale(1.06); }
+        #dev-btn:active { transform: scale(0.94); }
 
         /* ---- DEV-ПАНЕЛЬ ---- */
         #dev-overlay {
@@ -812,8 +815,8 @@
         <button id="calendar-icon" aria-label="Календарь">📅</button>
     </div>
 
-    <!-- DEV-КНОПКА (только для @Enn_Vel) -->
-    <button id="dev-btn" title="Dev">{"</>"}</button>
+    <!-- DEV-КНОПКА (только для @Enn_Vel и @Kirka5466) -->
+    <button id="dev-btn" title="Dev">dev</button>
 
     <!-- DEV-ПАНЕЛЬ -->
     <div id="dev-overlay">
@@ -995,23 +998,32 @@
 <script>
     (function(){
         // ============================================================
-        // DEV-ДОСТУП
+        // DEV-ДОСТУП (список разрешённых username, без @, в нижнем регистре)
         // ============================================================
-        const DEV_USERNAME = 'enn_vel';
+        const DEV_USERNAMES = ['enn_vel', 'kirka5466'];
 
         function checkDevAccess() {
+            // 1) Telegram WebApp initDataUnsafe.user.username
             try {
                 const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
-                if (u && u.username && u.username.toLowerCase() === DEV_USERNAME) return true;
+                if (u && u.username && DEV_USERNAMES.includes(u.username.toLowerCase())) {
+                    return u.username;
+                }
             } catch (e) {}
+
+            // 2) Отладка в браузере: ?dev=Enn_Vel или ?dev=Kirka5466
             try {
                 const params = new URLSearchParams(location.search);
-                if ((params.get('dev') || '').toLowerCase() === DEV_USERNAME) return true;
+                const p = (params.get('dev') || '').toLowerCase();
+                if (DEV_USERNAMES.includes(p)) return params.get('dev');
             } catch (e) {}
+
+            // 3) Отладка: localStorage.setItem('dev_mode', '1')
             try {
-                if (localStorage.getItem('dev_mode') === '1') return true;
+                if (localStorage.getItem('dev_mode') === '1') return '(local)';
             } catch (e) {}
-            return false;
+
+            return null;
         }
 
         // ============================================================
@@ -1019,10 +1031,9 @@
         // ============================================================
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
-        const VERSION = 3; // версия повышена — формат счётчика изменился
+        const VERSION = 3;
 
         const K_VERSION   = 'hugApp_v';
-        const K_COUNT     = 'hugApp_count'; // legacy, оставлен для обратной совместимости, но больше не источник истины
         const K_SETTINGS  = 'hugApp_settings';
         const K_HISTORY_META = 'hugApp_history_meta';
         const K_HISTORY_CHUNK = (i) => 'hugApp_history_' + i;
@@ -1030,8 +1041,6 @@
         const LS_IMAGES = 'hugApp_images';
         const CLOUD_LIMIT = 3800;
 
-        // hugCount теперь ВСЕГДА пересчитывается из history.
-        // Отдельного поля больше нет — это устраняет расхождение.
         let history = {};
 
         function calcHugCount() {
@@ -1040,7 +1049,6 @@
             return n;
         }
 
-        // Для UI удобно кэшировать
         let hugCount = 0;
 
         let settings = {
@@ -1237,17 +1245,12 @@
         // ============================================================
         // СОХРАНЕНИЕ — ПОСЛЕДОВАТЕЛЬНАЯ ОЧЕРЕДЬ
         // ============================================================
-        // Ключевое исправление: сохранения теперь выполняются строго
-        // одно за другим. Никаких параллельных doPersist, никаких потерь.
         let saveChain = Promise.resolve();
         let saveScheduled = false;
         let lastSaveError = null;
 
-        // Универсальный хелпер: сохранить одно значение в cloud + local
         async function setBoth(key, value, retries = 1) {
-            // В localStorage всегда
             try { localStorage.setItem(key, value); } catch (e) {}
-            // В облако — с ретраем
             for (let attempt = 0; attempt <= retries; attempt++) {
                 const ok = await cloudSet(key, value);
                 if (ok) return true;
@@ -1268,21 +1271,17 @@
             const serialized = serializeHistory();
             const chunks = splitHistoryIntoChunks(serialized);
 
-            // Картинки — только в localStorage (не влезают в 4КБ)
             try {
                 localStorage.setItem(LS_IMAGES, JSON.stringify(images));
             } catch (e) {
                 try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
             }
 
-            // Сохраняем последовательно, чтобы не словить 429 от CloudStorage
-            // Метаданные сначала — если упадёт дальше, мета будет указывать на старые чанки
             const metaJson = JSON.stringify({
                 chunks: chunks.length,
                 tz: savedTzOffset,
             });
 
-            // Все ключи и их значения
             const entries = [
                 [K_VERSION, String(VERSION)],
                 [K_SETTINGS, settingsJson],
@@ -1296,7 +1295,6 @@
                 if (!ok) allOk = false;
             }
 
-            // Чистим лишние чанки (если история сжалась)
             try {
                 const allKeys = await cloudGetAllKeys();
                 const ourChunkKeys = allKeys.filter(k => k.startsWith('hugApp_history_') && k !== 'hugApp_history_meta');
@@ -1312,12 +1310,9 @@
             return allOk;
         }
 
-        // Гарантированная очередь сохранений — без параллелизма
         function persistData() {
             if (saveScheduled) return;
             saveScheduled = true;
-            // Небольшая задержка — чтобы клики "схлопывались" в одну запись
-            // Но при этом сами клики уже в памяти, и они не потеряются.
             setTimeout(() => {
                 saveScheduled = false;
                 saveChain = saveChain.then(() => doPersistOnce()).catch(() => {});
@@ -1374,7 +1369,6 @@
                 }
                 history = deserializeHistory(merged);
             } else {
-                // Легаси-миграция из старого формата (монолитный ключ)
                 let legacy = await cloudGet('hugAppData');
                 if (!legacy) legacy = localStorage.getItem('hugAppData');
                 if (legacy) {
@@ -1420,8 +1414,6 @@
                 savedTzOffset = meta.tz;
             }
 
-            // ВАЖНО: счётчик теперь берётся ИЗ ИСТОРИИ, а не из отдельного ключа.
-            // Это устраняет расхождение навсегда.
             hugCount = calcHugCount();
         }
 
@@ -1476,7 +1468,6 @@
         }
 
         function updateCounter() {
-            // Пересчитываем из истории — счётчик всегда совпадает с календарём
             hugCount = calcHugCount();
             counterEl.innerHTML = `🤗 ${hugCount}`;
         }
@@ -1764,25 +1755,6 @@
                 devLogLine('❌ Неверное число: ' + amountStr, 'log-err');
                 return;
             }
-            // Счётчик теперь ВСЕГДА = сумма из истории, поэтому напрямую его
-            // менять нельзя. Вместо этого — добавим/удалим N фиктивных обнимашек
-            // "сегодня 00:00:00 + i секунд" (approx) — так счётчик и календарь
-            // останутся в согласии, но календарь визуально не изменится
-            // (записи пойдут глубоко в ночь).
-            // ВАЖНО: пользователь просил "в календаре ничего не меняется" — 
-            // поэтому просто меняем только числовой кэш UI? Нет, так счётчик 
-            // снова разойдётся. Значит, чтобы соблюсти ОБА условия —
-            // добавляем/удаляем реальные обнимашки, но в "скрытую" дату.
-            //
-            // Компромисс: добавляем/удаляем в СЕГОДНЯШНИЙ день как approx-записи.
-            // Пользователь просил "в календаре ничего не менялось" — понимаем как
-            // "не менялась структура календаря, только счётчик". Но т.к. календарь
-            // и счётчик синхронизированы — без добавления записей не обойтись.
-            //
-            // Итоговое решение: команда Счётчик просто добавляет/убирает обнимашки
-            // в текущем дне (в 00:00:00 + i мс), календарь корректно пересчитается.
-            // Это соответствует запросу: "история такая же остаётся, календарь такой же"
-            // — просто число меняется.
 
             const now = new Date();
             const key = now.getFullYear() + '-' +
@@ -1806,7 +1778,6 @@
                     devLogLine('❌ Нечего удалять — в сегодняшнем дне нет обнимашек', 'log-err');
                     return;
                 }
-                // Удаляем approx-записи первыми (чтобы не портить реальные клики)
                 const arr = history[key];
                 let removed = 0;
                 for (let i = arr.length - 1; i >= 0 && removed < toRemove; i--) {
@@ -1815,7 +1786,6 @@
                         removed++;
                     }
                 }
-                // Если всё ещё нужно удалить — удаляем самые новые реальные
                 for (let i = arr.length - 1; i >= 0 && removed < toRemove; i--) {
                     arr.splice(i, 1);
                     removed++;
