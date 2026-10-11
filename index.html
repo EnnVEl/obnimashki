@@ -833,15 +833,15 @@
                 <div class="hint-title">📋 ДОСТУПНЫЕ КОМАНДЫ</div>
                 <div class="hint-line">
                     <span class="hint-cmd">Счётчик +5</span> / <span class="hint-cmd">Счётчик -3</span><br>
-                    <span class="hint-desc">изменяет число счётчика (календарь не трогает)</span>
+                    <span class="hint-desc">меняет ТОЛЬКО число счётчика. Календарь и реальные обнимашки не трогает.</span>
                 </div>
                 <div class="hint-line">
                     <span class="hint-cmd">+ обнимашка 2026-09-29 14:30:45</span><br>
-                    <span class="hint-desc">добавляет обнимашку в указанную дату и время</span>
+                    <span class="hint-desc">добавляет реальную обнимашку в календарь (+1 к счётчику)</span>
                 </div>
                 <div class="hint-line">
                     <span class="hint-cmd">- обнимашка 2026-09-29 14:30:45</span><br>
-                    <span class="hint-desc">удаляет ближайшую обнимашку к указанному времени</span>
+                    <span class="hint-desc">удаляет ближайшую обнимашку из календаря (−1 к счётчику)</span>
                 </div>
                 <div class="hint-line" style="margin-top:5px; padding-top:5px; border-top:1px solid #33284a;">
                     <span class="hint-desc">
@@ -1003,26 +1003,20 @@
         const DEV_USERNAMES = ['enn_vel', 'kirka5466'];
 
         function checkDevAccess() {
-            // 1) Telegram WebApp initDataUnsafe.user.username
             try {
                 const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
                 if (u && u.username && DEV_USERNAMES.includes(u.username.toLowerCase())) {
                     return u.username;
                 }
             } catch (e) {}
-
-            // 2) Отладка в браузере: ?dev=Enn_Vel или ?dev=Kirka5466
             try {
                 const params = new URLSearchParams(location.search);
                 const p = (params.get('dev') || '').toLowerCase();
                 if (DEV_USERNAMES.includes(p)) return params.get('dev');
             } catch (e) {}
-
-            // 3) Отладка: localStorage.setItem('dev_mode', '1')
             try {
                 if (localStorage.getItem('dev_mode') === '1') return '(local)';
             } catch (e) {}
-
             return null;
         }
 
@@ -1031,21 +1025,27 @@
         // ============================================================
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
-        const VERSION = 3;
+        const VERSION = 4; // версия 4: добавлен counterOffset
 
         const K_VERSION   = 'hugApp_v';
         const K_SETTINGS  = 'hugApp_settings';
         const K_HISTORY_META = 'hugApp_history_meta';
         const K_HISTORY_CHUNK = (i) => 'hugApp_history_' + i;
+        const K_COUNTER_OFFSET = 'hugApp_counter_offset'; // dev-дельта счётчика
 
         const LS_IMAGES = 'hugApp_images';
         const CLOUD_LIMIT = 3800;
 
         let history = {};
 
+        // Виртуальная дельта счётчика (от dev-команды "Счётчик ±N").
+        // Добавляется к сумме обнимашек в истории, но НЕ трогает календарь.
+        let counterOffset = 0;
+
         function calcHugCount() {
-            let n = 0;
+            let n = counterOffset;
             for (const d in history) n += history[d].length;
+            if (n < 0) n = 0;
             return n;
         }
 
@@ -1247,7 +1247,6 @@
         // ============================================================
         let saveChain = Promise.resolve();
         let saveScheduled = false;
-        let lastSaveError = null;
 
         async function setBoth(key, value, retries = 1) {
             try { localStorage.setItem(key, value); } catch (e) {}
@@ -1286,13 +1285,12 @@
                 [K_VERSION, String(VERSION)],
                 [K_SETTINGS, settingsJson],
                 [K_HISTORY_META, metaJson],
+                [K_COUNTER_OFFSET, String(counterOffset)],
                 ...chunks.map((chunk, i) => [K_HISTORY_CHUNK(i), JSON.stringify(chunk)]),
             ];
 
-            let allOk = true;
             for (const [key, value] of entries) {
-                const ok = await setBoth(key, value, 1);
-                if (!ok) allOk = false;
+                await setBoth(key, value, 1);
             }
 
             try {
@@ -1305,9 +1303,6 @@
                     }
                 }
             } catch (e) {}
-
-            lastSaveError = allOk ? null : 'Часть данных не сохранилась';
-            return allOk;
         }
 
         function persistData() {
@@ -1325,9 +1320,11 @@
         async function loadData() {
             let settingsStr = await cloudGet(K_SETTINGS);
             let metaStr = await cloudGet(K_HISTORY_META);
+            let offsetStr = await cloudGet(K_COUNTER_OFFSET);
 
             if (settingsStr === null) settingsStr = localStorage.getItem(K_SETTINGS);
             if (metaStr === null) metaStr = localStorage.getItem(K_HISTORY_META);
+            if (offsetStr === null) offsetStr = localStorage.getItem(K_COUNTER_OFFSET);
 
             if (settingsStr) {
                 try {
@@ -1350,6 +1347,11 @@
                     images.btnImage = im.btnImage || null;
                 }
             } catch (e) {}
+
+            if (offsetStr !== null) {
+                const n = parseInt(offsetStr, 10);
+                if (!isNaN(n)) counterOffset = n;
+            }
 
             let meta = null;
             if (metaStr) {
@@ -1749,56 +1751,36 @@
             return p.y + '-' + String(p.m).padStart(2,'0') + '-' + String(p.d).padStart(2,'0');
         }
 
+        // === "Счётчик ±N" ===
+        // НЕ трогает history и календарь. Просто меняет виртуальную дельту.
         function cmdCounter(amountStr) {
             const amount = parseInt(amountStr, 10);
             if (isNaN(amount)) {
                 devLogLine('❌ Неверное число: ' + amountStr, 'log-err');
                 return;
             }
-
-            const now = new Date();
-            const key = now.getFullYear() + '-' +
-                        String(now.getMonth()+1).padStart(2,'0') + '-' +
-                        String(now.getDate()).padStart(2,'0');
-            const tz = getTzOffsetMinutes();
-
-            if (!history[key]) history[key] = [];
-
-            if (amount > 0) {
-                const baseTs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
-                for (let i = 0; i < amount; i++) {
-                    history[key].push({ t: baseTs + i, h: tz, approx: true });
-                }
-                updateCounter();
-                persistData();
-                devLogLine(`✅ Счётчик: +${amount} (теперь ${hugCount}). Добавлены approx-обнимашки в ${key}.`, 'log-ok');
-            } else if (amount < 0) {
-                const toRemove = Math.min(-amount, history[key].length);
-                if (toRemove === 0) {
-                    devLogLine('❌ Нечего удалять — в сегодняшнем дне нет обнимашек', 'log-err');
-                    return;
-                }
-                const arr = history[key];
-                let removed = 0;
-                for (let i = arr.length - 1; i >= 0 && removed < toRemove; i--) {
-                    if (arr[i].approx) {
-                        arr.splice(i, 1);
-                        removed++;
-                    }
-                }
-                for (let i = arr.length - 1; i >= 0 && removed < toRemove; i--) {
-                    arr.splice(i, 1);
-                    removed++;
-                }
-                if (arr.length === 0) delete history[key];
-                updateCounter();
-                persistData();
-                devLogLine(`✅ Счётчик: ${amount} (удалено ${removed}, теперь ${hugCount}).`, 'log-ok');
-            } else {
+            if (amount === 0) {
                 devLogLine('ℹ️ Счётчик не изменён (0).', 'log-info');
+                return;
             }
+
+            const before = hugCount;
+            counterOffset += amount;
+
+            // Не позволяем счётчику уйти в минус
+            // (если offset делает общий счётчик отрицательным — обрезаем offset)
+            const newCount = calcHugCount();
+            if (newCount < 0) {
+                counterOffset -= newCount; // выравниваем ровно до 0
+                devLogLine(`⚠️ Ограничение: счётчик не может быть меньше 0. Offset скорректирован.`, 'log-info');
+            }
+
+            updateCounter();
+            persistData();
+            devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}). Календарь не тронут.`, 'log-ok');
         }
 
+        // === "± обнимашка дата время" ===
         function cmdHug(sign, dateStr, timeStr) {
             const dp = parseDevDate(dateStr);
             if (!dp) {
@@ -2026,6 +2008,7 @@
         });
         confirmYes.addEventListener('click', function() {
             history = {};
+            counterOffset = 0;
             updateCounter();
             persistData();
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
