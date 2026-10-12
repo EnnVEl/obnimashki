@@ -815,10 +815,8 @@
         <button id="calendar-icon" aria-label="Календарь">📅</button>
     </div>
 
-    <!-- DEV-КНОПКА (только для @Enn_Vel и @Kirka5466) -->
     <button id="dev-btn" title="Dev">dev</button>
 
-    <!-- DEV-ПАНЕЛЬ -->
     <div id="dev-overlay">
         <div class="dev-panel">
             <div class="dev-header">
@@ -982,7 +980,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно смены часового пояса -->
     <div class="confirm-overlay" id="tz-overlay">
         <div class="confirm-box">
             <h3>🕒 Изменился часовой пояс</h3>
@@ -998,7 +995,7 @@
 <script>
     (function(){
         // ============================================================
-        // DEV-ДОСТУП (список разрешённых username, без @, в нижнем регистре)
+        // DEV-ДОСТУП
         // ============================================================
         const DEV_USERNAMES = ['enn_vel', 'kirka5466'];
 
@@ -1025,21 +1022,18 @@
         // ============================================================
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
-        const VERSION = 4; // версия 4: добавлен counterOffset
+        const VERSION = 4;
 
         const K_VERSION   = 'hugApp_v';
         const K_SETTINGS  = 'hugApp_settings';
         const K_HISTORY_META = 'hugApp_history_meta';
         const K_HISTORY_CHUNK = (i) => 'hugApp_history_' + i;
-        const K_COUNTER_OFFSET = 'hugApp_counter_offset'; // dev-дельта счётчика
+        const K_COUNTER_OFFSET = 'hugApp_counter_offset';
 
         const LS_IMAGES = 'hugApp_images';
         const CLOUD_LIMIT = 3800;
 
         let history = {};
-
-        // Виртуальная дельта счётчика (от dev-команды "Счётчик ±N").
-        // Добавляется к сумме обнимашек в истории, но НЕ трогает календарь.
         let counterOffset = 0;
 
         function calcHugCount() {
@@ -1243,13 +1237,72 @@
         }
 
         // ============================================================
-        // СОХРАНЕНИЕ — ПОСЛЕДОВАТЕЛЬНАЯ ОЧЕРЕДЬ
+        // МГНОВЕННОЕ СОХРАНЕНИЕ В LOCALSTORAGE
+        // ============================================================
+        // Эта функция вызывается СРАЗУ при любом изменении. Она синхронная
+        // и мгновенно фиксирует ВСЁ в localStorage. CloudStorage догоняет
+        // следом через очередь (чтобы не словить 429 от частых вызовов).
+        function saveToLocalStorageImmediate() {
+            try {
+                localStorage.setItem(K_VERSION, String(VERSION));
+            } catch (e) {}
+
+            try {
+                localStorage.setItem(K_COUNTER_OFFSET, String(counterOffset));
+            } catch (e) {}
+
+            try {
+                localStorage.setItem(K_SETTINGS, JSON.stringify({
+                    bgColor: settings.bgColor,
+                    textColor: settings.textColor,
+                    btnColor: settings.btnColor,
+                    bgImageSettings: settings.bgImageSettings,
+                    btnImageSettings: settings.btnImageSettings,
+                }));
+            } catch (e) {}
+
+            try {
+                localStorage.setItem(LS_IMAGES, JSON.stringify(images));
+            } catch (e) {
+                // Если переполнено — убираем картинки (они самые тяжёлые)
+                try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
+            }
+
+            const serialized = serializeHistory();
+            const chunks = splitHistoryIntoChunks(serialized);
+
+            try {
+                localStorage.setItem(K_HISTORY_META, JSON.stringify({
+                    chunks: chunks.length,
+                    tz: savedTzOffset,
+                }));
+            } catch (e) {}
+
+            chunks.forEach((chunk, i) => {
+                try {
+                    localStorage.setItem(K_HISTORY_CHUNK(i), JSON.stringify(chunk));
+                } catch (e) {}
+            });
+
+            // Чистим лишние чанки в localStorage
+            try {
+                for (let i = chunks.length; i < chunks.length + 20; i++) {
+                    if (localStorage.getItem(K_HISTORY_CHUNK(i)) !== null) {
+                        localStorage.removeItem(K_HISTORY_CHUNK(i));
+                    } else {
+                        break;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // ============================================================
+        // СОХРАНЕНИЕ В CLOUDSTORAGE — ПОСЛЕДОВАТЕЛЬНАЯ ОЧЕРЕДЬ
         // ============================================================
         let saveChain = Promise.resolve();
-        let saveScheduled = false;
+        let cloudSaveQueued = false;
 
-        async function setBoth(key, value, retries = 1) {
-            try { localStorage.setItem(key, value); } catch (e) {}
+        async function setCloud(key, value, retries = 1) {
             for (let attempt = 0; attempt <= retries; attempt++) {
                 const ok = await cloudSet(key, value);
                 if (ok) return true;
@@ -1258,7 +1311,7 @@
             return false;
         }
 
-        async function doPersistOnce() {
+        async function doCloudPersistOnce() {
             const settingsJson = JSON.stringify({
                 bgColor: settings.bgColor,
                 textColor: settings.textColor,
@@ -1269,12 +1322,6 @@
 
             const serialized = serializeHistory();
             const chunks = splitHistoryIntoChunks(serialized);
-
-            try {
-                localStorage.setItem(LS_IMAGES, JSON.stringify(images));
-            } catch (e) {
-                try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
-            }
 
             const metaJson = JSON.stringify({
                 chunks: chunks.length,
@@ -1290,7 +1337,7 @@
             ];
 
             for (const [key, value] of entries) {
-                await setBoth(key, value, 1);
+                await setCloud(key, value, 1);
             }
 
             try {
@@ -1305,13 +1352,25 @@
             } catch (e) {}
         }
 
+        // Публичный вызов: сохранить ВСЁ и локально (мгновенно), и в облако (следом).
         function persistData() {
-            if (saveScheduled) return;
-            saveScheduled = true;
+            // 1) Мгновенно в localStorage
+            saveToLocalStorageImmediate();
+
+            // 2) В облако — через очередь, без параллелизма
+            if (cloudSaveQueued) return;
+            cloudSaveQueued = true;
             setTimeout(() => {
-                saveScheduled = false;
-                saveChain = saveChain.then(() => doPersistOnce()).catch(() => {});
-            }, 150);
+                cloudSaveQueued = false;
+                saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+            }, 100);
+        }
+
+        // Принудительное синхронное сохранение — используется при сворачивании/закрытии
+        function persistImmediate() {
+            saveToLocalStorageImmediate();
+            // Попробуем и в облако, но без ожидания
+            saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
         }
 
         // ============================================================
@@ -1751,8 +1810,6 @@
             return p.y + '-' + String(p.m).padStart(2,'0') + '-' + String(p.d).padStart(2,'0');
         }
 
-        // === "Счётчик ±N" ===
-        // НЕ трогает history и календарь. Просто меняет виртуальную дельту.
         function cmdCounter(amountStr) {
             const amount = parseInt(amountStr, 10);
             if (isNaN(amount)) {
@@ -1767,11 +1824,9 @@
             const before = hugCount;
             counterOffset += amount;
 
-            // Не позволяем счётчику уйти в минус
-            // (если offset делает общий счётчик отрицательным — обрезаем offset)
             const newCount = calcHugCount();
             if (newCount < 0) {
-                counterOffset -= newCount; // выравниваем ровно до 0
+                counterOffset -= newCount;
                 devLogLine(`⚠️ Ограничение: счётчик не может быть меньше 0. Offset скорректирован.`, 'log-info');
             }
 
@@ -1780,7 +1835,6 @@
             devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}). Календарь не тронут.`, 'log-ok');
         }
 
-        // === "± обнимашка дата время" ===
         function cmdHug(sign, dateStr, timeStr) {
             const dp = parseDevDate(dateStr);
             if (!dp) {
@@ -2066,6 +2120,27 @@
             persistData();
             tzOverlay.classList.remove('open');
         });
+
+        // ============================================================
+        // СОХРАНЕНИЕ ПРИ СВОРАЧИВАНИИ / ЗАКРЫТИИ
+        // ============================================================
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'hidden') {
+                persistImmediate();
+            }
+        });
+        window.addEventListener('pagehide', function() {
+            persistImmediate();
+        });
+        window.addEventListener('beforeunload', function() {
+            persistImmediate();
+        });
+        // Telegram WebApp: событие закрытия
+        try {
+            if (tg && typeof tg.onEvent === 'function') {
+                tg.onEvent('viewportChanged', function() { /* no-op, но полезно для перерисовки */ });
+            }
+        } catch (e) {}
 
         // ============================================================
         // INIT
