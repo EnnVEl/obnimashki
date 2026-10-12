@@ -1237,11 +1237,12 @@
         }
 
         // ============================================================
-        // МГНОВЕННОЕ СОХРАНЕНИЕ В LOCALSTORAGE
+        // МГНОВЕННОЕ СОХРАНЕНИЕ В LOCALSTORAGE (СИНХРОННОЕ)
         // ============================================================
-        // Эта функция вызывается СРАЗУ при любом изменении. Она синхронная
-        // и мгновенно фиксирует ВСЁ в localStorage. CloudStorage догоняет
-        // следом через очередь (чтобы не словить 429 от частых вызовов).
+        // Вызывается СРАЗУ при любом действии. Полностью синхронная,
+        // без setTimeout, без промисов. Как только вернулась — данные
+        // уже на диске. Даже если приложение будет убито в следующем тике,
+        // данные не потеряются.
         function saveToLocalStorageImmediate() {
             try {
                 localStorage.setItem(K_VERSION, String(VERSION));
@@ -1264,7 +1265,6 @@
             try {
                 localStorage.setItem(LS_IMAGES, JSON.stringify(images));
             } catch (e) {
-                // Если переполнено — убираем картинки (они самые тяжёлые)
                 try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
             }
 
@@ -1352,12 +1352,14 @@
             } catch (e) {}
         }
 
-        // Публичный вызов: сохранить ВСЁ и локально (мгновенно), и в облако (следом).
+        // persistData — вызывается при любом изменении.
+        // 1) СРАЗУ синхронно пишет в localStorage (в том же тике).
+        // 2) Параллельно ставит задачу в очередь на отправку в CloudStorage.
         function persistData() {
-            // 1) Мгновенно в localStorage
+            // Мгновенно и синхронно
             saveToLocalStorageImmediate();
 
-            // 2) В облако — через очередь, без параллелизма
+            // В облако — через очередь, без параллелизма
             if (cloudSaveQueued) return;
             cloudSaveQueued = true;
             setTimeout(() => {
@@ -1366,28 +1368,54 @@
             }, 100);
         }
 
-        // Принудительное синхронное сохранение — используется при сворачивании/закрытии
-        function persistImmediate() {
-            saveToLocalStorageImmediate();
-            // Попробуем и в облако, но без ожидания
-            saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-        }
-
         // ============================================================
         // ЗАГРУЗКА
         // ============================================================
         async function loadData() {
-            let settingsStr = await cloudGet(K_SETTINGS);
-            let metaStr = await cloudGet(K_HISTORY_META);
-            let offsetStr = await cloudGet(K_COUNTER_OFFSET);
+            // ВАЖНО: сначала читаем localStorage — там самые свежие данные,
+            // записанные синхронно при каждом действии. Потом уже сравниваем
+            // с облаком и берём то, что новее (по количеству).
+            let lsSettings = localStorage.getItem(K_SETTINGS);
+            let lsMeta = localStorage.getItem(K_HISTORY_META);
+            let lsOffset = localStorage.getItem(K_COUNTER_OFFSET);
 
-            if (settingsStr === null) settingsStr = localStorage.getItem(K_SETTINGS);
-            if (metaStr === null) metaStr = localStorage.getItem(K_HISTORY_META);
-            if (offsetStr === null) offsetStr = localStorage.getItem(K_COUNTER_OFFSET);
+            let cloudSettings = await cloudGet(K_SETTINGS);
+            let cloudMeta = await cloudGet(K_HISTORY_META);
+            let cloudOffset = await cloudGet(K_COUNTER_OFFSET);
 
-            if (settingsStr) {
+            // Считаем, сколько всего обнимашек в каждом источнике
+            async function countFromMeta(metaStr, getChunk) {
+                if (!metaStr) return -1;
+                let meta;
+                try { meta = JSON.parse(metaStr); } catch (e) { return -1; }
+                if (!meta || !meta.chunks) return 0;
+                let total = 0;
+                for (let i = 0; i < meta.chunks; i++) {
+                    const chunkStr = await getChunk(i);
+                    if (!chunkStr) continue;
+                    try {
+                        const chunkObj = JSON.parse(chunkStr);
+                        for (const date in chunkObj) {
+                            total += (chunkObj[date] || []).length;
+                        }
+                    } catch (e) {}
+                }
+                return total;
+            }
+
+            const lsCount = await countFromMeta(lsMeta, (i) => localStorage.getItem(K_HISTORY_CHUNK(i)));
+            const cloudCount = await countFromMeta(cloudMeta, async (i) => await cloudGet(K_HISTORY_CHUNK(i)));
+
+            // Выбираем источник с большим количеством обнимашек
+            const useCloud = cloudCount > lsCount;
+
+            const chosenMeta = useCloud ? cloudMeta : lsMeta;
+            const chosenSettings = useCloud ? cloudSettings : lsSettings;
+            const chosenOffset = useCloud ? cloudOffset : lsOffset;
+
+            if (chosenSettings) {
                 try {
-                    const s = JSON.parse(settingsStr);
+                    const s = JSON.parse(chosenSettings);
                     settings = {
                         bgColor: s.bgColor || '#f7f0fa',
                         textColor: s.textColor || '#000000',
@@ -1407,21 +1435,27 @@
                 }
             } catch (e) {}
 
-            if (offsetStr !== null) {
-                const n = parseInt(offsetStr, 10);
+            if (chosenOffset !== null && chosenOffset !== undefined) {
+                const n = parseInt(chosenOffset, 10);
                 if (!isNaN(n)) counterOffset = n;
             }
 
             let meta = null;
-            if (metaStr) {
-                try { meta = JSON.parse(metaStr); } catch (e) {}
+            if (chosenMeta) {
+                try { meta = JSON.parse(chosenMeta); } catch (e) {}
             }
 
             if (meta && meta.chunks > 0) {
                 const merged = {};
                 for (let i = 0; i < meta.chunks; i++) {
-                    let chunkStr = await cloudGet(K_HISTORY_CHUNK(i));
-                    if (chunkStr === null) chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
+                    let chunkStr;
+                    if (useCloud) {
+                        chunkStr = await cloudGet(K_HISTORY_CHUNK(i));
+                        if (chunkStr === null) chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
+                    } else {
+                        chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
+                        if (chunkStr === null) chunkStr = await cloudGet(K_HISTORY_CHUNK(i));
+                    }
                     if (!chunkStr) continue;
                     try {
                         const chunkObj = JSON.parse(chunkStr);
@@ -1430,6 +1464,7 @@
                 }
                 history = deserializeHistory(merged);
             } else {
+                // Легаси-миграция
                 let legacy = await cloudGet('hugAppData');
                 if (!legacy) legacy = localStorage.getItem('hugAppData');
                 if (legacy) {
@@ -1755,9 +1790,26 @@
             if (!history[key]) history[key] = [];
             history[key].push({ t: now.getTime(), h: tz });
 
+            // Обновляем UI
             updateCounter();
-            persistData();
 
+            // ========================================================
+            // КРИТИЧНО: СИНХРОННОЕ сохранение СРАЗУ, в этом же тике.
+            // Никаких setTimeout, никаких очередей, никаких промисов.
+            // Как только эта строка вернулась — данные уже на диске.
+            // ========================================================
+            saveToLocalStorageImmediate();
+
+            // Отправка в облако — отдельно, асинхронно, чтобы не задерживать UI
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
+
+            // Обновление календаря, если открыт
             if (calendarOverlay.classList.contains('open') && selectedDate === key) {
                 showDayInfo(key);
             }
@@ -1831,7 +1883,14 @@
             }
 
             updateCounter();
-            persistData();
+            saveToLocalStorageImmediate();
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
             devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}). Календарь не тронут.`, 'log-ok');
         }
 
@@ -1856,7 +1915,14 @@
                 if (!history[key]) history[key] = [];
                 history[key].push({ t: ts, h: tz });
                 updateCounter();
-                persistData();
+                saveToLocalStorageImmediate();
+                if (!cloudSaveQueued) {
+                    cloudSaveQueued = true;
+                    setTimeout(() => {
+                        cloudSaveQueued = false;
+                        saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                    }, 100);
+                }
                 devLogLine(`✅ Добавлена обнимашка: ${key} ${String(tp.h).padStart(2,'0')}:${String(tp.mi).padStart(2,'0')}:${String(tp.se).padStart(2,'0')} (счётчик: ${hugCount})`, 'log-ok');
             } else {
                 const arr = history[key];
@@ -1877,7 +1943,14 @@
                 const removed = arr.splice(bestIdx, 1)[0];
                 if (arr.length === 0) delete history[key];
                 updateCounter();
-                persistData();
+                saveToLocalStorageImmediate();
+                if (!cloudSaveQueued) {
+                    cloudSaveQueued = true;
+                    setTimeout(() => {
+                        cloudSaveQueued = false;
+                        saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                    }, 100);
+                }
 
                 const rTime = formatClickTime(removed.t);
                 const diffSec = Math.round(bestDiff / 1000);
@@ -1959,15 +2032,39 @@
 
         bgPicker.addEventListener('input', function() {
             settings.bgColor = this.value;
-            saveAndApply();
+            applyAllSettings();
+            saveToLocalStorageImmediate();
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
         });
         textPicker.addEventListener('input', function() {
             settings.textColor = this.value;
-            saveAndApply();
+            applyAllSettings();
+            saveToLocalStorageImmediate();
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
         });
         btnColorPicker.addEventListener('input', function() {
             settings.btnColor = this.value;
-            saveAndApply();
+            applyAllSettings();
+            saveToLocalStorageImmediate();
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
         });
 
         resetBg.addEventListener('click', () => {
@@ -2041,7 +2138,15 @@
                 if (!settings[settingsKey]) settings[settingsKey] = { scale: 100, x: 0, y: 0 };
                 const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
                 settings[settingsKey][key] = val;
-                saveAndApply();
+                applyAllSettings();
+                saveToLocalStorageImmediate();
+                if (!cloudSaveQueued) {
+                    cloudSaveQueued = true;
+                    setTimeout(() => {
+                        cloudSaveQueued = false;
+                        saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                    }, 100);
+                }
                 let imageData = null;
                 if (settingsKey === 'bgImageSettings') imageData = images.bgImage;
                 else if (settingsKey === 'btnImageSettings') imageData = images.btnImage;
@@ -2064,7 +2169,14 @@
             history = {};
             counterOffset = 0;
             updateCounter();
-            persistData();
+            saveToLocalStorageImmediate();
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             selectedDate = null;
             dayInfo.textContent = 'Выберите день';
@@ -2110,37 +2222,43 @@
                 }));
             }
             savedTzOffset = currentTz;
-            persistData();
+            saveToLocalStorageImmediate();
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             tzOverlay.classList.remove('open');
         });
 
         tzNo.addEventListener('click', function() {
             savedTzOffset = getTzOffsetMinutes();
-            persistData();
+            saveToLocalStorageImmediate();
+            if (!cloudSaveQueued) {
+                cloudSaveQueued = true;
+                setTimeout(() => {
+                    cloudSaveQueued = false;
+                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+                }, 100);
+            }
             tzOverlay.classList.remove('open');
         });
 
-        // ============================================================
-        // СОХРАНЕНИЕ ПРИ СВОРАЧИВАНИИ / ЗАКРЫТИИ
-        // ============================================================
+        // Страховка: сохранение при сворачивании/закрытии
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'hidden') {
-                persistImmediate();
+                saveToLocalStorageImmediate();
             }
         });
         window.addEventListener('pagehide', function() {
-            persistImmediate();
+            saveToLocalStorageImmediate();
         });
         window.addEventListener('beforeunload', function() {
-            persistImmediate();
+            saveToLocalStorageImmediate();
         });
-        // Telegram WebApp: событие закрытия
-        try {
-            if (tg && typeof tg.onEvent === 'function') {
-                tg.onEvent('viewportChanged', function() { /* no-op, но полезно для перерисовки */ });
-            }
-        } catch (e) {}
 
         // ============================================================
         // INIT
