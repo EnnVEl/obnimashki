@@ -1018,19 +1018,54 @@
         }
 
         // ============================================================
-        // ХРАНЕНИЕ
+        // ИДЕНТИФИКАТОР АККАУНТА (namespace для localStorage)
         // ============================================================
+        // CloudStorage от Telegram уже изолирован по user_id — разные
+        // аккаунты = разные облака. Но localStorage — общий для всего
+        // устройства! Поэтому нужно самим делать namespace по user_id,
+        // чтобы данные разных аккаунтов на одном устройстве не смешивались.
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
-        const VERSION = 4;
 
-        const K_VERSION   = 'hugApp_v';
-        const K_SETTINGS  = 'hugApp_settings';
-        const K_HISTORY_META = 'hugApp_history_meta';
-        const K_HISTORY_CHUNK = (i) => 'hugApp_history_' + i;
-        const K_COUNTER_OFFSET = 'hugApp_counter_offset';
+        function getAccountKey() {
+            // Пытаемся получить user_id из Telegram
+            try {
+                const u = tg?.initDataUnsafe?.user;
+                if (u && u.id) return 'u' + u.id;
+                if (u && u.username) return 'un_' + u.username.toLowerCase();
+            } catch (e) {}
+            // Fallback — общий ключ (если открыто вне Telegram)
+            return 'anon';
+        }
 
-        const LS_IMAGES = 'hugApp_images';
+        const ACCOUNT_KEY = getAccountKey();
+
+        // Все ключи получают префикс с ID аккаунта.
+        // Ключ версии — общий для устройства, чтобы можно было мигрировать.
+        function K(base) {
+            return 'hugApp_' + ACCOUNT_KEY + '_' + base;
+        }
+
+        const K_VERSION   = K('v');
+        const K_SETTINGS  = K('settings');
+        const K_HISTORY_META = K('history_meta');
+        const K_HISTORY_CHUNK = (i) => K('history_' + i);
+        const K_COUNTER_OFFSET = K('counter_offset');
+        const LS_IMAGES = K('images');
+
+        // Ключ для CloudStorage. CloudStorage уже привязан к user_id,
+        // поэтому префикс по аккаунту тут НЕ нужен — иначе при заходе
+        // с разных устройств с одного аккаунта ключи совпадут, что нам и надо.
+        const CLOUD_PREFIX = 'hugApp_';
+        const CK = {
+            VERSION: CLOUD_PREFIX + 'v',
+            SETTINGS: CLOUD_PREFIX + 'settings',
+            HISTORY_META: CLOUD_PREFIX + 'history_meta',
+            HISTORY_CHUNK: (i) => CLOUD_PREFIX + 'history_' + i,
+            COUNTER_OFFSET: CLOUD_PREFIX + 'counter_offset',
+        };
+
+        const VERSION = 5;
         const CLOUD_LIMIT = 3800;
 
         let history = {};
@@ -1062,6 +1097,14 @@
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
         let selectedDate = null;
+
+        // Флаг: были ли мы уже инициализированы полностью (после первой загрузки).
+        // До этого момента игнорируем внешние изменения.
+        let isInitialized = false;
+
+        // Управление гонкой: если пользователь что-то делает, а потом приходит
+        // устаревший ответ облака — мы его игнорируем.
+        let localMutationCounter = 0;
 
         // DOM
         const app = document.getElementById('app');
@@ -1239,18 +1282,10 @@
         // ============================================================
         // МГНОВЕННОЕ СОХРАНЕНИЕ В LOCALSTORAGE (СИНХРОННОЕ)
         // ============================================================
-        // Вызывается СРАЗУ при любом действии. Полностью синхронная,
-        // без setTimeout, без промисов. Как только вернулась — данные
-        // уже на диске. Даже если приложение будет убито в следующем тике,
-        // данные не потеряются.
         function saveToLocalStorageImmediate() {
-            try {
-                localStorage.setItem(K_VERSION, String(VERSION));
-            } catch (e) {}
+            try { localStorage.setItem(K_VERSION, String(VERSION)); } catch (e) {}
 
-            try {
-                localStorage.setItem(K_COUNTER_OFFSET, String(counterOffset));
-            } catch (e) {}
+            try { localStorage.setItem(K_COUNTER_OFFSET, String(counterOffset)); } catch (e) {}
 
             try {
                 localStorage.setItem(K_SETTINGS, JSON.stringify({
@@ -1284,7 +1319,6 @@
                 } catch (e) {}
             });
 
-            // Чистим лишние чанки в localStorage
             try {
                 for (let i = chunks.length; i < chunks.length + 20; i++) {
                     if (localStorage.getItem(K_HISTORY_CHUNK(i)) !== null) {
@@ -1329,11 +1363,11 @@
             });
 
             const entries = [
-                [K_VERSION, String(VERSION)],
-                [K_SETTINGS, settingsJson],
-                [K_HISTORY_META, metaJson],
-                [K_COUNTER_OFFSET, String(counterOffset)],
-                ...chunks.map((chunk, i) => [K_HISTORY_CHUNK(i), JSON.stringify(chunk)]),
+                [CK.VERSION, String(VERSION)],
+                [CK.SETTINGS, settingsJson],
+                [CK.HISTORY_META, metaJson],
+                [CK.COUNTER_OFFSET, String(counterOffset)],
+                ...chunks.map((chunk, i) => [CK.HISTORY_CHUNK(i), JSON.stringify(chunk)]),
             ];
 
             for (const [key, value] of entries) {
@@ -1342,9 +1376,11 @@
 
             try {
                 const allKeys = await cloudGetAllKeys();
-                const ourChunkKeys = allKeys.filter(k => k.startsWith('hugApp_history_') && k !== 'hugApp_history_meta');
+                const ourChunkKeys = allKeys.filter(k =>
+                    k.startsWith(CLOUD_PREFIX + 'history_') && k !== CK.HISTORY_META
+                );
                 for (const k of ourChunkKeys) {
-                    const idx = parseInt(k.replace('hugApp_history_', ''), 10);
+                    const idx = parseInt(k.replace(CLOUD_PREFIX + 'history_', ''), 10);
                     if (!isNaN(idx) && idx >= chunks.length) {
                         await cloudRemove(k);
                     }
@@ -1352,14 +1388,17 @@
             } catch (e) {}
         }
 
-        // persistData — вызывается при любом изменении.
-        // 1) СРАЗУ синхронно пишет в localStorage (в том же тике).
-        // 2) Параллельно ставит задачу в очередь на отправку в CloudStorage.
         function persistData() {
-            // Мгновенно и синхронно
+            localMutationCounter++;
+
+            // 1) Мгновенно синхронно в localStorage
             saveToLocalStorageImmediate();
 
-            // В облако — через очередь, без параллелизма
+            // 2) В облако через очередь
+            scheduleCloudSave();
+        }
+
+        function scheduleCloudSave() {
             if (cloudSaveQueued) return;
             cloudSaveQueued = true;
             setTimeout(() => {
@@ -1369,53 +1408,16 @@
         }
 
         // ============================================================
-        // ЗАГРУЗКА
+        // ЗАГРУЗКА ИЗ LOCALSTORAGE (быстро, для мгновенного UI)
         // ============================================================
-        async function loadData() {
-            // ВАЖНО: сначала читаем localStorage — там самые свежие данные,
-            // записанные синхронно при каждом действии. Потом уже сравниваем
-            // с облаком и берём то, что новее (по количеству).
-            let lsSettings = localStorage.getItem(K_SETTINGS);
-            let lsMeta = localStorage.getItem(K_HISTORY_META);
-            let lsOffset = localStorage.getItem(K_COUNTER_OFFSET);
+        function loadFromLocalStorage() {
+            let settingsStr = localStorage.getItem(K_SETTINGS);
+            let metaStr = localStorage.getItem(K_HISTORY_META);
+            let offsetStr = localStorage.getItem(K_COUNTER_OFFSET);
 
-            let cloudSettings = await cloudGet(K_SETTINGS);
-            let cloudMeta = await cloudGet(K_HISTORY_META);
-            let cloudOffset = await cloudGet(K_COUNTER_OFFSET);
-
-            // Считаем, сколько всего обнимашек в каждом источнике
-            async function countFromMeta(metaStr, getChunk) {
-                if (!metaStr) return -1;
-                let meta;
-                try { meta = JSON.parse(metaStr); } catch (e) { return -1; }
-                if (!meta || !meta.chunks) return 0;
-                let total = 0;
-                for (let i = 0; i < meta.chunks; i++) {
-                    const chunkStr = await getChunk(i);
-                    if (!chunkStr) continue;
-                    try {
-                        const chunkObj = JSON.parse(chunkStr);
-                        for (const date in chunkObj) {
-                            total += (chunkObj[date] || []).length;
-                        }
-                    } catch (e) {}
-                }
-                return total;
-            }
-
-            const lsCount = await countFromMeta(lsMeta, (i) => localStorage.getItem(K_HISTORY_CHUNK(i)));
-            const cloudCount = await countFromMeta(cloudMeta, async (i) => await cloudGet(K_HISTORY_CHUNK(i)));
-
-            // Выбираем источник с большим количеством обнимашек
-            const useCloud = cloudCount > lsCount;
-
-            const chosenMeta = useCloud ? cloudMeta : lsMeta;
-            const chosenSettings = useCloud ? cloudSettings : lsSettings;
-            const chosenOffset = useCloud ? cloudOffset : lsOffset;
-
-            if (chosenSettings) {
+            if (settingsStr) {
                 try {
-                    const s = JSON.parse(chosenSettings);
+                    const s = JSON.parse(settingsStr);
                     settings = {
                         bgColor: s.bgColor || '#f7f0fa',
                         textColor: s.textColor || '#000000',
@@ -1435,27 +1437,20 @@
                 }
             } catch (e) {}
 
-            if (chosenOffset !== null && chosenOffset !== undefined) {
-                const n = parseInt(chosenOffset, 10);
+            if (offsetStr !== null) {
+                const n = parseInt(offsetStr, 10);
                 if (!isNaN(n)) counterOffset = n;
             }
 
             let meta = null;
-            if (chosenMeta) {
-                try { meta = JSON.parse(chosenMeta); } catch (e) {}
+            if (metaStr) {
+                try { meta = JSON.parse(metaStr); } catch (e) {}
             }
 
             if (meta && meta.chunks > 0) {
                 const merged = {};
                 for (let i = 0; i < meta.chunks; i++) {
-                    let chunkStr;
-                    if (useCloud) {
-                        chunkStr = await cloudGet(K_HISTORY_CHUNK(i));
-                        if (chunkStr === null) chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
-                    } else {
-                        chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
-                        if (chunkStr === null) chunkStr = await cloudGet(K_HISTORY_CHUNK(i));
-                    }
+                    const chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
                     if (!chunkStr) continue;
                     try {
                         const chunkObj = JSON.parse(chunkStr);
@@ -1463,47 +1458,6 @@
                     } catch (e) {}
                 }
                 history = deserializeHistory(merged);
-            } else {
-                // Легаси-миграция
-                let legacy = await cloudGet('hugAppData');
-                if (!legacy) legacy = localStorage.getItem('hugAppData');
-                if (legacy) {
-                    try {
-                        const parsed = JSON.parse(legacy);
-                        if (parsed.settings) {
-                            settings = {
-                                bgColor: parsed.settings.bgColor || settings.bgColor,
-                                textColor: parsed.settings.textColor || settings.textColor,
-                                btnColor: parsed.settings.btnColor || settings.btnColor,
-                                bgImageSettings: parsed.settings.bgImageSettings || settings.bgImageSettings,
-                                btnImageSettings: parsed.settings.btnImageSettings || settings.btnImageSettings,
-                            };
-                            if (parsed.settings.bgImage) images.bgImage = parsed.settings.bgImage;
-                            if (parsed.settings.btnImage) images.btnImage = parsed.settings.btnImage;
-                        }
-                        if (typeof parsed.savedTzOffset === 'number') savedTzOffset = parsed.savedTzOffset;
-                        if (parsed.history) {
-                            const h = {};
-                            for (const date in parsed.history) {
-                                const v = parsed.history[date];
-                                if (Array.isArray(v)) {
-                                    h[date] = v
-                                        .filter(x => x && typeof x.t === 'number')
-                                        .map(x => ({ t: x.t, h: x.h || 0, approx: !!x.approx }));
-                                } else if (typeof v === 'number') {
-                                    const [y, m, d] = date.split('-').map(Number);
-                                    const arr = [];
-                                    for (let k = 0; k < v; k++) {
-                                        const base = new Date(y, m - 1, d, 12, 0, 0, k * 1000);
-                                        arr.push({ t: base.getTime(), h: savedTzOffset, approx: true });
-                                    }
-                                    h[date] = arr;
-                                }
-                            }
-                            history = h;
-                        }
-                    } catch (e) {}
-                }
             }
 
             if (meta && typeof meta.tz === 'number') {
@@ -1511,6 +1465,99 @@
             }
 
             hugCount = calcHugCount();
+        }
+
+        // ============================================================
+        // ЗАГРУЗКА ИЗ CLOUDSTORAGE (источник истины)
+        // ============================================================
+        async function loadFromCloud() {
+            let cloudSettings = await cloudGet(CK.SETTINGS);
+            let cloudMeta = await cloudGet(CK.HISTORY_META);
+            let cloudOffset = await cloudGet(CK.COUNTER_OFFSET);
+
+            if (!cloudSettings && !cloudMeta) {
+                // Облако пустое — ничего не делаем
+                return false;
+            }
+
+            let cloudSettingsObj = null;
+            if (cloudSettings) {
+                try { cloudSettingsObj = JSON.parse(cloudSettings); } catch (e) {}
+            }
+
+            let cloudMetaObj = null;
+            if (cloudMeta) {
+                try { cloudMetaObj = JSON.parse(cloudMeta); } catch (e) {}
+            }
+
+            // Собираем историю из облака
+            let cloudHistory = {};
+            if (cloudMetaObj && cloudMetaObj.chunks > 0) {
+                const merged = {};
+                for (let i = 0; i < cloudMetaObj.chunks; i++) {
+                    const chunkStr = await cloudGet(CK.HISTORY_CHUNK(i));
+                    if (!chunkStr) continue;
+                    try {
+                        const chunkObj = JSON.parse(chunkStr);
+                        for (const date in chunkObj) merged[date] = chunkObj[date];
+                    } catch (e) {}
+                }
+                cloudHistory = deserializeHistory(merged);
+            }
+
+            let cloudOffsetNum = 0;
+            if (cloudOffset !== null && cloudOffset !== undefined) {
+                const n = parseInt(cloudOffset, 10);
+                if (!isNaN(n)) cloudOffsetNum = n;
+            }
+
+            // Считаем, сколько в облаке и сколько у нас
+            let cloudCount = cloudOffsetNum;
+            for (const d in cloudHistory) cloudCount += cloudHistory[d].length;
+            if (cloudCount < 0) cloudCount = 0;
+
+            const localCount = hugCount;
+
+            // Выбираем: облако всегда приоритетно, ЕСЛИ у нас не было
+            // несохранённых локальных изменений. Если localMutationCounter
+            // большой (мы что-то делали в этой сессии), ориентируемся на
+            // сравнение по количеству — берём большее.
+            const shouldUseCloud = cloudCount >= localCount || localCount === 0;
+
+            if (shouldUseCloud && cloudCount !== localCount) {
+                // Применяем облако
+                history = cloudHistory;
+                counterOffset = cloudOffsetNum;
+
+                if (cloudSettingsObj) {
+                    settings = {
+                        bgColor: cloudSettingsObj.bgColor || settings.bgColor,
+                        textColor: cloudSettingsObj.textColor || settings.textColor,
+                        btnColor: cloudSettingsObj.btnColor || settings.btnColor,
+                        bgImageSettings: cloudSettingsObj.bgImageSettings || settings.bgImageSettings,
+                        btnImageSettings: cloudSettingsObj.btnImageSettings || settings.btnImageSettings,
+                    };
+                }
+
+                if (cloudMetaObj && typeof cloudMetaObj.tz === 'number') {
+                    savedTzOffset = cloudMetaObj.tz;
+                }
+
+                hugCount = calcHugCount();
+
+                // Перерисовываем UI
+                applyAllSettings();
+                if (calendarOverlay.classList.contains('open')) {
+                    renderCalendar(currentYear, currentMonth);
+                }
+
+                // Сохраняем в localStorage, чтобы следующий запуск был быстрым
+                saveToLocalStorageImmediate();
+
+                return true;
+            }
+
+            return false;
         }
 
         // ============================================================
@@ -1790,26 +1837,13 @@
             if (!history[key]) history[key] = [];
             history[key].push({ t: now.getTime(), h: tz });
 
-            // Обновляем UI
             updateCounter();
 
-            // ========================================================
-            // КРИТИЧНО: СИНХРОННОЕ сохранение СРАЗУ, в этом же тике.
-            // Никаких setTimeout, никаких очередей, никаких промисов.
-            // Как только эта строка вернулась — данные уже на диске.
-            // ========================================================
+            // КРИТИЧНО: синхронное сохранение СРАЗУ
+            localMutationCounter++;
             saveToLocalStorageImmediate();
+            scheduleCloudSave();
 
-            // Отправка в облако — отдельно, асинхронно, чтобы не задерживать UI
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
-
-            // Обновление календаря, если открыт
             if (calendarOverlay.classList.contains('open') && selectedDate === key) {
                 showDayInfo(key);
             }
@@ -1883,14 +1917,7 @@
             }
 
             updateCounter();
-            saveToLocalStorageImmediate();
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
+            persistData();
             devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}). Календарь не тронут.`, 'log-ok');
         }
 
@@ -1915,14 +1942,7 @@
                 if (!history[key]) history[key] = [];
                 history[key].push({ t: ts, h: tz });
                 updateCounter();
-                saveToLocalStorageImmediate();
-                if (!cloudSaveQueued) {
-                    cloudSaveQueued = true;
-                    setTimeout(() => {
-                        cloudSaveQueued = false;
-                        saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                    }, 100);
-                }
+                persistData();
                 devLogLine(`✅ Добавлена обнимашка: ${key} ${String(tp.h).padStart(2,'0')}:${String(tp.mi).padStart(2,'0')}:${String(tp.se).padStart(2,'0')} (счётчик: ${hugCount})`, 'log-ok');
             } else {
                 const arr = history[key];
@@ -1943,14 +1963,7 @@
                 const removed = arr.splice(bestIdx, 1)[0];
                 if (arr.length === 0) delete history[key];
                 updateCounter();
-                saveToLocalStorageImmediate();
-                if (!cloudSaveQueued) {
-                    cloudSaveQueued = true;
-                    setTimeout(() => {
-                        cloudSaveQueued = false;
-                        saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                    }, 100);
-                }
+                persistData();
 
                 const rTime = formatClickTime(removed.t);
                 const diffSec = Math.round(bestDiff / 1000);
@@ -2033,38 +2046,17 @@
         bgPicker.addEventListener('input', function() {
             settings.bgColor = this.value;
             applyAllSettings();
-            saveToLocalStorageImmediate();
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
+            persistData();
         });
         textPicker.addEventListener('input', function() {
             settings.textColor = this.value;
             applyAllSettings();
-            saveToLocalStorageImmediate();
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
+            persistData();
         });
         btnColorPicker.addEventListener('input', function() {
             settings.btnColor = this.value;
             applyAllSettings();
-            saveToLocalStorageImmediate();
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
+            persistData();
         });
 
         resetBg.addEventListener('click', () => {
@@ -2139,14 +2131,7 @@
                 const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
                 settings[settingsKey][key] = val;
                 applyAllSettings();
-                saveToLocalStorageImmediate();
-                if (!cloudSaveQueued) {
-                    cloudSaveQueued = true;
-                    setTimeout(() => {
-                        cloudSaveQueued = false;
-                        saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                    }, 100);
-                }
+                persistData();
                 let imageData = null;
                 if (settingsKey === 'bgImageSettings') imageData = images.bgImage;
                 else if (settingsKey === 'btnImageSettings') imageData = images.btnImage;
@@ -2169,14 +2154,7 @@
             history = {};
             counterOffset = 0;
             updateCounter();
-            saveToLocalStorageImmediate();
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
+            persistData();
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             selectedDate = null;
             dayInfo.textContent = 'Выберите день';
@@ -2222,50 +2200,69 @@
                 }));
             }
             savedTzOffset = currentTz;
-            saveToLocalStorageImmediate();
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
+            persistData();
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             tzOverlay.classList.remove('open');
         });
 
         tzNo.addEventListener('click', function() {
             savedTzOffset = getTzOffsetMinutes();
-            saveToLocalStorageImmediate();
-            if (!cloudSaveQueued) {
-                cloudSaveQueued = true;
-                setTimeout(() => {
-                    cloudSaveQueued = false;
-                    saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-                }, 100);
-            }
+            persistData();
             tzOverlay.classList.remove('open');
         });
 
-        // Страховка: сохранение при сворачивании/закрытии
+        // ============================================================
+        // СИНХРОНИЗАЦИЯ МЕЖДУ УСТРОЙСТВАМИ
+        // ============================================================
+        // Периодически перечитываем облако и обновляем UI, если там
+        // больше обнимашек. Это лечит случай "на другом устройстве
+        // нажали — а у меня старое число".
+        async function syncFromCloud() {
+            if (!isInitialized) return;
+            if (!hasCloudStorage) return;
+            // Не синхронизируемся, если мы прямо сейчас что-то сохраняем
+            if (cloudSaveQueued) return;
+
+            try {
+                await loadFromCloud();
+            } catch (e) {}
+        }
+
+        // При возврате приложения в фокус — синхронизация
         document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'hidden') {
+            if (document.visibilityState === 'visible') {
+                // Сначала синхронизация
+                syncFromCloud();
+            } else {
+                // При сворачивании — сохраняем что есть
                 saveToLocalStorageImmediate();
             }
         });
-        window.addEventListener('pagehide', function() {
-            saveToLocalStorageImmediate();
+
+        window.addEventListener('focus', function() {
+            syncFromCloud();
         });
-        window.addEventListener('beforeunload', function() {
-            saveToLocalStorageImmediate();
-        });
+
+        // Периодическая синхронизация раз в 4 секунды
+        setInterval(syncFromCloud, 4000);
 
         // ============================================================
         // INIT
         // ============================================================
         async function init() {
-            await loadData();
+            // 1) Быстро показываем то, что в localStorage
+            loadFromLocalStorage();
             applyAllSettings();
+
+            // 2) Тянем облако (это источник истины)
+            try {
+                await loadFromCloud();
+            } catch (e) {}
+
+            // 3) Теперь можно включать синхронизацию
+            isInitialized = true;
+
+            // 4) Ещё раз сохраняем состояние в оба хранилища
             persistData();
 
             if (checkDevAccess()) {
