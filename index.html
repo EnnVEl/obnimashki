@@ -1016,7 +1016,7 @@
         }
 
         // ============================================================
-        // АККАУНТ + КЛЮЧИ
+        // ИДЕНТИФИКАТОР АККАУНТА
         // ============================================================
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
@@ -1032,23 +1032,30 @@
 
         const ACCOUNT_KEY = getAccountKey();
 
-        // localStorage — с префиксом аккаунта (разные аккаунты = разные данные)
-        const LS_DATA = 'hugApp_' + ACCOUNT_KEY + '_data';
-        const LS_IMAGES = 'hugApp_' + ACCOUNT_KEY + '_images';
+        function K(base) {
+            return 'hugApp_' + ACCOUNT_KEY + '_' + base;
+        }
 
-        // CloudStorage — БЕЗ префикса аккаунта, потому что облако Telegram
-        // уже изолировано по user_id. Один аккаунт = один ключ на всех устройствах.
-        // Один ключ = атомарная запись (никаких рассинхронов между ключами).
-        const CLOUD_DATA = 'hugApp_state';
+        const K_VERSION   = K('v');
+        const K_SETTINGS  = K('settings');
+        const K_HISTORY_META = K('history_meta');
+        const K_HISTORY_CHUNK = (i) => K('history_' + i);
+        const K_COUNTER_OFFSET = K('counter_offset');
+        const K_SYNC_META = K('sync_meta'); // {revision, lastModified}
+        const LS_IMAGES = K('images');
 
-        // Ограничение одного ключа CloudStorage — 4096 байт.
-        // Поэтому данные делим на: state (мета+настройки+offset) и чанки истории.
-        const CLOUD_STATE = 'hugApp_state';
-        const CLOUD_HIST_CHUNK = (i) => 'hugApp_hist_' + i;
-        const CLOUD_HIST_META = 'hugApp_hist_meta';
+        const CLOUD_PREFIX = 'hugApp_';
+        const CK = {
+            VERSION: CLOUD_PREFIX + 'v',
+            SETTINGS: CLOUD_PREFIX + 'settings',
+            HISTORY_META: CLOUD_PREFIX + 'history_meta',
+            HISTORY_CHUNK: (i) => CLOUD_PREFIX + 'history_' + i,
+            COUNTER_OFFSET: CLOUD_PREFIX + 'counter_offset',
+            SYNC_META: CLOUD_PREFIX + 'sync_meta',
+        };
+
+        const VERSION = 6;
         const CLOUD_LIMIT = 3800;
-
-        const VERSION = 7;
 
         // ============================================================
         // СОСТОЯНИЕ
@@ -1056,16 +1063,25 @@
         let history = {};
         let counterOffset = 0;
 
-        // revision — растёт при любом изменении. timestamp — когда было изменение.
-        // По ним решаем, чья версия свежее: локальная или облачная.
-        let revision = 0;
-        let lastModified = 0;
+        // Мета синхронизации:
+        // revision — монотонно растущий счётчик ЛЮБЫХ изменений
+        // lastModified — timestamp последнего изменения
+        // Оба летят в облако. Синхронизация сравнивает ИХ, а не количество.
+        let localSyncMeta = { revision: 0, lastModified: 0 };
 
-        // Пока true — есть неотправленные изменения. Синхронизацию не запускаем.
-        let pendingUpload = false;
+        // Есть ли неотправленные в облако изменения?
+        // Пока true — синхронизацию не запускаем, чтобы не откатить свои же правки.
+        let hasPendingLocalChanges = false;
 
-        // Флаг успешной первичной загрузки из облака
-        let cloudReady = false;
+        // Текущая версия, известная нам из облака (чтобы не тянуть лишний раз)
+        let cloudKnownSyncMeta = { revision: -1, lastModified: 0 };
+
+        function calcHugCount() {
+            let n = counterOffset;
+            for (const d in history) n += history[d].length;
+            if (n < 0) n = 0;
+            return n;
+        }
 
         let hugCount = 0;
 
@@ -1086,6 +1102,8 @@
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
         let selectedDate = null;
+
+        let isInitialized = false;
 
         // DOM
         const app = document.getElementById('app');
@@ -1133,6 +1151,7 @@
         const dayInfo = document.getElementById('day-info');
         const dayClicksList = document.getElementById('day-clicks-list');
 
+        // DEV DOM
         const devBtn = document.getElementById('dev-btn');
         const devOverlay = document.getElementById('dev-overlay');
         const devClose = document.getElementById('dev-close');
@@ -1179,8 +1198,14 @@
             return `${hh}:${mm}:${ss}`;
         }
 
+        // Каждое изменение должно увеличить ревизию и обновить timestamp
+        function bumpSyncMeta() {
+            localSyncMeta.revision++;
+            localSyncMeta.lastModified = Date.now();
+        }
+
         // ============================================================
-        // CLOUD STORAGE (промисы)
+        // CLOUD STORAGE
         // ============================================================
         function cloudSet(key, value) {
             return new Promise((resolve) => {
@@ -1216,7 +1241,7 @@
         }
 
         // ============================================================
-        // СЕРИАЛИЗАЦИЯ
+        // ИСТОРИЯ
         // ============================================================
         function serializeHistory() {
             const out = {};
@@ -1243,6 +1268,7 @@
             const chunks = [];
             let current = {};
             let currentSize = 2;
+
             for (const date of dates) {
                 const entry = JSON.stringify({ [date]: serialized[date] });
                 const entrySize = byteSize(entry);
@@ -1258,58 +1284,167 @@
             return chunks;
         }
 
-        function calcHugCount() {
-            let n = counterOffset;
-            for (const d in history) n += history[d].length;
-            if (n < 0) n = 0;
-            return n;
-        }
-
         // ============================================================
-        // LOCALSTORAGE
+        // СОХРАНЕНИЕ В LOCALSTORAGE
         // ============================================================
-        function saveLocal() {
-            const stateJson = JSON.stringify({
-                version: VERSION,
-                revision: revision,
-                lastModified: lastModified,
-                counterOffset: counterOffset,
-                tz: savedTzOffset,
-                settings: {
+        function saveToLocalStorageImmediate() {
+            try { localStorage.setItem(K_VERSION, String(VERSION)); } catch (e) {}
+            try { localStorage.setItem(K_COUNTER_OFFSET, String(counterOffset)); } catch (e) {}
+            try {
+                localStorage.setItem(K_SETTINGS, JSON.stringify({
                     bgColor: settings.bgColor,
                     textColor: settings.textColor,
                     btnColor: settings.btnColor,
                     bgImageSettings: settings.bgImageSettings,
                     btnImageSettings: settings.btnImageSettings,
-                },
-                history: serializeHistory(),
+                }));
+            } catch (e) {}
+            try {
+                localStorage.setItem(LS_IMAGES, JSON.stringify(images));
+            } catch (e) {
+                try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
+            }
+
+            const serialized = serializeHistory();
+            const chunks = splitHistoryIntoChunks(serialized);
+
+            try {
+                localStorage.setItem(K_HISTORY_META, JSON.stringify({
+                    chunks: chunks.length,
+                    tz: savedTzOffset,
+                }));
+            } catch (e) {}
+
+            chunks.forEach((chunk, i) => {
+                try { localStorage.setItem(K_HISTORY_CHUNK(i), JSON.stringify(chunk)); } catch (e) {}
             });
-            try { localStorage.setItem(LS_DATA, stateJson); } catch (e) {}
-            try { localStorage.setItem(LS_IMAGES, JSON.stringify(images)); } catch (e) {}
+
+            try {
+                for (let i = chunks.length; i < chunks.length + 20; i++) {
+                    if (localStorage.getItem(K_HISTORY_CHUNK(i)) !== null) {
+                        localStorage.removeItem(K_HISTORY_CHUNK(i));
+                    } else break;
+                }
+            } catch (e) {}
+
+            // Мета синхронизации — тоже в localStorage
+            try {
+                localStorage.setItem(K_SYNC_META, JSON.stringify(localSyncMeta));
+            } catch (e) {}
         }
 
-        function loadLocal() {
+        // ============================================================
+        // ОЧЕРЕДЬ СОХРАНЕНИЯ В ОБЛАКО
+        // ============================================================
+        let saveChain = Promise.resolve();
+        let cloudSaveQueued = false;
+
+        async function setCloud(key, value, retries = 1) {
+            for (let attempt = 0; attempt <= retries; attempt++) {
+                const ok = await cloudSet(key, value);
+                if (ok) return true;
+                if (attempt < retries) await new Promise(r => setTimeout(r, 500));
+            }
+            return false;
+        }
+
+        async function doCloudPersistOnce() {
+            const settingsJson = JSON.stringify({
+                bgColor: settings.bgColor,
+                textColor: settings.textColor,
+                btnColor: settings.btnColor,
+                bgImageSettings: settings.bgImageSettings,
+                btnImageSettings: settings.btnImageSettings,
+            });
+
+            const serialized = serializeHistory();
+            const chunks = splitHistoryIntoChunks(serialized);
+
+            const metaJson = JSON.stringify({
+                chunks: chunks.length,
+                tz: savedTzOffset,
+            });
+
+            const syncMetaJson = JSON.stringify(localSyncMeta);
+
+            const entries = [
+                [CK.VERSION, String(VERSION)],
+                [CK.SETTINGS, settingsJson],
+                [CK.HISTORY_META, metaJson],
+                [CK.COUNTER_OFFSET, String(counterOffset)],
+                [CK.SYNC_META, syncMetaJson],
+                ...chunks.map((chunk, i) => [CK.HISTORY_CHUNK(i), JSON.stringify(chunk)]),
+            ];
+
+            let allOk = true;
+            for (const [key, value] of entries) {
+                const ok = await setCloud(key, value, 1);
+                if (!ok) allOk = false;
+            }
+
             try {
-                const dataStr = localStorage.getItem(LS_DATA);
-                if (dataStr) {
-                    const d = JSON.parse(dataStr);
-                    revision = d.revision || 0;
-                    lastModified = d.lastModified || 0;
-                    counterOffset = d.counterOffset || 0;
-                    if (typeof d.tz === 'number') savedTzOffset = d.tz;
-                    if (d.settings) {
-                        settings = {
-                            bgColor: d.settings.bgColor || '#f7f0fa',
-                            textColor: d.settings.textColor || '#000000',
-                            btnColor: d.settings.btnColor || '#ffb6c9',
-                            bgImageSettings: d.settings.bgImageSettings || { scale: 100, x: 0, y: 0 },
-                            btnImageSettings: d.settings.btnImageSettings || { scale: 100, x: 0, y: 0 },
-                        };
-                    }
-                    if (d.history) {
-                        history = deserializeHistory(d.history);
+                const allKeys = await cloudGetAllKeys();
+                const ourChunkKeys = allKeys.filter(k =>
+                    k.startsWith(CLOUD_PREFIX + 'history_') && k !== CK.HISTORY_META
+                );
+                for (const k of ourChunkKeys) {
+                    const idx = parseInt(k.replace(CLOUD_PREFIX + 'history_', ''), 10);
+                    if (!isNaN(idx) && idx >= chunks.length) {
+                        await cloudRemove(k);
                     }
                 }
+            } catch (e) {}
+
+            if (allOk) {
+                // Наша версия улетела в облако — сбрасываем флаг
+                hasPendingLocalChanges = false;
+                cloudKnownSyncMeta = { ...localSyncMeta };
+            } else {
+                // Не всё сохранилось — оставляем флаг, попробуем ещё раз позже
+                // (но не блокируем UI, просто пометим)
+                hasPendingLocalChanges = true;
+            }
+        }
+
+        function markLocalChange() {
+            bumpSyncMeta();
+            hasPendingLocalChanges = true;
+            saveToLocalStorageImmediate();
+            scheduleCloudSave();
+        }
+
+        function scheduleCloudSave() {
+            if (cloudSaveQueued) return;
+            cloudSaveQueued = true;
+            setTimeout(() => {
+                cloudSaveQueued = false;
+                saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
+            }, 100);
+        }
+
+        // ============================================================
+        // ЗАГРУЗКА LOCAL
+        // ============================================================
+        function loadFromLocalStorage() {
+            const settingsStr = localStorage.getItem(K_SETTINGS);
+            const metaStr = localStorage.getItem(K_HISTORY_META);
+            const offsetStr = localStorage.getItem(K_COUNTER_OFFSET);
+            const syncMetaStr = localStorage.getItem(K_SYNC_META);
+
+            if (settingsStr) {
+                try {
+                    const s = JSON.parse(settingsStr);
+                    settings = {
+                        bgColor: s.bgColor || '#f7f0fa',
+                        textColor: s.textColor || '#000000',
+                        btnColor: s.btnColor || '#ffb6c9',
+                        bgImageSettings: s.bgImageSettings || { scale: 100, x: 0, y: 0 },
+                        btnImageSettings: s.btnImageSettings || { scale: 100, x: 0, y: 0 },
+                    };
+                } catch (e) {}
+            }
+
+            try {
                 const imgStr = localStorage.getItem(LS_IMAGES);
                 if (imgStr) {
                     const im = JSON.parse(imgStr);
@@ -1317,200 +1452,177 @@
                     images.btnImage = im.btnImage || null;
                 }
             } catch (e) {}
+
+            if (offsetStr !== null) {
+                const n = parseInt(offsetStr, 10);
+                if (!isNaN(n)) counterOffset = n;
+            }
+
+            let meta = null;
+            if (metaStr) {
+                try { meta = JSON.parse(metaStr); } catch (e) {}
+            }
+
+            if (meta && meta.chunks > 0) {
+                const merged = {};
+                for (let i = 0; i < meta.chunks; i++) {
+                    const chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
+                    if (!chunkStr) continue;
+                    try {
+                        const chunkObj = JSON.parse(chunkStr);
+                        for (const date in chunkObj) merged[date] = chunkObj[date];
+                    } catch (e) {}
+                }
+                history = deserializeHistory(merged);
+            }
+
+            if (meta && typeof meta.tz === 'number') {
+                savedTzOffset = meta.tz;
+            }
+
+            if (syncMetaStr) {
+                try {
+                    const sm = JSON.parse(syncMetaStr);
+                    if (sm && typeof sm.revision === 'number') {
+                        localSyncMeta = {
+                            revision: sm.revision,
+                            lastModified: sm.lastModified || 0,
+                        };
+                    }
+                } catch (e) {}
+            }
+
             hugCount = calcHugCount();
         }
 
         // ============================================================
-        // ОТПРАВКА В ОБЛАКО — СРАЗУ, БЕЗ ОЧЕРЕДИ, БЕЗ ЗАДЕРЖЕК
+        // ЗАГРУЗКА CLOUD + СРАВНЕНИЕ ПО СВЕЖЕСТИ
         // ============================================================
-        // Один вызов = полная запись состояния. Вызывается сразу после
-        // любого изменения. Флаг uploading защищает от параллельных вызовов.
-        let uploading = false;
-        let uploadAgain = false;
+        // Возвращает:
+        //   'cloud_wins'   — применили облако
+        //   'local_wins'   — наше свежее, ничего не применяли
+        //   'in_sync'      — одинаково
+        async function syncWithCloud(force) {
+            if (!hasCloudStorage) return 'in_sync';
+            // Если у нас есть неотправленные изменения — не синхронизируемся
+            // (иначе откатим свои же правки)
+            if (hasPendingLocalChanges && !force) return 'in_sync';
 
-        async function uploadState() {
-            if (!hasCloudStorage) return;
-            if (uploading) { uploadAgain = true; return; }
-            uploading = true;
-            pendingUpload = true;
+            let cloudSyncMetaStr = await cloudGet(CK.SYNC_META);
+            let cloudSyncMeta = null;
+            if (cloudSyncMetaStr) {
+                try { cloudSyncMeta = JSON.parse(cloudSyncMetaStr); } catch (e) {}
+            }
 
-            const myRev = revision;
-            const myTs = lastModified;
-
-            try {
-                // STATE — мета + настройки + offset
-                const stateJson = JSON.stringify({
-                    version: VERSION,
-                    revision: myRev,
-                    lastModified: myTs,
-                    counterOffset: counterOffset,
-                    tz: savedTzOffset,
-                    settings: {
-                        bgColor: settings.bgColor,
-                        textColor: settings.textColor,
-                        btnColor: settings.btnColor,
-                        bgImageSettings: settings.bgImageSettings,
-                        btnImageSettings: settings.btnImageSettings,
-                    },
-                });
-
-                // HISTORY — чанками
-                const serialized = serializeHistory();
-                const chunks = splitHistoryIntoChunks(serialized);
-
-                await cloudSet(CLOUD_STATE, stateJson);
-                await cloudSet(CLOUD_HIST_META, JSON.stringify({
-                    chunks: chunks.length,
-                    revision: myRev,
-                }));
-
-                for (let i = 0; i < chunks.length; i++) {
-                    await cloudSet(CLOUD_HIST_CHUNK(i), JSON.stringify(chunks[i]));
-                }
-
-                // Чистим лишние чанки
-                try {
-                    const allKeys = await cloudGetAllKeys();
-                    const ourChunkKeys = allKeys.filter(k =>
-                        k.startsWith('hugApp_hist_') && k !== CLOUD_HIST_META
-                    );
-                    for (const k of ourChunkKeys) {
-                        const idx = parseInt(k.replace('hugApp_hist_', ''), 10);
-                        if (!isNaN(idx) && idx >= chunks.length) {
-                            await cloudRemove(k);
-                        }
+            if (!cloudSyncMeta || typeof cloudSyncMeta.revision !== 'number') {
+                // Облако без меты — у нас может быть миграция со старой версии.
+                // Не трогаем, но отправим свою мету при следующем сохранении.
+                // Сравним по количеству как fallback.
+                const cloudHasData = !!(await cloudGet(CK.HISTORY_META));
+                if (!cloudHasData) return 'in_sync';
+                // Применяем облако если мы вообще пустые
+                if (localSyncMeta.revision === 0 && calcHugCount() === 0) {
+                    const applied = await applyCloudData();
+                    if (applied) {
+                        // В облаке не было sync_meta — присваиваем свою
+                        localSyncMeta = { revision: 1, lastModified: Date.now() };
+                        hasPendingLocalChanges = true;
+                        saveToLocalStorageImmediate();
+                        scheduleCloudSave();
+                        return 'cloud_wins';
                     }
-                } catch (e) {}
-
-                // Если пока мы писали, ревизия ещё раз выросла — писать ещё раз
-                if (revision !== myRev) {
-                    uploading = false;
-                    uploadAgain = false;
-                    return uploadState();
                 }
-
-                pendingUpload = false;
-                cloudReady = true;
-            } catch (e) {
-                // Не сбрасываем pendingUpload — попробуем при следующем изменении или синхронизации
+                return 'in_sync';
             }
 
-            uploading = false;
-            if (uploadAgain) {
-                uploadAgain = false;
-                // есть новые изменения, которые пришли во время записи — отправим ещё раз
-                uploadState();
+            // Сравниваем ревизии. Кто больше — тот и свежее.
+            const localRev = localSyncMeta.revision;
+            const cloudRev = cloudSyncMeta.revision;
+
+            // Дополнительно: смотрим на lastModified. Если ревизия одинаковая,
+            // но lastModified отличается — берём большее.
+            if (cloudRev > localRev ||
+                (cloudRev === localRev && cloudSyncMeta.lastModified > localSyncMeta.lastModified)) {
+                // Облако свежее → применяем
+                const applied = await applyCloudData();
+                if (applied) {
+                    localSyncMeta = {
+                        revision: cloudSyncMeta.revision,
+                        lastModified: cloudSyncMeta.lastModified,
+                    };
+                    cloudKnownSyncMeta = { ...localSyncMeta };
+                    return 'cloud_wins';
+                }
+            } else if (localRev > cloudRev ||
+                       (localRev === cloudRev && localSyncMeta.lastModified > cloudSyncMeta.lastModified)) {
+                // Мы свежее → шлём наше
+                scheduleCloudSave();
+                return 'local_wins';
             }
+
+            return 'in_sync';
         }
 
-        // Вызывается при ЛЮБОМ изменении.
-        // 1) Увеличивает ревизию + timestamp.
-        // 2) Синхронно пишет в localStorage.
-        // 3) НЕМЕДЛЕННО отправляет в облако.
-        function markChanged() {
-            revision++;
-            lastModified = Date.now();
-            pendingUpload = true;
-            saveLocal();
-            uploadState();
-        }
+        // Применяет данные из облака (без сравнения)
+        async function applyCloudData() {
+            const cloudSettings = await cloudGet(CK.SETTINGS);
+            const cloudMeta = await cloudGet(CK.HISTORY_META);
+            const cloudOffset = await cloudGet(CK.COUNTER_OFFSET);
 
-        // ============================================================
-        // ЗАГРУЗКА ИЗ ОБЛАКА
-        // ============================================================
-        async function loadCloudState() {
-            if (!hasCloudStorage) return null;
+            let cloudSettingsObj = null;
+            if (cloudSettings) {
+                try { cloudSettingsObj = JSON.parse(cloudSettings); } catch (e) {}
+            }
 
-            const stateStr = await cloudGet(CLOUD_STATE);
-            if (!stateStr) return null;
+            let cloudMetaObj = null;
+            if (cloudMeta) {
+                try { cloudMetaObj = JSON.parse(cloudMeta); } catch (e) {}
+            }
 
-            let stateObj;
-            try { stateObj = JSON.parse(stateStr); } catch (e) { return null; }
-
-            // История
             let cloudHistory = {};
-            const histMetaStr = await cloudGet(CLOUD_HIST_META);
-            if (histMetaStr) {
-                try {
-                    const hm = JSON.parse(histMetaStr);
-                    if (hm && hm.chunks > 0) {
-                        const merged = {};
-                        for (let i = 0; i < hm.chunks; i++) {
-                            const chunkStr = await cloudGet(CLOUD_HIST_CHUNK(i));
-                            if (!chunkStr) continue;
-                            try {
-                                const chunkObj = JSON.parse(chunkStr);
-                                for (const date in chunkObj) merged[date] = chunkObj[date];
-                            } catch (e) {}
-                        }
-                        cloudHistory = deserializeHistory(merged);
-                    }
-                } catch (e) {}
+            if (cloudMetaObj && cloudMetaObj.chunks > 0) {
+                const merged = {};
+                for (let i = 0; i < cloudMetaObj.chunks; i++) {
+                    const chunkStr = await cloudGet(CK.HISTORY_CHUNK(i));
+                    if (!chunkStr) continue;
+                    try {
+                        const chunkObj = JSON.parse(chunkStr);
+                        for (const date in chunkObj) merged[date] = chunkObj[date];
+                    } catch (e) {}
+                }
+                cloudHistory = deserializeHistory(merged);
             }
 
-            return {
-                state: stateObj,
-                history: cloudHistory,
-            };
-        }
+            let cloudOffsetNum = 0;
+            if (cloudOffset !== null && cloudOffset !== undefined) {
+                const n = parseInt(cloudOffset, 10);
+                if (!isNaN(n)) cloudOffsetNum = n;
+            }
 
-        // Применяет облачное состояние к локальному
-        function applyCloudState(cloud) {
-            const s = cloud.state || {};
-            revision = s.revision || 0;
-            lastModified = s.lastModified || 0;
-            counterOffset = s.counterOffset || 0;
-            if (typeof s.tz === 'number') savedTzOffset = s.tz;
-            if (s.settings) {
+            history = cloudHistory;
+            counterOffset = cloudOffsetNum;
+
+            if (cloudSettingsObj) {
                 settings = {
-                    bgColor: s.settings.bgColor || '#f7f0fa',
-                    textColor: s.settings.textColor || '#000000',
-                    btnColor: s.settings.btnColor || '#ffb6c9',
-                    bgImageSettings: s.settings.bgImageSettings || { scale: 100, x: 0, y: 0 },
-                    btnImageSettings: s.settings.btnImageSettings || { scale: 100, x: 0, y: 0 },
+                    bgColor: cloudSettingsObj.bgColor || settings.bgColor,
+                    textColor: cloudSettingsObj.textColor || settings.textColor,
+                    btnColor: cloudSettingsObj.btnColor || settings.btnColor,
+                    bgImageSettings: cloudSettingsObj.bgImageSettings || settings.bgImageSettings,
+                    btnImageSettings: cloudSettingsObj.btnImageSettings || settings.btnImageSettings,
                 };
             }
-            history = cloud.history || {};
-            hugCount = calcHugCount();
 
-            // Применяем UI
+            if (cloudMetaObj && typeof cloudMetaObj.tz === 'number') {
+                savedTzOffset = cloudMetaObj.tz;
+            }
+
+            hugCount = calcHugCount();
             applyAllSettings();
             if (calendarOverlay.classList.contains('open')) {
                 renderCalendar(currentYear, currentMonth);
             }
-
-            // Фиксируем в localStorage
-            saveLocal();
-        }
-
-        // ============================================================
-        // СИНХРОНИЗАЦИЯ (периодическая)
-        // ============================================================
-        // Тянем облако. Если облачная ревизия БОЛЬШЕ нашей — применяем облако.
-        // Если НАША ревизия больше — отправляем нашу в облако.
-        // Если одинаковые — ничего.
-        async function syncNow() {
-            if (!hasCloudStorage) return;
-            if (uploading) return; // ждём, пока текущая запись завершится
-            if (pendingUpload) return; // у нас есть неотправленные изменения — не перетираем
-
-            const cloud = await loadCloudState();
-            if (!cloud) return;
-
-            const cloudRev = cloud.state.revision || 0;
-            const localRev = revision;
-
-            if (cloudRev > localRev) {
-                // Облако свежее — применяем
-                applyCloudState(cloud);
-                cloudReady = true;
-            } else if (localRev > cloudRev) {
-                // Мы свежее — отправляем в облако
-                await uploadState();
-            } else {
-                // Одинаковые — ничего
-                cloudReady = true;
-            }
+            saveToLocalStorageImmediate();
+            return true;
         }
 
         // ============================================================
@@ -1650,7 +1762,7 @@
         }
 
         // ============================================================
-        // НАСТРОЙКИ UI
+        // НАСТРОЙКИ
         // ============================================================
         function openSettings() {
             bgPicker.value = settings.bgColor;
@@ -1785,7 +1897,7 @@
             history[key].push({ t: now.getTime(), h: tz });
 
             updateCounter();
-            markChanged();
+            markLocalChange();
 
             if (calendarOverlay.classList.contains('open') && selectedDate === key) {
                 showDayInfo(key);
@@ -1810,7 +1922,9 @@
             if (!s) return null;
             const low = s.toLowerCase();
             const today = new Date();
-            if (low === 'сегодня') return { y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() };
+            if (low === 'сегодня') {
+                return { y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() };
+            }
             if (low === 'вчера') {
                 const yest = new Date(today.getTime() - 86400000);
                 return { y: yest.getFullYear(), m: yest.getMonth()+1, d: yest.getDate() };
@@ -1852,18 +1966,28 @@
             counterOffset += amount;
 
             const newCount = calcHugCount();
-            if (newCount < 0) counterOffset -= newCount;
+            if (newCount < 0) {
+                counterOffset -= newCount;
+                devLogLine(`⚠️ Ограничение: счётчик не может быть меньше 0. Offset скорректирован.`, 'log-info');
+            }
 
             updateCounter();
-            markChanged();
+            markLocalChange();
+
             devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}).`, 'log-ok');
         }
 
         function cmdHug(sign, dateStr, timeStr) {
             const dp = parseDevDate(dateStr);
-            if (!dp) { devLogLine('❌ Неверная дата: ' + dateStr, 'log-err'); return; }
+            if (!dp) {
+                devLogLine('❌ Неверная дата: ' + dateStr, 'log-err');
+                return;
+            }
             const tp = parseDevTime(timeStr);
-            if (!tp) { devLogLine('❌ Неверное время: ' + timeStr, 'log-err'); return; }
+            if (!tp) {
+                devLogLine('❌ Неверное время: ' + timeStr, 'log-err');
+                return;
+            }
 
             const dt = new Date(dp.y, dp.m - 1, dp.d, tp.h, tp.mi, tp.se, 0);
             const ts = dt.getTime();
@@ -1874,7 +1998,7 @@
                 if (!history[key]) history[key] = [];
                 history[key].push({ t: ts, h: tz });
                 updateCounter();
-                markChanged();
+                markLocalChange();
                 devLogLine(`✅ Добавлена обнимашка: ${key} (счётчик: ${hugCount})`, 'log-ok');
             } else {
                 const arr = history[key];
@@ -1882,17 +2006,23 @@
                     devLogLine(`❌ В ${key} нет обнимашек для удаления`, 'log-err');
                     return;
                 }
-                let bestIdx = -1, bestDiff = Infinity;
+                let bestIdx = -1;
+                let bestDiff = Infinity;
                 for (let i = 0; i < arr.length; i++) {
                     const diff = Math.abs(arr[i].t - ts);
                     if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
                 }
-                if (bestIdx === -1) { devLogLine(`❌ Не удалось найти`, 'log-err'); return; }
-                arr.splice(bestIdx, 1);
+                if (bestIdx === -1) {
+                    devLogLine(`❌ Не удалось найти обнимашку`, 'log-err');
+                    return;
+                }
+                const removed = arr.splice(bestIdx, 1)[0];
                 if (arr.length === 0) delete history[key];
                 updateCounter();
-                markChanged();
-                devLogLine(`✅ Удалена обнимашка из ${key}, счётчик: ${hugCount}`, 'log-ok');
+                markLocalChange();
+
+                const rTime = formatClickTime(removed.t);
+                devLogLine(`✅ Удалена обнимашка из ${key} (${rTime}), счётчик: ${hugCount}`, 'log-ok');
             }
 
             if (calendarOverlay.classList.contains('open')) {
@@ -1903,15 +2033,25 @@
         function runDevCommand(raw) {
             const cmd = (raw || '').trim();
             if (!cmd) return;
+
             devLogLine('> ' + cmd, 'log-sys');
 
             let m = cmd.match(/^(?:счётчик|счетчик|counter)\s*([+-]?\d+)\s*$/i);
-            if (m) { cmdCounter(m[1]); return; }
+            if (m) {
+                cmdCounter(m[1]);
+                return;
+            }
 
             m = cmd.match(/^([+-])\s*обнимашка\s+(\S+)(?:\s+(\S+))?\s*$/i);
-            if (m) { cmdHug(m[1], m[2], m[3] || null); return; }
+            if (m) {
+                const sign = m[1];
+                const dateStr = m[2];
+                const timeStr = m[3] || null;
+                cmdHug(sign, dateStr, timeStr);
+                return;
+            }
 
-            devLogLine('❌ Неизвестная команда.', 'log-err');
+            devLogLine('❌ Неизвестная команда. Смотри подсказки сверху.', 'log-err');
         }
 
         function openDevPanel() {
@@ -1961,36 +2101,36 @@
         bgPicker.addEventListener('input', function() {
             settings.bgColor = this.value;
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
         textPicker.addEventListener('input', function() {
             settings.textColor = this.value;
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
         btnColorPicker.addEventListener('input', function() {
             settings.btnColor = this.value;
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
 
         resetBg.addEventListener('click', () => {
             settings.bgColor = '#f7f0fa';
             bgPicker.value = '#f7f0fa';
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
         resetText.addEventListener('click', () => {
             settings.textColor = '#000000';
             textPicker.value = '#000000';
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
         resetBtnColor.addEventListener('click', () => {
             settings.btnColor = '#ffb6c9';
             btnColorPicker.value = '#ffb6c9';
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
 
         bgImageUpload.addEventListener('change', async function(e) {
@@ -2001,7 +2141,7 @@
                     images.bgImage = dataUrl;
                     if (!settings.bgImageSettings) settings.bgImageSettings = { scale: 100, x: 0, y: 0 };
                     applyAllSettings();
-                    markChanged();
+                    markLocalChange();
                 }
             }
             e.target.value = '';
@@ -2015,7 +2155,7 @@
                     images.btnImage = dataUrl;
                     if (!settings.btnImageSettings) settings.btnImageSettings = { scale: 100, x: 0, y: 0 };
                     applyAllSettings();
-                    markChanged();
+                    markLocalChange();
                 }
             }
             e.target.value = '';
@@ -2026,14 +2166,14 @@
             bgImageUpload.value = '';
             document.getElementById('bg-image-editor').classList.remove('open');
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
         removeBtnImage.addEventListener('click', function() {
             images.btnImage = null;
             btnImageUpload.value = '';
             document.getElementById('btn-image-editor').classList.remove('open');
             applyAllSettings();
-            markChanged();
+            markLocalChange();
         });
 
         bgImageEdit.addEventListener('click', function() {
@@ -2053,7 +2193,7 @@
                 const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
                 settings[settingsKey][key] = val;
                 applyAllSettings();
-                markChanged();
+                markLocalChange();
                 let imageData = null;
                 if (settingsKey === 'bgImageSettings') imageData = images.bgImage;
                 else if (settingsKey === 'btnImageSettings') imageData = images.btnImage;
@@ -2076,7 +2216,7 @@
             history = {};
             counterOffset = 0;
             updateCounter();
-            markChanged();
+            markLocalChange();
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             selectedDate = null;
             dayInfo.textContent = 'Выберите день';
@@ -2122,71 +2262,57 @@
                 }));
             }
             savedTzOffset = currentTz;
-            markChanged();
+            markLocalChange();
             if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
             tzOverlay.classList.remove('open');
         });
 
         tzNo.addEventListener('click', function() {
             savedTzOffset = getTzOffsetMinutes();
-            markChanged();
+            markLocalChange();
             tzOverlay.classList.remove('open');
         });
 
         // ============================================================
-        // ПЕРИОДИЧЕСКАЯ СИНХРОНИЗАЦИЯ
+        // СИНХРОНИЗАЦИЯ
         // ============================================================
-        // Раз в 2 секунды проверяем облако. Синхронизация — по ревизии.
-        setInterval(function() {
-            if (cloudReady && !pendingUpload && !uploading) {
-                syncNow();
-            }
-        }, 2000);
+        async function trySync() {
+            if (!isInitialized) return;
+            if (hasPendingLocalChanges) return; // ждём, пока свои изменения улетят
+            try {
+                await syncWithCloud(false);
+            } catch (e) {}
+        }
 
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
-                if (cloudReady && !pendingUpload && !uploading) syncNow();
+                trySync();
+            } else {
+                saveToLocalStorageImmediate();
             }
         });
 
         window.addEventListener('focus', function() {
-            if (cloudReady && !pendingUpload && !uploading) syncNow();
+            trySync();
         });
+
+        setInterval(trySync, 3000);
 
         // ============================================================
         // INIT
         // ============================================================
         async function init() {
-            // 1) Быстро читаем localStorage и показываем UI
-            loadLocal();
+            // 1) Быстро показываем локальное
+            loadFromLocalStorage();
             applyAllSettings();
 
-            // 2) Тянем облако. Если там ревизия БОЛЬШЕ — применяем её.
-            //    Если МЕНЬШЕ — наша свежее, отправим нашу.
-            //    Если облака нет — отправим нашу (первый запуск).
+            // 2) Синхронизируемся с облаком (приоритет — где свежее)
             try {
-                if (hasCloudStorage) {
-                    const cloud = await loadCloudState();
-                    if (cloud) {
-                        const cloudRev = cloud.state.revision || 0;
-                        if (cloudRev > revision ||
-                            (cloudRev === revision && (cloud.state.lastModified || 0) > lastModified)) {
-                            // Облако свежее — применяем
-                            applyCloudState(cloud);
-                        } else if (revision > cloudRev) {
-                            // Мы свежее — отправляем
-                            await uploadState();
-                        }
-                        // Равные — ничего
-                    } else {
-                        // Облака нет — отправляем наше (если у нас есть что-то)
-                        if (revision > 0 || calcHugCount() > 0) {
-                            await uploadState();
-                        }
-                    }
-                    cloudReady = true;
-                }
+                await syncWithCloud(true);
             } catch (e) {}
+
+            // 3) Разрешаем периодическую синхронизацию
+            isInitialized = true;
 
             if (checkDevAccess()) {
                 devBtn.classList.add('show');
