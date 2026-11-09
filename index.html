@@ -470,9 +470,9 @@
             border: none;
             font-size: 17px;
             cursor: pointer;
-            color: #6a5a7a;
             padding: 2px 6px;
             transition: 0.2s;
+            color: #6a5a7a;
         }
         .file-upload-wrapper .edit-btn:hover {
             transform: scale(1.1);
@@ -1016,7 +1016,7 @@
         }
 
         // ============================================================
-        // ИДЕНТИФИКАТОР АККАУНТА
+        // АККАУНТ
         // ============================================================
         const tg = window.Telegram?.WebApp;
         const hasCloudStorage = !!(tg && tg.CloudStorage);
@@ -1032,29 +1032,32 @@
 
         const ACCOUNT_KEY = getAccountKey();
 
+        // localStorage — per-account (разные аккаунты на одном телефоне не смешиваются)
         function K(base) {
             return 'hugApp_' + ACCOUNT_KEY + '_' + base;
         }
 
-        const K_VERSION   = K('v');
-        const K_SETTINGS  = K('settings');
+        const K_VERSION = K('v');
+        const K_SETTINGS = K('settings');
         const K_HISTORY_META = K('history_meta');
         const K_HISTORY_CHUNK = (i) => K('history_' + i);
         const K_COUNTER_OFFSET = K('counter_offset');
-        const K_SYNC_META = K('sync_meta'); // {revision, lastModified}
+        const K_SYNC_META = K('sync_meta');
         const LS_IMAGES = K('images');
 
-        const CLOUD_PREFIX = 'hugApp_';
+        // CloudStorage — привязан к аккаунту на стороне Telegram,
+        // поэтому префикс по аккаунту тут НЕ нужен.
+        const CP = 'hugApp_';
         const CK = {
-            VERSION: CLOUD_PREFIX + 'v',
-            SETTINGS: CLOUD_PREFIX + 'settings',
-            HISTORY_META: CLOUD_PREFIX + 'history_meta',
-            HISTORY_CHUNK: (i) => CLOUD_PREFIX + 'history_' + i,
-            COUNTER_OFFSET: CLOUD_PREFIX + 'counter_offset',
-            SYNC_META: CLOUD_PREFIX + 'sync_meta',
+            VERSION: CP + 'v',
+            SETTINGS: CP + 'settings',
+            HISTORY_META: CP + 'history_meta',
+            HISTORY_CHUNK: (i) => CP + 'history_' + i,
+            COUNTER_OFFSET: CP + 'counter_offset',
+            SYNC_META: CP + 'sync_meta',
         };
 
-        const VERSION = 6;
+        const VERSION = 7;
         const CLOUD_LIMIT = 3800;
 
         // ============================================================
@@ -1062,28 +1065,26 @@
         // ============================================================
         let history = {};
         let counterOffset = 0;
+        let hugCount = 0;
 
-        // Мета синхронизации:
-        // revision — монотонно растущий счётчик ЛЮБЫХ изменений
-        // lastModified — timestamp последнего изменения
-        // Оба летят в облако. Синхронизация сравнивает ИХ, а не количество.
+        // Мета синхронизации: revision + lastModified.
+        // Каждое изменение → revision++. Синхронизация сравнивает по revision.
         let localSyncMeta = { revision: 0, lastModified: 0 };
 
-        // Есть ли неотправленные в облако изменения?
-        // Пока true — синхронизацию не запускаем, чтобы не откатить свои же правки.
-        let hasPendingLocalChanges = false;
-
-        // Текущая версия, известная нам из облака (чтобы не тянуть лишний раз)
-        let cloudKnownSyncMeta = { revision: -1, lastModified: 0 };
-
-        function calcHugCount() {
-            let n = counterOffset;
-            for (const d in history) n += history[d].length;
-            if (n < 0) n = 0;
-            return n;
-        }
-
-        let hugCount = 0;
+        // ---- КРИТИЧНЫЕ ФЛАГИ ----
+        // pendingPush = true означает, что у нас есть локальные изменения,
+        // которые ещё не подтверждены облаком. Пока true:
+        //   - не синхронизируемся (не читаем облако)
+        //   - но пушим в облако
+        let pendingPush = false;
+        // isPushing = true пока идёт отправка в облако.
+        // Пока true — никаких параллельных операций с облаком.
+        let isPushing = false;
+        // cloudLoading = true пока идёт первичная загрузка облака.
+        // Пока true — не пушим, не синхронизируемся, ничего не делаем с облаком.
+        let cloudLoading = false;
+        // Инициализация завершена — можно включать автосинхронизацию.
+        let isInitialized = false;
 
         let settings = {
             bgColor: '#f7f0fa',
@@ -1094,16 +1095,12 @@
         };
         let images = { bgImage: null, btnImage: null };
 
-        function getTzOffsetMinutes() {
-            return -new Date().getTimezoneOffset();
-        }
+        function getTzOffsetMinutes() { return -new Date().getTimezoneOffset(); }
         let savedTzOffset = getTzOffsetMinutes();
 
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
         let selectedDate = null;
-
-        let isInitialized = false;
 
         // DOM
         const app = document.getElementById('app');
@@ -1198,10 +1195,11 @@
             return `${hh}:${mm}:${ss}`;
         }
 
-        // Каждое изменение должно увеличить ревизию и обновить timestamp
-        function bumpSyncMeta() {
-            localSyncMeta.revision++;
-            localSyncMeta.lastModified = Date.now();
+        function calcHugCount() {
+            let n = counterOffset;
+            for (const d in history) n += history[d].length;
+            if (n < 0) n = 0;
+            return n;
         }
 
         // ============================================================
@@ -1285,7 +1283,7 @@
         }
 
         // ============================================================
-        // СОХРАНЕНИЕ В LOCALSTORAGE
+        // LOCALSTORAGE — синхронное сохранение
         // ============================================================
         function saveToLocalStorageImmediate() {
             try { localStorage.setItem(K_VERSION, String(VERSION)); } catch (e) {}
@@ -1327,28 +1325,40 @@
                 }
             } catch (e) {}
 
-            // Мета синхронизации — тоже в localStorage
             try {
                 localStorage.setItem(K_SYNC_META, JSON.stringify(localSyncMeta));
             } catch (e) {}
         }
 
         // ============================================================
-        // ОЧЕРЕДЬ СОХРАНЕНИЯ В ОБЛАКО
+        // ОТПРАВКА В ОБЛАКО — МГНОВЕННАЯ, БЕЗ ЗАДЕРЖЕК
         // ============================================================
-        let saveChain = Promise.resolve();
-        let cloudSaveQueued = false;
+        // Блокировка: пока идёт отправка, никаких параллельных операций с облаком.
+        let pushChain = Promise.resolve();
 
-        async function setCloud(key, value, retries = 1) {
+        async function setCloud(key, value, retries = 2) {
             for (let attempt = 0; attempt <= retries; attempt++) {
                 const ok = await cloudSet(key, value);
                 if (ok) return true;
-                if (attempt < retries) await new Promise(r => setTimeout(r, 500));
+                if (attempt < retries) await new Promise(r => setTimeout(r, 300));
             }
             return false;
         }
 
-        async function doCloudPersistOnce() {
+        // Эта функция вызывается СРАЗУ при любом изменении.
+        // Никаких setTimeout, debounce и т.п.
+        async function pushToCloudNow() {
+            if (!hasCloudStorage) {
+                pendingPush = false;
+                return;
+            }
+
+            // Ждём, пока предыдущая отправка завершится (последовательно)
+            await pushChain;
+            if (isPushing) return;
+
+            isPushing = true;
+
             const settingsJson = JSON.stringify({
                 bgColor: settings.bgColor,
                 textColor: settings.textColor,
@@ -1378,48 +1388,43 @@
 
             let allOk = true;
             for (const [key, value] of entries) {
-                const ok = await setCloud(key, value, 1);
+                const ok = await setCloud(key, value, 2);
                 if (!ok) allOk = false;
             }
 
+            // Чистим лишние чанки в облаке
             try {
                 const allKeys = await cloudGetAllKeys();
                 const ourChunkKeys = allKeys.filter(k =>
-                    k.startsWith(CLOUD_PREFIX + 'history_') && k !== CK.HISTORY_META
+                    k.startsWith(CP + 'history_') && k !== CK.HISTORY_META
                 );
                 for (const k of ourChunkKeys) {
-                    const idx = parseInt(k.replace(CLOUD_PREFIX + 'history_', ''), 10);
+                    const idx = parseInt(k.replace(CP + 'history_', ''), 10);
                     if (!isNaN(idx) && idx >= chunks.length) {
                         await cloudRemove(k);
                     }
                 }
             } catch (e) {}
 
+            isPushing = false;
+
             if (allOk) {
-                // Наша версия улетела в облако — сбрасываем флаг
-                hasPendingLocalChanges = false;
-                cloudKnownSyncMeta = { ...localSyncMeta };
+                pendingPush = false;
             } else {
-                // Не всё сохранилось — оставляем флаг, попробуем ещё раз позже
-                // (но не блокируем UI, просто пометим)
-                hasPendingLocalChanges = true;
+                // Не всё записалось — оставим флаг, попробуем ещё раз позже
+                pendingPush = true;
             }
         }
 
-        function markLocalChange() {
-            bumpSyncMeta();
-            hasPendingLocalChanges = true;
-            saveToLocalStorageImmediate();
-            scheduleCloudSave();
-        }
-
-        function scheduleCloudSave() {
-            if (cloudSaveQueued) return;
-            cloudSaveQueued = true;
-            setTimeout(() => {
-                cloudSaveQueued = false;
-                saveChain = saveChain.then(() => doCloudPersistOnce()).catch(() => {});
-            }, 100);
+        // Планировщик: гарантирует, что pushToCloudNow вызовется один раз за тик
+        let pushScheduled = false;
+        function schedulePush() {
+            if (pushScheduled) return;
+            pushScheduled = true;
+            pushChain = pushChain.then(() => {
+                pushScheduled = false;
+                return pushToCloudNow();
+            }).catch(() => { pushScheduled = false; });
         }
 
         // ============================================================
@@ -1496,78 +1501,13 @@
         }
 
         // ============================================================
-        // ЗАГРУЗКА CLOUD + СРАВНЕНИЕ ПО СВЕЖЕСТИ
+        // ЗАГРУЗКА CLOUD (полная, синхронно с ожиданием)
         // ============================================================
-        // Возвращает:
-        //   'cloud_wins'   — применили облако
-        //   'local_wins'   — наше свежее, ничего не применяли
-        //   'in_sync'      — одинаково
-        async function syncWithCloud(force) {
-            if (!hasCloudStorage) return 'in_sync';
-            // Если у нас есть неотправленные изменения — не синхронизируемся
-            // (иначе откатим свои же правки)
-            if (hasPendingLocalChanges && !force) return 'in_sync';
-
-            let cloudSyncMetaStr = await cloudGet(CK.SYNC_META);
-            let cloudSyncMeta = null;
-            if (cloudSyncMetaStr) {
-                try { cloudSyncMeta = JSON.parse(cloudSyncMetaStr); } catch (e) {}
-            }
-
-            if (!cloudSyncMeta || typeof cloudSyncMeta.revision !== 'number') {
-                // Облако без меты — у нас может быть миграция со старой версии.
-                // Не трогаем, но отправим свою мету при следующем сохранении.
-                // Сравним по количеству как fallback.
-                const cloudHasData = !!(await cloudGet(CK.HISTORY_META));
-                if (!cloudHasData) return 'in_sync';
-                // Применяем облако если мы вообще пустые
-                if (localSyncMeta.revision === 0 && calcHugCount() === 0) {
-                    const applied = await applyCloudData();
-                    if (applied) {
-                        // В облаке не было sync_meta — присваиваем свою
-                        localSyncMeta = { revision: 1, lastModified: Date.now() };
-                        hasPendingLocalChanges = true;
-                        saveToLocalStorageImmediate();
-                        scheduleCloudSave();
-                        return 'cloud_wins';
-                    }
-                }
-                return 'in_sync';
-            }
-
-            // Сравниваем ревизии. Кто больше — тот и свежее.
-            const localRev = localSyncMeta.revision;
-            const cloudRev = cloudSyncMeta.revision;
-
-            // Дополнительно: смотрим на lastModified. Если ревизия одинаковая,
-            // но lastModified отличается — берём большее.
-            if (cloudRev > localRev ||
-                (cloudRev === localRev && cloudSyncMeta.lastModified > localSyncMeta.lastModified)) {
-                // Облако свежее → применяем
-                const applied = await applyCloudData();
-                if (applied) {
-                    localSyncMeta = {
-                        revision: cloudSyncMeta.revision,
-                        lastModified: cloudSyncMeta.lastModified,
-                    };
-                    cloudKnownSyncMeta = { ...localSyncMeta };
-                    return 'cloud_wins';
-                }
-            } else if (localRev > cloudRev ||
-                       (localRev === cloudRev && localSyncMeta.lastModified > cloudSyncMeta.lastModified)) {
-                // Мы свежее → шлём наше
-                scheduleCloudSave();
-                return 'local_wins';
-            }
-
-            return 'in_sync';
-        }
-
-        // Применяет данные из облака (без сравнения)
-        async function applyCloudData() {
+        async function fetchCloudData() {
             const cloudSettings = await cloudGet(CK.SETTINGS);
             const cloudMeta = await cloudGet(CK.HISTORY_META);
             const cloudOffset = await cloudGet(CK.COUNTER_OFFSET);
+            const cloudSyncMeta = await cloudGet(CK.SYNC_META);
 
             let cloudSettingsObj = null;
             if (cloudSettings) {
@@ -1577,6 +1517,11 @@
             let cloudMetaObj = null;
             if (cloudMeta) {
                 try { cloudMetaObj = JSON.parse(cloudMeta); } catch (e) {}
+            }
+
+            let cloudSyncMetaObj = null;
+            if (cloudSyncMeta) {
+                try { cloudSyncMetaObj = JSON.parse(cloudSyncMeta); } catch (e) {}
             }
 
             let cloudHistory = {};
@@ -1599,30 +1544,35 @@
                 if (!isNaN(n)) cloudOffsetNum = n;
             }
 
-            history = cloudHistory;
-            counterOffset = cloudOffsetNum;
+            return {
+                settings: cloudSettingsObj,
+                meta: cloudMetaObj,
+                syncMeta: cloudSyncMetaObj,
+                history: cloudHistory,
+                offset: cloudOffsetNum,
+                hasAnyData: !!(cloudSettings || cloudMeta || cloudOffset !== null),
+            };
+        }
 
-            if (cloudSettingsObj) {
+        function applyCloudToMemory(cloudData) {
+            history = cloudData.history;
+            counterOffset = cloudData.offset;
+
+            if (cloudData.settings) {
                 settings = {
-                    bgColor: cloudSettingsObj.bgColor || settings.bgColor,
-                    textColor: cloudSettingsObj.textColor || settings.textColor,
-                    btnColor: cloudSettingsObj.btnColor || settings.btnColor,
-                    bgImageSettings: cloudSettingsObj.bgImageSettings || settings.bgImageSettings,
-                    btnImageSettings: cloudSettingsObj.btnImageSettings || settings.btnImageSettings,
+                    bgColor: cloudData.settings.bgColor || settings.bgColor,
+                    textColor: cloudData.settings.textColor || settings.textColor,
+                    btnColor: cloudData.settings.btnColor || settings.btnColor,
+                    bgImageSettings: cloudData.settings.bgImageSettings || settings.bgImageSettings,
+                    btnImageSettings: cloudData.settings.btnImageSettings || settings.btnImageSettings,
                 };
             }
 
-            if (cloudMetaObj && typeof cloudMetaObj.tz === 'number') {
-                savedTzOffset = cloudMetaObj.tz;
+            if (cloudData.meta && typeof cloudData.meta.tz === 'number') {
+                savedTzOffset = cloudData.meta.tz;
             }
 
             hugCount = calcHugCount();
-            applyAllSettings();
-            if (calendarOverlay.classList.contains('open')) {
-                renderCalendar(currentYear, currentMonth);
-            }
-            saveToLocalStorageImmediate();
-            return true;
         }
 
         // ============================================================
@@ -1678,6 +1628,81 @@
         function updateCounter() {
             hugCount = calcHugCount();
             counterEl.innerHTML = `🤗 ${hugCount}`;
+        }
+
+        // ============================================================
+        // ГЛАВНЫЙ ТРИГГЕР ИЗМЕНЕНИЯ
+        // ============================================================
+        // Вызывается при ЛЮБОМ изменении (клик, настройка, dev-команда).
+        // 1) bump revision + lastModified
+        // 2) синхронно в localStorage
+        // 3) МГНОВЕННО отправляем в облако
+        function markLocalChange() {
+            localSyncMeta.revision++;
+            localSyncMeta.lastModified = Date.now();
+            pendingPush = true;
+
+            saveToLocalStorageImmediate();
+            schedulePush();
+        }
+
+        // ============================================================
+        // СИНХРОНИЗАЦИЯ ИЗ ОБЛАКА
+        // ============================================================
+        // Вызывается по таймеру / при visibility/focus.
+        // НЕ выполняется, если:
+        //   - ещё идёт первичная загрузка облака
+        //   - у нас есть неотправленные изменения (pendingPush)
+        //   - прямо сейчас идёт отправка (isPushing)
+        //   - мы ещё не инициализированы полностью
+        async function syncFromCloud() {
+            if (!hasCloudStorage) return;
+            if (cloudLoading) return;
+            if (!isInitialized) return;
+            if (pendingPush) return;
+            if (isPushing) return;
+
+            cloudLoading = true;
+            try {
+                const cloudData = await fetchCloudData();
+                if (!cloudData.hasAnyData) {
+                    return;
+                }
+
+                const cloudRev = cloudData.syncMeta && typeof cloudData.syncMeta.revision === 'number'
+                    ? cloudData.syncMeta.revision
+                    : 1; // старая версия без sync_meta — считаем ревизией 1
+
+                const cloudLastModified = cloudData.syncMeta?.lastModified || 0;
+                const localRev = localSyncMeta.revision;
+                const localLastModified = localSyncMeta.lastModified || 0;
+
+                // Облако новее, если:
+                //   - ревизия больше
+                //   - или ревизия равна, но lastModified больше
+                if (cloudRev > localRev ||
+                    (cloudRev === localRev && cloudLastModified > localLastModified)) {
+
+                    // Применяем облако
+                    applyCloudToMemory(cloudData);
+
+                    // Синхронизируем localSyncMeta с облаком
+                    localSyncMeta = {
+                        revision: cloudRev,
+                        lastModified: cloudLastModified,
+                    };
+
+                    saveToLocalStorageImmediate();
+                    applyAllSettings();
+
+                    if (calendarOverlay.classList.contains('open')) {
+                        renderCalendar(currentYear, currentMonth);
+                    }
+                }
+            } catch (e) {}
+            finally {
+                cloudLoading = false;
+            }
         }
 
         // ============================================================
@@ -1922,9 +1947,7 @@
             if (!s) return null;
             const low = s.toLowerCase();
             const today = new Date();
-            if (low === 'сегодня') {
-                return { y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() };
-            }
+            if (low === 'сегодня') return { y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() };
             if (low === 'вчера') {
                 const yest = new Date(today.getTime() - 86400000);
                 return { y: yest.getFullYear(), m: yest.getMonth()+1, d: yest.getDate() };
@@ -1953,14 +1976,8 @@
 
         function cmdCounter(amountStr) {
             const amount = parseInt(amountStr, 10);
-            if (isNaN(amount)) {
-                devLogLine('❌ Неверное число: ' + amountStr, 'log-err');
-                return;
-            }
-            if (amount === 0) {
-                devLogLine('ℹ️ Счётчик не изменён (0).', 'log-info');
-                return;
-            }
+            if (isNaN(amount)) { devLogLine('❌ Неверное число: ' + amountStr, 'log-err'); return; }
+            if (amount === 0) { devLogLine('ℹ️ Счётчик не изменён (0).', 'log-info'); return; }
 
             const before = hugCount;
             counterOffset += amount;
@@ -1979,15 +1996,9 @@
 
         function cmdHug(sign, dateStr, timeStr) {
             const dp = parseDevDate(dateStr);
-            if (!dp) {
-                devLogLine('❌ Неверная дата: ' + dateStr, 'log-err');
-                return;
-            }
+            if (!dp) { devLogLine('❌ Неверная дата: ' + dateStr, 'log-err'); return; }
             const tp = parseDevTime(timeStr);
-            if (!tp) {
-                devLogLine('❌ Неверное время: ' + timeStr, 'log-err');
-                return;
-            }
+            if (!tp) { devLogLine('❌ Неверное время: ' + timeStr, 'log-err'); return; }
 
             const dt = new Date(dp.y, dp.m - 1, dp.d, tp.h, tp.mi, tp.se, 0);
             const ts = dt.getTime();
@@ -2012,10 +2023,7 @@
                     const diff = Math.abs(arr[i].t - ts);
                     if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
                 }
-                if (bestIdx === -1) {
-                    devLogLine(`❌ Не удалось найти обнимашку`, 'log-err');
-                    return;
-                }
+                if (bestIdx === -1) { devLogLine(`❌ Не удалось найти обнимашку`, 'log-err'); return; }
                 const removed = arr.splice(bestIdx, 1)[0];
                 if (arr.length === 0) delete history[key];
                 updateCounter();
@@ -2033,23 +2041,13 @@
         function runDevCommand(raw) {
             const cmd = (raw || '').trim();
             if (!cmd) return;
-
             devLogLine('> ' + cmd, 'log-sys');
 
             let m = cmd.match(/^(?:счётчик|счетчик|counter)\s*([+-]?\d+)\s*$/i);
-            if (m) {
-                cmdCounter(m[1]);
-                return;
-            }
+            if (m) { cmdCounter(m[1]); return; }
 
             m = cmd.match(/^([+-])\s*обнимашка\s+(\S+)(?:\s+(\S+))?\s*$/i);
-            if (m) {
-                const sign = m[1];
-                const dateStr = m[2];
-                const timeStr = m[3] || null;
-                cmdHug(sign, dateStr, timeStr);
-                return;
-            }
+            if (m) { cmdHug(m[1], m[2], m[3] || null); return; }
 
             devLogLine('❌ Неизвестная команда. Смотри подсказки сверху.', 'log-err');
         }
@@ -2070,9 +2068,7 @@
 
         devBtn.addEventListener('click', openDevPanel);
         devClose.addEventListener('click', closeDevPanel);
-        devOverlay.addEventListener('click', function(e) {
-            if (e.target === this) closeDevPanel();
-        });
+        devOverlay.addEventListener('click', function(e) { if (e.target === this) closeDevPanel(); });
         devRun.addEventListener('click', function() {
             const v = devInput.value;
             devInput.value = '';
@@ -2274,42 +2270,98 @@
         });
 
         // ============================================================
-        // СИНХРОНИЗАЦИЯ
+        // СОБЫТИЯ ВИДИМОСТИ / ФОКУСА
         // ============================================================
-        async function trySync() {
-            if (!isInitialized) return;
-            if (hasPendingLocalChanges) return; // ждём, пока свои изменения улетят
-            try {
-                await syncWithCloud(false);
-            } catch (e) {}
-        }
-
         document.addEventListener('visibilitychange', function() {
             if (document.visibilityState === 'visible') {
-                trySync();
+                syncFromCloud();
             } else {
                 saveToLocalStorageImmediate();
             }
         });
+        window.addEventListener('focus', function() { syncFromCloud(); });
 
-        window.addEventListener('focus', function() {
-            trySync();
-        });
-
-        setInterval(trySync, 3000);
+        // Периодическая синхронизация (тихо, не блокирует ничего)
+        setInterval(function() { syncFromCloud(); }, 3000);
 
         // ============================================================
-        // INIT
+        // INIT — НОВАЯ СТРОГАЯ ПОСЛЕДОВАТЕЛЬНОСТЬ
         // ============================================================
         async function init() {
-            // 1) Быстро показываем локальное
-            loadFromLocalStorage();
-            applyAllSettings();
-
-            // 2) Синхронизируемся с облаком (приоритет — где свежее)
+            // 1) СНАЧАЛА облако — это ИСТОЧНИК ИСТИНЫ.
+            //    Пока идёт загрузка, никакие локальные изменения
+            //    не применяются и не отправляются.
+            cloudLoading = true;
+            let cloudData = null;
             try {
-                await syncWithCloud(true);
+                if (hasCloudStorage) {
+                    cloudData = await fetchCloudData();
+                }
             } catch (e) {}
+            cloudLoading = false;
+
+            // 2) Параллельно/до — быстрый локальный рендер.
+            //    Но если облако оказалось новее — применим его ниже.
+            if (!cloudData || !cloudData.hasAnyData) {
+                // Облако пустое → грузим из localStorage
+                loadFromLocalStorage();
+
+                // И отправляем локальное в облако, чтобы оно сохранилось
+                if (calcHugCount() > 0 || settings.bgColor !== '#f7f0fa') {
+                    markLocalChange();
+                }
+            } else {
+                // Облако не пустое → решаем, чьи данные новее
+                const cloudRev = cloudData.syncMeta && typeof cloudData.syncMeta.revision === 'number'
+                    ? cloudData.syncMeta.revision
+                    : 1;
+                const cloudLastModified = cloudData.syncMeta?.lastModified || 0;
+
+                // Загружаем локальные метаданные для сравнения
+                // (без применения к state)
+                let localRev = 0;
+                let localLastModified = 0;
+                try {
+                    const localSyncStr = localStorage.getItem(K_SYNC_META);
+                    if (localSyncStr) {
+                        const sm = JSON.parse(localSyncStr);
+                        if (sm && typeof sm.revision === 'number') {
+                            localRev = sm.revision;
+                            localLastModified = sm.lastModified || 0;
+                        }
+                    }
+                } catch (e) {}
+
+                // Если в облаке больше ревизия или lastModified —
+                // ИЛИ облако в старом формате без sync_meta — применяем облако.
+                // Если наоборот — сначала применяем локальное, потом пушим его в облако.
+                if (cloudRev > localRev ||
+                    (cloudRev === localRev && cloudLastModified > localLastModified) ||
+                    !cloudData.syncMeta) {
+
+                    // Облако новее → применяем облако как единственный источник истины
+                    applyCloudToMemory(cloudData);
+                    localSyncMeta = {
+                        revision: cloudRev,
+                        lastModified: cloudLastModified,
+                    };
+                    saveToLocalStorageImmediate();
+
+                    // Если в облаке не было sync_meta (старая версия) —
+                    // присвоим ревизию и запушим, чтобы в облаке была мета
+                    if (!cloudData.syncMeta) {
+                        localSyncMeta.revision = Math.max(localSyncMeta.revision, 1);
+                        localSyncMeta.lastModified = Date.now();
+                        markLocalChange();
+                    }
+                } else {
+                    // Локальное новее → сначала загрузим локальное, потом пушим
+                    loadFromLocalStorage();
+                    markLocalChange();
+                }
+            }
+
+            applyAllSettings();
 
             // 3) Разрешаем периодическую синхронизацию
             isInitialized = true;
