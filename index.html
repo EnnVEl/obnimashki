@@ -1032,10 +1032,7 @@
 
         const ACCOUNT_KEY = getAccountKey();
 
-        // localStorage — per-account (разные аккаунты на одном телефоне не смешиваются)
-        function K(base) {
-            return 'hugApp_' + ACCOUNT_KEY + '_' + base;
-        }
+        function K(base) { return 'hugApp_' + ACCOUNT_KEY + '_' + base; }
 
         const K_VERSION = K('v');
         const K_SETTINGS = K('settings');
@@ -1045,8 +1042,6 @@
         const K_SYNC_META = K('sync_meta');
         const LS_IMAGES = K('images');
 
-        // CloudStorage — привязан к аккаунту на стороне Telegram,
-        // поэтому префикс по аккаунту тут НЕ нужен.
         const CP = 'hugApp_';
         const CK = {
             VERSION: CP + 'v',
@@ -1057,7 +1052,7 @@
             SYNC_META: CP + 'sync_meta',
         };
 
-        const VERSION = 7;
+        const VERSION = 8;
         const CLOUD_LIMIT = 3800;
 
         // ============================================================
@@ -1067,23 +1062,11 @@
         let counterOffset = 0;
         let hugCount = 0;
 
-        // Мета синхронизации: revision + lastModified.
-        // Каждое изменение → revision++. Синхронизация сравнивает по revision.
         let localSyncMeta = { revision: 0, lastModified: 0 };
 
-        // ---- КРИТИЧНЫЕ ФЛАГИ ----
-        // pendingPush = true означает, что у нас есть локальные изменения,
-        // которые ещё не подтверждены облаком. Пока true:
-        //   - не синхронизируемся (не читаем облако)
-        //   - но пушим в облако
         let pendingPush = false;
-        // isPushing = true пока идёт отправка в облако.
-        // Пока true — никаких параллельных операций с облаком.
         let isPushing = false;
-        // cloudLoading = true пока идёт первичная загрузка облака.
-        // Пока true — не пушим, не синхронизируемся, ничего не делаем с облаком.
         let cloudLoading = false;
-        // Инициализация завершена — можно включать автосинхронизацию.
         let isInitialized = false;
 
         let settings = {
@@ -1331,9 +1314,8 @@
         }
 
         // ============================================================
-        // ОТПРАВКА В ОБЛАКО — МГНОВЕННАЯ, БЕЗ ЗАДЕРЖЕК
+        // ОТПРАВКА В ОБЛАКО — МГНОВЕННАЯ
         // ============================================================
-        // Блокировка: пока идёт отправка, никаких параллельных операций с облаком.
         let pushChain = Promise.resolve();
 
         async function setCloud(key, value, retries = 2) {
@@ -1345,18 +1327,12 @@
             return false;
         }
 
-        // Эта функция вызывается СРАЗУ при любом изменении.
-        // Никаких setTimeout, debounce и т.п.
         async function pushToCloudNow() {
             if (!hasCloudStorage) {
                 pendingPush = false;
                 return;
             }
-
-            // Ждём, пока предыдущая отправка завершится (последовательно)
-            await pushChain;
             if (isPushing) return;
-
             isPushing = true;
 
             const settingsJson = JSON.stringify({
@@ -1386,49 +1362,44 @@
                 ...chunks.map((chunk, i) => [CK.HISTORY_CHUNK(i), JSON.stringify(chunk)]),
             ];
 
-            let allOk = true;
-            for (const [key, value] of entries) {
-                const ok = await setCloud(key, value, 2);
-                if (!ok) allOk = false;
-            }
+            // Параллельная отправка всех ключей — быстрее
+            const results = await Promise.all(
+                entries.map(([k, v]) => setCloud(k, v, 2))
+            );
+            const allOk = results.every(Boolean);
 
-            // Чистим лишние чанки в облаке
+            // Чистим лишние чанки
             try {
                 const allKeys = await cloudGetAllKeys();
                 const ourChunkKeys = allKeys.filter(k =>
                     k.startsWith(CP + 'history_') && k !== CK.HISTORY_META
                 );
-                for (const k of ourChunkKeys) {
-                    const idx = parseInt(k.replace(CP + 'history_', ''), 10);
-                    if (!isNaN(idx) && idx >= chunks.length) {
-                        await cloudRemove(k);
-                    }
+                if (ourChunkKeys.length) {
+                    const toRemove = ourChunkKeys.filter(k => {
+                        const idx = parseInt(k.replace(CP + 'history_', ''), 10);
+                        return !isNaN(idx) && idx >= chunks.length;
+                    });
+                    await Promise.all(toRemove.map(k => cloudRemove(k)));
                 }
             } catch (e) {}
 
             isPushing = false;
-
-            if (allOk) {
-                pendingPush = false;
-            } else {
-                // Не всё записалось — оставим флаг, попробуем ещё раз позже
-                pendingPush = true;
-            }
+            pendingPush = !allOk;
         }
 
-        // Планировщик: гарантирует, что pushToCloudNow вызовется один раз за тик
         let pushScheduled = false;
         function schedulePush() {
             if (pushScheduled) return;
             pushScheduled = true;
-            pushChain = pushChain.then(() => {
+            // Микрозадача — без setTimeout, максимально быстро
+            Promise.resolve().then(() => {
                 pushScheduled = false;
-                return pushToCloudNow();
-            }).catch(() => { pushScheduled = false; });
+                pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
+            });
         }
 
         // ============================================================
-        // ЗАГРУЗКА LOCAL
+        // LOCAL LOAD
         // ============================================================
         function loadFromLocalStorage() {
             const settingsStr = localStorage.getItem(K_SETTINGS);
@@ -1501,34 +1472,45 @@
         }
 
         // ============================================================
-        // ЗАГРУЗКА CLOUD (полная, синхронно с ожиданием)
+        // БЫСТРОЕ ЧТЕНИЕ ОБЛАКА — ПАРАЛЛЕЛЬНО
         // ============================================================
-        async function fetchCloudData() {
-            const cloudSettings = await cloudGet(CK.SETTINGS);
-            const cloudMeta = await cloudGet(CK.HISTORY_META);
-            const cloudOffset = await cloudGet(CK.COUNTER_OFFSET);
-            const cloudSyncMeta = await cloudGet(CK.SYNC_META);
+        // 1) Сначала читаем sync_meta одним запросом
+        // 2) Если нужно — читаем остальное ПАРАЛЛЕЛЬНО
+        async function fetchCloudSyncMeta() {
+            if (!hasCloudStorage) return null;
+            const s = await cloudGet(CK.SYNC_META);
+            if (!s) return null;
+            try { return JSON.parse(s); } catch (e) { return null; }
+        }
 
-            let cloudSettingsObj = null;
-            if (cloudSettings) {
-                try { cloudSettingsObj = JSON.parse(cloudSettings); } catch (e) {}
-            }
+        async function fetchCloudFull() {
+            // Параллельно читаем всё, что нужно
+            const [settingsStr, metaStr, offsetStr, syncMetaStr] = await Promise.all([
+                cloudGet(CK.SETTINGS),
+                cloudGet(CK.HISTORY_META),
+                cloudGet(CK.COUNTER_OFFSET),
+                cloudGet(CK.SYNC_META),
+            ]);
 
-            let cloudMetaObj = null;
-            if (cloudMeta) {
-                try { cloudMetaObj = JSON.parse(cloudMeta); } catch (e) {}
-            }
+            let settingsObj = null;
+            if (settingsStr) { try { settingsObj = JSON.parse(settingsStr); } catch (e) {} }
 
-            let cloudSyncMetaObj = null;
-            if (cloudSyncMeta) {
-                try { cloudSyncMetaObj = JSON.parse(cloudSyncMeta); } catch (e) {}
-            }
+            let metaObj = null;
+            if (metaStr) { try { metaObj = JSON.parse(metaStr); } catch (e) {} }
 
+            let syncMetaObj = null;
+            if (syncMetaStr) { try { syncMetaObj = JSON.parse(syncMetaStr); } catch (e) {} }
+
+            // История — параллельно все чанки
             let cloudHistory = {};
-            if (cloudMetaObj && cloudMetaObj.chunks > 0) {
+            if (metaObj && metaObj.chunks > 0) {
+                const chunkPromises = [];
+                for (let i = 0; i < metaObj.chunks; i++) {
+                    chunkPromises.push(cloudGet(CK.HISTORY_CHUNK(i)));
+                }
+                const chunkStrs = await Promise.all(chunkPromises);
                 const merged = {};
-                for (let i = 0; i < cloudMetaObj.chunks; i++) {
-                    const chunkStr = await cloudGet(CK.HISTORY_CHUNK(i));
+                for (const chunkStr of chunkStrs) {
                     if (!chunkStr) continue;
                     try {
                         const chunkObj = JSON.parse(chunkStr);
@@ -1538,19 +1520,19 @@
                 cloudHistory = deserializeHistory(merged);
             }
 
-            let cloudOffsetNum = 0;
-            if (cloudOffset !== null && cloudOffset !== undefined) {
-                const n = parseInt(cloudOffset, 10);
-                if (!isNaN(n)) cloudOffsetNum = n;
+            let offsetNum = 0;
+            if (offsetStr !== null && offsetStr !== undefined) {
+                const n = parseInt(offsetStr, 10);
+                if (!isNaN(n)) offsetNum = n;
             }
 
             return {
-                settings: cloudSettingsObj,
-                meta: cloudMetaObj,
-                syncMeta: cloudSyncMetaObj,
+                settings: settingsObj,
+                meta: metaObj,
+                syncMeta: syncMetaObj,
                 history: cloudHistory,
-                offset: cloudOffsetNum,
-                hasAnyData: !!(cloudSettings || cloudMeta || cloudOffset !== null),
+                offset: offsetNum,
+                hasAnyData: !!(settingsStr || metaStr || offsetStr !== null),
             };
         }
 
@@ -1576,7 +1558,7 @@
         }
 
         // ============================================================
-        // ПРИМЕНЕНИЕ НАСТРОЕК
+        // ПРИМЕНЕНИЕ
         // ============================================================
         function applyAllSettings() {
             if (images.bgImage) {
@@ -1630,18 +1612,10 @@
             counterEl.innerHTML = `🤗 ${hugCount}`;
         }
 
-        // ============================================================
-        // ГЛАВНЫЙ ТРИГГЕР ИЗМЕНЕНИЯ
-        // ============================================================
-        // Вызывается при ЛЮБОМ изменении (клик, настройка, dev-команда).
-        // 1) bump revision + lastModified
-        // 2) синхронно в localStorage
-        // 3) МГНОВЕННО отправляем в облако
         function markLocalChange() {
             localSyncMeta.revision++;
             localSyncMeta.lastModified = Date.now();
             pendingPush = true;
-
             saveToLocalStorageImmediate();
             schedulePush();
         }
@@ -1649,12 +1623,6 @@
         // ============================================================
         // СИНХРОНИЗАЦИЯ ИЗ ОБЛАКА
         // ============================================================
-        // Вызывается по таймеру / при visibility/focus.
-        // НЕ выполняется, если:
-        //   - ещё идёт первичная загрузка облака
-        //   - у нас есть неотправленные изменения (pendingPush)
-        //   - прямо сейчас идёт отправка (isPushing)
-        //   - мы ещё не инициализированы полностью
         async function syncFromCloud() {
             if (!hasCloudStorage) return;
             if (cloudLoading) return;
@@ -1664,37 +1632,39 @@
 
             cloudLoading = true;
             try {
-                const cloudData = await fetchCloudData();
-                if (!cloudData.hasAnyData) {
+                // 1) Один запрос — sync_meta. По нему уже видно, чьи новее.
+                const cloudSyncMeta = await fetchCloudSyncMeta();
+
+                if (!cloudSyncMeta) {
+                    // В облаке нет меты — возможно, старая версия. Проверим,
+                    // есть ли вообще данные, и если у нас нет ничего — подтянем.
+                    const cloudData = await fetchCloudFull();
+                    if (!cloudData.hasAnyData) return;
+                    if (localSyncMeta.revision > 0) return; // у нас данные есть, не трогаем
+                    applyCloudToMemory(cloudData);
+                    localSyncMeta = { revision: 1, lastModified: Date.now() };
+                    saveToLocalStorageImmediate();
+                    applyAllSettings();
                     return;
                 }
 
-                const cloudRev = cloudData.syncMeta && typeof cloudData.syncMeta.revision === 'number'
-                    ? cloudData.syncMeta.revision
-                    : 1; // старая версия без sync_meta — считаем ревизией 1
-
-                const cloudLastModified = cloudData.syncMeta?.lastModified || 0;
+                const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 1;
+                const cloudLastModified = cloudSyncMeta.lastModified || 0;
                 const localRev = localSyncMeta.revision;
                 const localLastModified = localSyncMeta.lastModified || 0;
 
-                // Облако новее, если:
-                //   - ревизия больше
-                //   - или ревизия равна, но lastModified больше
+                // Облако новее — читаем полные данные и применяем
                 if (cloudRev > localRev ||
                     (cloudRev === localRev && cloudLastModified > localLastModified)) {
 
-                    // Применяем облако
+                    const cloudData = await fetchCloudFull();
                     applyCloudToMemory(cloudData);
-
-                    // Синхронизируем localSyncMeta с облаком
                     localSyncMeta = {
                         revision: cloudRev,
                         lastModified: cloudLastModified,
                     };
-
                     saveToLocalStorageImmediate();
                     applyAllSettings();
-
                     if (calendarOverlay.classList.contains('open')) {
                         renderCalendar(currentYear, currentMonth);
                     }
@@ -2270,105 +2240,82 @@
         });
 
         // ============================================================
-        // СОБЫТИЯ ВИДИМОСТИ / ФОКУСА
+        // ВИДИМОСТЬ / ФОКУС
         // ============================================================
         document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible') {
-                syncFromCloud();
-            } else {
-                saveToLocalStorageImmediate();
-            }
+            if (document.visibilityState === 'visible') syncFromCloud();
+            else saveToLocalStorageImmediate();
         });
         window.addEventListener('focus', function() { syncFromCloud(); });
 
-        // Периодическая синхронизация (тихо, не блокирует ничего)
+        // Периодическая синхронизация (тихая)
         setInterval(function() { syncFromCloud(); }, 3000);
 
         // ============================================================
-        // INIT — НОВАЯ СТРОГАЯ ПОСЛЕДОВАТЕЛЬНОСТЬ
+        // INIT — МГНОВЕННЫЙ СТАРТ
         // ============================================================
         async function init() {
-            // 1) СНАЧАЛА облако — это ИСТОЧНИК ИСТИНЫ.
-            //    Пока идёт загрузка, никакие локальные изменения
-            //    не применяются и не отправляются.
-            cloudLoading = true;
-            let cloudData = null;
-            try {
-                if (hasCloudStorage) {
-                    cloudData = await fetchCloudData();
-                }
-            } catch (e) {}
-            cloudLoading = false;
+            // === ШАГ 1: мгновенный рендер из localStorage ===
+            // Никаких await — localStorage синхронный.
+            // Пользователь сразу видит свой счётчик.
+            loadFromLocalStorage();
+            applyAllSettings();
 
-            // 2) Параллельно/до — быстрый локальный рендер.
-            //    Но если облако оказалось новее — применим его ниже.
-            if (!cloudData || !cloudData.hasAnyData) {
-                // Облако пустое → грузим из localStorage
-                loadFromLocalStorage();
-
-                // И отправляем локальное в облако, чтобы оно сохранилось
-                if (calcHugCount() > 0 || settings.bgColor !== '#f7f0fa') {
-                    markLocalChange();
-                }
-            } else {
-                // Облако не пустое → решаем, чьи данные новее
-                const cloudRev = cloudData.syncMeta && typeof cloudData.syncMeta.revision === 'number'
-                    ? cloudData.syncMeta.revision
-                    : 1;
-                const cloudLastModified = cloudData.syncMeta?.lastModified || 0;
-
-                // Загружаем локальные метаданные для сравнения
-                // (без применения к state)
-                let localRev = 0;
-                let localLastModified = 0;
+            // === ШАГ 2: параллельно с рендером — читаем только sync_meta ===
+            // Один запрос. По нему видно, есть ли в облаке что-то новее.
+            if (hasCloudStorage) {
                 try {
-                    const localSyncStr = localStorage.getItem(K_SYNC_META);
-                    if (localSyncStr) {
-                        const sm = JSON.parse(localSyncStr);
-                        if (sm && typeof sm.revision === 'number') {
-                            localRev = sm.revision;
-                            localLastModified = sm.lastModified || 0;
+                    const cloudSyncMeta = await fetchCloudSyncMeta();
+
+                    if (!cloudSyncMeta) {
+                        // В облаке нет меты → либо пусто, либо старая версия.
+                        // Подтянем полностью (один раз, чтобы мигрировать).
+                        const cloudData = await fetchCloudFull();
+                        if (cloudData.hasAnyData) {
+                            // В облаке есть данные (старая версия).
+                            // Если у нас ревизия 0 (пустые) — применяем облако.
+                            if (localSyncMeta.revision === 0) {
+                                applyCloudToMemory(cloudData);
+                                localSyncMeta = { revision: 1, lastModified: Date.now() };
+                                saveToLocalStorageImmediate();
+                                applyAllSettings();
+                            } else {
+                                // У нас есть данные, но в облаке нет меты.
+                                // Присвоим ревизию и запушим, чтобы зафиксировать в облаке.
+                                localSyncMeta.revision = Math.max(localSyncMeta.revision, 1);
+                                localSyncMeta.lastModified = Date.now();
+                                markLocalChange();
+                            }
+                        }
+                    } else {
+                        const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 1;
+                        const cloudLastModified = cloudSyncMeta.lastModified || 0;
+                        const localRev = localSyncMeta.revision;
+                        const localLastModified = localSyncMeta.lastModified || 0;
+
+                        // Если облако новее — читаем полностью и применяем
+                        if (cloudRev > localRev ||
+                            (cloudRev === localRev && cloudLastModified > localLastModified)) {
+                            const cloudData = await fetchCloudFull();
+                            applyCloudToMemory(cloudData);
+                            localSyncMeta = {
+                                revision: cloudRev,
+                                lastModified: cloudLastModified,
+                            };
+                            saveToLocalStorageImmediate();
+                            applyAllSettings();
+                        } else if (localRev > cloudRev ||
+                                   (localRev === cloudRev && localLastModified > cloudLastModified)) {
+                            // У нас новее — запушим в облако
+                            schedulePush();
                         }
                     }
                 } catch (e) {}
-
-                // Если в облаке больше ревизия или lastModified —
-                // ИЛИ облако в старом формате без sync_meta — применяем облако.
-                // Если наоборот — сначала применяем локальное, потом пушим его в облако.
-                if (cloudRev > localRev ||
-                    (cloudRev === localRev && cloudLastModified > localLastModified) ||
-                    !cloudData.syncMeta) {
-
-                    // Облако новее → применяем облако как единственный источник истины
-                    applyCloudToMemory(cloudData);
-                    localSyncMeta = {
-                        revision: cloudRev,
-                        lastModified: cloudLastModified,
-                    };
-                    saveToLocalStorageImmediate();
-
-                    // Если в облаке не было sync_meta (старая версия) —
-                    // присвоим ревизию и запушим, чтобы в облаке была мета
-                    if (!cloudData.syncMeta) {
-                        localSyncMeta.revision = Math.max(localSyncMeta.revision, 1);
-                        localSyncMeta.lastModified = Date.now();
-                        markLocalChange();
-                    }
-                } else {
-                    // Локальное новее → сначала загрузим локальное, потом пушим
-                    loadFromLocalStorage();
-                    markLocalChange();
-                }
             }
 
-            applyAllSettings();
-
-            // 3) Разрешаем периодическую синхронизацию
             isInitialized = true;
 
-            if (checkDevAccess()) {
-                devBtn.classList.add('show');
-            }
+            if (checkDevAccess()) devBtn.classList.add('show');
 
             const today = new Date();
             selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
