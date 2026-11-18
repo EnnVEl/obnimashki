@@ -6,794 +6,133 @@
     <title>Обнимашки</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            height: 100dvh;
-            background: #f7f0fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: background-color 0.2s;
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
-            position: fixed;
-            top: 0;
-            left: 0;
-        }
-
-        #app {
-            width: 100%;
-            max-width: 420px;
-            height: 100%;
-            height: 100dvh;
-            max-height: 780px;
-            background: #f7f0fa;
-            border-radius: 0;
-            box-shadow: none;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            transition: background-color 0.2s, background-image 0.3s;
-            background-size: cover;
-            background-position: center;
-        }
-
-        #header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px 4px;
-            position: relative;
-            z-index: 5;
-            flex-shrink: 0;
-        }
-
-        #counter {
-            font-size: 22px;
-            font-weight: 700;
-            color: #000000;
-            letter-spacing: 0.3px;
-            background: rgba(255,255,255,0.5);
-            padding: 2px 12px;
-            border-radius: 28px;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            transition: color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        #settings-btn {
-            font-size: 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 24px;
-            transition: 0.2s;
-            color: #000000;
-        }
-        #settings-btn:hover {
-            background: rgba(0,0,0,0.04);
-        }
-
-        #btn-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 4px 16px;
-            min-height: 0;
-        }
-
-        #hug-btn {
-            aspect-ratio: 1/1;
-            width: min(60%, 220px);
-            max-width: 260px;
-            border-radius: 50%;
-            background: #ffb6c9;
-            border: none;
-            font-size: clamp(22px, 4.5vw, 36px);
-            font-weight: 700;
-            color: #000000;
-            box-shadow: 0 10px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.15);
-            transition: all 0.08s ease, background-color 0.2s, color 0.2s, background-image 0.3s, box-shadow 0.2s;
-            cursor: pointer;
-            text-shadow: 0 2px 4px rgba(255,255,255,0.3);
-            touch-action: manipulation;
-            position: relative;
-            background-size: cover;
-            background-position: center;
-            overflow: hidden;
-            outline: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto;
-            flex-shrink: 0;
-        }
-        #hug-btn:active {
-            transform: scale(0.95);
-            box-shadow: 0 4px 0 #d48a9e, 0 8px 16px rgba(0,0,0,0.12);
-        }
-        #hug-btn .btn-text {
-            position: relative;
-            z-index: 2;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            transition: opacity 0.3s;
-            pointer-events: none;
-            font-size: clamp(18px, 3.5vw, 30px);
-        }
-        #hug-btn.has-image .btn-text {
-            opacity: 0.85;
-        }
-
-        #bottom-bar {
-            display: flex;
-            justify-content: flex-start;
-            padding: 4px 16px 12px;
-            position: relative;
-            z-index: 5;
-            flex-shrink: 0;
-        }
-
-        #calendar-icon {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 28px;
-            transition: 0.2s;
-            color: #000000;
-        }
-        #calendar-icon:hover {
-            background: rgba(0,0,0,0.04);
-        }
-
-        #dev-btn {
-            position: absolute;
-            right: 8px;
-            bottom: 8px;
-            min-width: 34px;
-            height: 26px;
-            padding: 0 10px;
-            border-radius: 14px;
-            background: rgba(60, 40, 80, 0.55);
-            color: #fff;
-            border: none;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            z-index: 10;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-            transition: 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            opacity: 0.7;
-            letter-spacing: 0.5px;
-            font-family: 'SF Mono', Menlo, Consolas, monospace;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        html, body { width: 100%; height: 100%; height: 100dvh; background: #f7f0fa; display: flex; justify-content: center; align-items: center; transition: background-color 0.2s; padding: 0; margin: 0; overflow: hidden; position: fixed; top: 0; left: 0; }
+        #app { width: 100%; max-width: 420px; height: 100%; height: 100dvh; max-height: 780px; background: #f7f0fa; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: background-color 0.2s, background-image 0.3s; background-size: cover; background-position: center; }
+        #header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 4px; position: relative; z-index: 5; flex-shrink: 0; }
+        #counter { font-size: 22px; font-weight: 700; color: #000000; letter-spacing: 0.3px; background: rgba(255,255,255,0.5); padding: 2px 12px; border-radius: 28px; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.04); transition: color 0.2s; display: flex; align-items: center; gap: 4px; }
+        #settings-btn { font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 24px; transition: 0.2s; color: #000000; }
+        #settings-btn:hover { background: rgba(0,0,0,0.04); }
+        #btn-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4px 16px; min-height: 0; }
+        #hug-btn { aspect-ratio: 1/1; width: min(60%, 220px); max-width: 260px; border-radius: 50%; background: #ffb6c9; border: none; font-size: clamp(22px, 4.5vw, 36px); font-weight: 700; color: #000000; box-shadow: 0 10px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.15); transition: all 0.08s ease, background-color 0.2s, color 0.2s, background-image 0.3s, box-shadow 0.2s; cursor: pointer; text-shadow: 0 2px 4px rgba(255,255,255,0.3); touch-action: manipulation; position: relative; background-size: cover; background-position: center; overflow: hidden; outline: none; display: flex; justify-content: center; align-items: center; margin: 0 auto; flex-shrink: 0; }
+        #hug-btn:active { transform: scale(0.95); box-shadow: 0 4px 0 #d48a9e, 0 8px 16px rgba(0,0,0,0.12); }
+        #hug-btn .btn-text { position: relative; z-index: 2; text-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: opacity 0.3s; pointer-events: none; font-size: clamp(18px, 3.5vw, 30px); }
+        #hug-btn.has-image .btn-text { opacity: 0.85; }
+        #bottom-bar { display: flex; justify-content: flex-start; padding: 4px 16px 12px; position: relative; z-index: 5; flex-shrink: 0; }
+        #calendar-icon { background: none; border: none; font-size: 28px; cursor: pointer; padding: 4px 8px; border-radius: 28px; transition: 0.2s; color: #000000; }
+        #calendar-icon:hover { background: rgba(0,0,0,0.04); }
+        #dev-btn { position: absolute; right: 8px; bottom: 8px; min-width: 34px; height: 26px; padding: 0 10px; border-radius: 14px; background: rgba(60, 40, 80, 0.55); color: #fff; border: none; font-size: 11px; font-weight: 700; cursor: pointer; z-index: 10; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); opacity: 0.7; letter-spacing: 0.5px; font-family: 'SF Mono', Menlo, Consolas, monospace; }
         #dev-btn.show { display: flex; }
         #dev-btn:hover { opacity: 1; transform: scale(1.06); }
         #dev-btn:active { transform: scale(0.94); }
-
-        #dev-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(5px);
-            z-index: 50;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-        }
+        #dev-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(5px); z-index: 50; display: none; justify-content: center; align-items: center; padding: 10px; }
         #dev-overlay.open { display: flex; }
-
-        .dev-panel {
-            background: #1a1424;
-            color: #e8e0f0;
-            width: 100%;
-            max-width: 400px;
-            max-height: 92%;
-            border-radius: 20px;
-            padding: 14px 14px 12px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.5);
-            border: 1px solid #3a2a4a;
-            font-family: 'SF Mono', Menlo, Consolas, monospace;
-        }
-
-        .dev-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #33284a;
-            margin-bottom: 8px;
-        }
-        .dev-header .dev-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: #d4b0e0;
-            letter-spacing: 0.5px;
-        }
-        .dev-header .dev-user {
-            font-size: 10px;
-            color: #8878a0;
-            margin-left: 6px;
-        }
-        .dev-close {
-            background: none;
-            border: none;
-            color: #c0a0d0;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 0 6px;
-        }
+        .dev-panel { background: #1a1424; color: #e8e0f0; width: 100%; max-width: 400px; max-height: 92%; border-radius: 20px; padding: 14px 14px 12px; display: flex; flex-direction: column; box-shadow: 0 24px 48px rgba(0,0,0,0.5); border: 1px solid #3a2a4a; font-family: 'SF Mono', Menlo, Consolas, monospace; }
+        .dev-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #33284a; margin-bottom: 8px; }
+        .dev-header .dev-title { font-size: 14px; font-weight: 700; color: #d4b0e0; letter-spacing: 0.5px; }
+        .dev-header .dev-user { font-size: 10px; color: #8878a0; margin-left: 6px; }
+        .dev-close { background: none; border: none; color: #c0a0d0; font-size: 20px; cursor: pointer; padding: 0 6px; }
         .dev-close:hover { color: #fff; }
-
-        .dev-hints {
-            background: #241a30;
-            border-radius: 10px;
-            padding: 8px 10px;
-            margin-bottom: 8px;
-            font-size: 11px;
-            line-height: 1.55;
-            color: #b8a0c8;
-            max-height: 180px;
-            overflow-y: auto;
-        }
-        .dev-hints .hint-title {
-            color: #d4b0e0;
-            font-weight: 700;
-            margin-bottom: 4px;
-            font-size: 11px;
-            letter-spacing: 0.3px;
-        }
-        .dev-hints .hint-cmd {
-            color: #ffd78a;
-            font-weight: 700;
-        }
-        .dev-hints .hint-desc {
-            color: #9988aa;
-            font-size: 10px;
-        }
-        .dev-hints .hint-line {
-            margin-bottom: 3px;
-            padding: 2px 0;
-        }
-        .dev-hints code {
-            color: #8ce0c0;
-            font-size: 10px;
-        }
-
-        .dev-log {
-            flex: 1;
-            min-height: 80px;
-            max-height: 180px;
-            overflow-y: auto;
-            background: #120c1a;
-            border-radius: 10px;
-            padding: 8px 10px;
-            font-size: 11px;
-            line-height: 1.5;
-            margin-bottom: 8px;
-            color: #b0a0c0;
-            border: 1px solid #2a2038;
-        }
+        .dev-hints { background: #241a30; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; font-size: 11px; line-height: 1.55; color: #b8a0c8; max-height: 180px; overflow-y: auto; }
+        .dev-hints .hint-title { color: #d4b0e0; font-weight: 700; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.3px; }
+        .dev-hints .hint-cmd { color: #ffd78a; font-weight: 700; }
+        .dev-hints .hint-desc { color: #9988aa; font-size: 10px; }
+        .dev-hints .hint-line { margin-bottom: 3px; padding: 2px 0; }
+        .dev-hints code { color: #8ce0c0; font-size: 10px; }
+        .dev-log { flex: 1; min-height: 80px; max-height: 180px; overflow-y: auto; background: #120c1a; border-radius: 10px; padding: 8px 10px; font-size: 11px; line-height: 1.5; margin-bottom: 8px; color: #b0a0c0; border: 1px solid #2a2038; }
         .dev-log .log-line { padding: 1px 0; word-break: break-word; }
         .dev-log .log-ok { color: #7ce0a0; }
         .dev-log .log-err { color: #ff8080; }
         .dev-log .log-info { color: #a0b8e0; }
         .dev-log .log-sys { color: #8878a0; font-style: italic; }
-
-        .dev-input-row {
-            display: flex;
-            gap: 6px;
-        }
-        .dev-input {
-            flex: 1;
-            background: #241a30;
-            border: 1px solid #3a2a4a;
-            border-radius: 10px;
-            padding: 9px 11px;
-            color: #e8e0f0;
-            font-size: 12px;
-            font-family: inherit;
-            outline: none;
-            user-select: text;
-            -webkit-user-select: text;
-        }
+        .dev-input-row { display: flex; gap: 6px; }
+        .dev-input { flex: 1; background: #241a30; border: 1px solid #3a2a4a; border-radius: 10px; padding: 9px 11px; color: #e8e0f0; font-size: 12px; font-family: inherit; outline: none; user-select: text; -webkit-user-select: text; }
         .dev-input:focus { border-color: #8a6ab0; }
-        .dev-run {
-            background: #6a4a8a;
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-weight: 700;
-            font-size: 12px;
-            padding: 0 16px;
-            cursor: pointer;
-            transition: 0.15s;
-        }
+        .dev-run { background: #6a4a8a; border: none; border-radius: 10px; color: #fff; font-weight: 700; font-size: 12px; padding: 0 16px; cursor: pointer; transition: 0.15s; }
         .dev-run:hover { background: #7c5a9e; }
         .dev-run:active { transform: scale(0.96); }
-
-        .dev-hints::-webkit-scrollbar,
-        .dev-log::-webkit-scrollbar { width: 4px; }
-        .dev-hints::-webkit-scrollbar-thumb,
-        .dev-log::-webkit-scrollbar-thumb { background: #4a3a5a; border-radius: 4px; }
-        .dev-hints::-webkit-scrollbar-track,
-        .dev-log::-webkit-scrollbar-track { background: transparent; }
-
-        .overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.15);
-            backdrop-filter: blur(3px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-        .overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal {
-            background: #ffffff;
-            width: 92%;
-            max-width: 340px;
-            max-height: 80%;
-            border-radius: 28px;
-            padding: 18px 16px 16px;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.25);
-            overflow-y: auto;
-            transition: transform 0.2s;
-            transform: scale(0.95);
-            color: #1f1a2b;
-        }
-        .overlay.open .modal {
-            transform: scale(1);
-        }
-
-        .modal h2 {
-            font-size: 19px;
-            margin-bottom: 12px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal h2 button {
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
-            padding: 0 6px;
-            color: #4a3a5a;
-        }
-
-        .setting-group {
-            margin-bottom: 12px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #f0eaf5;
-        }
-        .setting-group:last-of-type {
-            border-bottom: none;
-            margin-bottom: 4px;
-        }
-        .setting-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 4px;
-            font-size: 13px;
-            color: #3a2a4a;
-        }
-
-        .color-picker-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .color-picker-row input[type="color"] {
-            width: 36px;
-            height: 36px;
-            border: 2px solid #ddd;
-            border-radius: 22px;
-            padding: 2px;
-            background: white;
-            cursor: pointer;
-        }
-        .color-picker-row input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-        .color-picker-row input[type="color"]::-webkit-color-swatch {
-            border: none;
-            border-radius: 22px;
-        }
-
-        .file-upload-wrapper {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .file-upload-wrapper label {
-            background: #eee8f0;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-weight: 500;
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-            color: #3d2a4a;
-        }
-        .file-upload-wrapper label:active {
-            background: #dcc8e5;
-        }
-        .file-upload-wrapper input[type="file"] {
-            display: none;
-        }
-        .file-upload-wrapper .remove-img {
-            background: none;
-            border: none;
-            font-size: 17px;
-            cursor: pointer;
-            color: #a080b0;
-            padding: 2px 6px;
-        }
-        .file-upload-wrapper .edit-btn {
-            background: none;
-            border: none;
-            font-size: 17px;
-            cursor: pointer;
-            padding: 2px 6px;
-            transition: 0.2s;
-            color: #6a5a7a;
-        }
-        .file-upload-wrapper .edit-btn:hover {
-            transform: scale(1.1);
-        }
-
-        .btn-small {
-            padding: 3px 10px;
-            border-radius: 20px;
-            border: none;
-            background: #e8def0;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            color: #2d1b3d;
-        }
-        .btn-small:active {
-            background: #d0c0dd;
-        }
-
-        .image-editor {
-            margin-top: 6px;
-            padding: 8px;
-            background: #f8f2fc;
-            border-radius: 14px;
-            display: none;
-        }
-        .image-editor.open {
-            display: block;
-        }
-        .image-editor .slider-group {
-            margin-bottom: 6px;
-        }
-        .image-editor .slider-group label {
-            font-size: 11px;
-            font-weight: 500;
-            display: flex;
-            justify-content: space-between;
-            color: #3a2a4a;
-        }
-        .image-editor input[type="range"] {
-            width: 100%;
-            height: 4px;
-            -webkit-appearance: none;
-            background: #dcc8e5;
-            border-radius: 6px;
-            outline: none;
-        }
-        .image-editor input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #b094c2;
-            cursor: pointer;
-        }
-        .image-editor .preview-container {
-            position: relative;
-            width: 100%;
-            height: 80px;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #e8def0;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .image-editor .preview-container img {
-            position: absolute;
-            object-fit: cover;
-            transition: all 0.1s;
-            max-width: none;
-            max-height: none;
-        }
-        .image-editor .no-image {
-            color: #887a98;
-            font-size: 12px;
-        }
-
-        .calendar-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 8px 0 10px;
-        }
-        .calendar-nav button {
-            background: #eee8f0;
-            border: none;
-            font-size: 17px;
-            width: 32px;
-            height: 32px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            color: #2d1b3d;
-        }
-        .calendar-nav span {
-            font-weight: 600;
-            font-size: 15px;
-        }
-
-        .weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            text-align: center;
-            font-weight: 600;
-            font-size: 11px;
-            color: #5a4a6a;
-            margin-bottom: 4px;
-        }
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 3px;
-        }
-        .day-cell {
-            aspect-ratio: 1/1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f6f0fa;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.15s;
-            color: #1f1a2b;
-            position: relative;
-        }
-        .day-cell.empty {
-            background: transparent;
-            pointer-events: none;
-        }
-        .day-cell:active {
-            background: #dcc8e5;
-        }
-        .day-cell .hug-indicator {
-            position: absolute;
-            bottom: 1px;
-            right: 3px;
-            font-size: 9px;
-            color: #c44a7a;
-        }
-        .day-cell.selected {
-            background: #d4b0d9;
-            color: #1e0f2a;
-            font-weight: 600;
-        }
-
-        #day-info {
-            margin-top: 10px;
-            padding: 8px;
-            background: #f3edf7;
-            border-radius: 20px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 500;
-            color: #2a1a3a;
-        }
-
-        #day-clicks-list {
-            margin-top: 10px;
-            padding: 8px;
-            background: #faf6fd;
-            border-radius: 16px;
-            max-height: 180px;
-            overflow-y: auto;
-            font-size: 13px;
-        }
-        #day-clicks-list .click-item {
-            padding: 4px 6px;
-            border-bottom: 1px solid #eee5f3;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #2a1a3a;
-        }
-        #day-clicks-list .click-item:last-child {
-            border-bottom: none;
-        }
-        #day-clicks-list .click-item .click-num {
-            color: #887a98;
-            font-size: 11px;
-            margin-right: 6px;
-        }
-        #day-clicks-list .click-item .click-time {
-            font-weight: 600;
-            font-feature-settings: "tnum";
-        }
-        #day-clicks-list .no-clicks {
-            text-align: center;
-            color: #887a98;
-            font-size: 12px;
-            padding: 6px;
-        }
-
-        .modal::-webkit-scrollbar {
-            width: 3px;
-        }
-        .modal::-webkit-scrollbar-track {
-            background: #ece4f0;
-        }
-        .modal::-webkit-scrollbar-thumb {
-            background: #b8a2c7;
-            border-radius: 6px;
-        }
-
-        .reset-btn {
-            width: 100%;
-            padding: 9px;
-            border: none;
-            border-radius: 28px;
-            background: #f0e6f5;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            color: #3d2a4a;
-            transition: 0.2s;
-        }
-        .reset-btn:active {
-            background: #dcc8e5;
-        }
-
+        .dev-hints::-webkit-scrollbar, .dev-log::-webkit-scrollbar { width: 4px; }
+        .dev-hints::-webkit-scrollbar-thumb, .dev-log::-webkit-scrollbar-thumb { background: #4a3a5a; border-radius: 4px; }
+        .dev-hints::-webkit-scrollbar-track, .dev-log::-webkit-scrollbar-track { background: transparent; }
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.15); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: center; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .overlay.open { opacity: 1; pointer-events: auto; }
+        .modal { background: #ffffff; width: 92%; max-width: 340px; max-height: 80%; border-radius: 28px; padding: 18px 16px 16px; box-shadow: 0 24px 48px rgba(0,0,0,0.25); overflow-y: auto; transition: transform 0.2s; transform: scale(0.95); color: #1f1a2b; }
+        .overlay.open .modal { transform: scale(1); }
+        .modal h2 { font-size: 19px; margin-bottom: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .modal h2 button { background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 6px; color: #4a3a5a; }
+        .setting-group { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f0eaf5; }
+        .setting-group:last-of-type { border-bottom: none; margin-bottom: 4px; }
+        .setting-group label { display: block; font-weight: 500; margin-bottom: 4px; font-size: 13px; color: #3a2a4a; }
+        .color-picker-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .color-picker-row input[type="color"] { width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 22px; padding: 2px; background: white; cursor: pointer; }
+        .color-picker-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 22px; }
+        .file-upload-wrapper { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+        .file-upload-wrapper label { background: #eee8f0; padding: 5px 12px; border-radius: 20px; font-weight: 500; font-size: 12px; cursor: pointer; transition: 0.2s; color: #3d2a4a; }
+        .file-upload-wrapper label:active { background: #dcc8e5; }
+        .file-upload-wrapper input[type="file"] { display: none; }
+        .file-upload-wrapper .remove-img { background: none; border: none; font-size: 17px; cursor: pointer; color: #a080b0; padding: 2px 6px; }
+        .file-upload-wrapper .edit-btn { background: none; border: none; font-size: 17px; cursor: pointer; padding: 2px 6px; transition: 0.2s; color: #6a5a7a; }
+        .file-upload-wrapper .edit-btn:hover { transform: scale(1.1); }
+        .btn-small { padding: 3px 10px; border-radius: 20px; border: none; background: #e8def0; font-size: 11px; font-weight: 500; cursor: pointer; color: #2d1b3d; }
+        .btn-small:active { background: #d0c0dd; }
+        .image-editor { margin-top: 6px; padding: 8px; background: #f8f2fc; border-radius: 14px; display: none; }
+        .image-editor.open { display: block; }
+        .image-editor .slider-group { margin-bottom: 6px; }
+        .image-editor .slider-group label { font-size: 11px; font-weight: 500; display: flex; justify-content: space-between; color: #3a2a4a; }
+        .image-editor input[type="range"] { width: 100%; height: 4px; -webkit-appearance: none; background: #dcc8e5; border-radius: 6px; outline: none; }
+        .image-editor input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #b094c2; cursor: pointer; }
+        .image-editor .preview-container { position: relative; width: 100%; height: 80px; border-radius: 10px; overflow: hidden; background: #e8def0; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; }
+        .image-editor .preview-container img { position: absolute; object-fit: cover; transition: all 0.1s; max-width: none; max-height: none; }
+        .image-editor .no-image { color: #887a98; font-size: 12px; }
+        .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 10px; }
+        .calendar-nav button { background: #eee8f0; border: none; font-size: 17px; width: 32px; height: 32px; border-radius: 20px; cursor: pointer; font-weight: 600; color: #2d1b3d; }
+        .calendar-nav span { font-weight: 600; font-size: 15px; }
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 11px; color: #5a4a6a; margin-bottom: 4px; }
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .day-cell { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; background: #f6f0fa; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.15s; color: #1f1a2b; position: relative; }
+        .day-cell.empty { background: transparent; pointer-events: none; }
+        .day-cell:active { background: #dcc8e5; }
+        .day-cell .hug-indicator { position: absolute; bottom: 1px; right: 3px; font-size: 9px; color: #c44a7a; }
+        .day-cell.selected { background: #d4b0d9; color: #1e0f2a; font-weight: 600; }
+        #day-info { margin-top: 10px; padding: 8px; background: #f3edf7; border-radius: 20px; text-align: center; font-size: 13px; font-weight: 500; color: #2a1a3a; }
+        #day-clicks-list { margin-top: 10px; padding: 8px; background: #faf6fd; border-radius: 16px; max-height: 180px; overflow-y: auto; font-size: 13px; }
+        #day-clicks-list .click-item { padding: 4px 6px; border-bottom: 1px solid #eee5f3; display: flex; justify-content: space-between; align-items: center; color: #2a1a3a; }
+        #day-clicks-list .click-item:last-child { border-bottom: none; }
+        #day-clicks-list .click-item .click-num { color: #887a98; font-size: 11px; margin-right: 6px; }
+        #day-clicks-list .click-item .click-time { font-weight: 600; font-feature-settings: "tnum"; }
+        #day-clicks-list .no-clicks { text-align: center; color: #887a98; font-size: 12px; padding: 6px; }
+        .modal::-webkit-scrollbar { width: 3px; }
+        .modal::-webkit-scrollbar-track { background: #ece4f0; }
+        .modal::-webkit-scrollbar-thumb { background: #b8a2c7; border-radius: 6px; }
+        .reset-btn { width: 100%; padding: 9px; border: none; border-radius: 28px; background: #f0e6f5; font-weight: 600; font-size: 13px; cursor: pointer; color: #3d2a4a; transition: 0.2s; }
+        .reset-btn:active { background: #dcc8e5; }
         @media (max-height: 700px) {
-            #header { padding: 8px 12px 2px; }
-            #counter { font-size: 18px; padding: 2px 10px; }
-            #settings-btn { font-size: 20px; }
-            #hug-btn { width: min(50%, 170px); }
-            #hug-btn .btn-text { font-size: clamp(14px, 3vw, 22px); }
-            #bottom-bar { padding: 2px 12px 8px; }
-            #calendar-icon { font-size: 22px; }
-            .modal { padding: 12px; max-height: 78%; }
-            .modal h2 { font-size: 16px; margin-bottom: 8px; }
-            .setting-group { margin-bottom: 8px; padding-bottom: 6px; }
-            .setting-group label { font-size: 12px; }
+            #header { padding: 8px 12px 2px; } #counter { font-size: 18px; padding: 2px 10px; } #settings-btn { font-size: 20px; }
+            #hug-btn { width: min(50%, 170px); } #hug-btn .btn-text { font-size: clamp(14px, 3vw, 22px); }
+            #bottom-bar { padding: 2px 12px 8px; } #calendar-icon { font-size: 22px; }
+            .modal { padding: 12px; max-height: 78%; } .modal h2 { font-size: 16px; margin-bottom: 8px; }
+            .setting-group { margin-bottom: 8px; padding-bottom: 6px; } .setting-group label { font-size: 12px; }
         }
-
         @media (max-height: 600px) {
-            #hug-btn { width: min(40%, 130px); }
-            #hug-btn .btn-text { font-size: clamp(12px, 2.5vw, 18px); }
-            #header { padding: 4px 10px 0px; }
-            #counter { font-size: 15px; padding: 1px 8px; }
-            #bottom-bar { padding: 0px 10px 4px; }
-            #settings-btn { font-size: 18px; }
-            #calendar-icon { font-size: 18px; }
-            .modal { padding: 10px; max-height: 75%; }
-            .modal h2 { font-size: 14px; margin-bottom: 6px; }
+            #hug-btn { width: min(40%, 130px); } #hug-btn .btn-text { font-size: clamp(12px, 2.5vw, 18px); }
+            #header { padding: 4px 10px 0px; } #counter { font-size: 15px; padding: 1px 8px; }
+            #bottom-bar { padding: 0px 10px 4px; } #settings-btn { font-size: 18px; } #calendar-icon { font-size: 18px; }
+            .modal { padding: 10px; max-height: 75%; } .modal h2 { font-size: 14px; margin-bottom: 6px; }
             .setting-group { margin-bottom: 6px; padding-bottom: 4px; }
         }
-
-        .confirm-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 30;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-        .confirm-overlay.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .confirm-box {
-            background: #ffffff;
-            padding: 20px 24px 18px;
-            border-radius: 24px;
-            max-width: 300px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.3);
-            transform: scale(0.95);
-            transition: transform 0.2s;
-        }
-        .confirm-overlay.open .confirm-box {
-            transform: scale(1);
-        }
-        .confirm-box h3 {
-            font-size: 17px;
-            margin-bottom: 6px;
-            color: #2d1b3d;
-        }
-        .confirm-box p {
-            font-size: 13px;
-            color: #5a4a6a;
-            margin-bottom: 16px;
-            line-height: 1.5;
-        }
-        .confirm-box .confirm-btns {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .confirm-box .confirm-btns button {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 13px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .confirm-box .confirm-btns .confirm-yes {
-            background: #d48a9e;
-            color: white;
-        }
-        .confirm-box .confirm-btns .confirm-yes:active {
-            background: #c07a8e;
-        }
-        .confirm-box .confirm-btns .confirm-no {
-            background: #f0e6f5;
-            color: #3d2a4a;
-        }
-        .confirm-box .confirm-btns .confirm-no:active {
-            background: #dcc8e5;
-        }
+        .confirm-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 30; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .confirm-overlay.open { opacity: 1; pointer-events: auto; }
+        .confirm-box { background: #ffffff; padding: 20px 24px 18px; border-radius: 24px; max-width: 300px; width: 90%; text-align: center; box-shadow: 0 24px 48px rgba(0,0,0,0.3); transform: scale(0.95); transition: transform 0.2s; }
+        .confirm-overlay.open .confirm-box { transform: scale(1); }
+        .confirm-box h3 { font-size: 17px; margin-bottom: 6px; color: #2d1b3d; }
+        .confirm-box p { font-size: 13px; color: #5a4a6a; margin-bottom: 16px; line-height: 1.5; }
+        .confirm-box .confirm-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .confirm-box .confirm-btns button { padding: 8px 18px; border: none; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; }
+        .confirm-box .confirm-btns .confirm-yes { background: #d48a9e; color: white; }
+        .confirm-box .confirm-btns .confirm-yes:active { background: #c07a8e; }
+        .confirm-box .confirm-btns .confirm-no { background: #f0e6f5; color: #3d2a4a; }
+        .confirm-box .confirm-btns .confirm-no:active { background: #dcc8e5; }
     </style>
 </head>
 <body>
@@ -802,78 +141,37 @@
         <span id="counter">🤗 0</span>
         <button id="settings-btn" aria-label="Настройки">⚙️</button>
     </div>
-
     <div id="btn-container">
-        <button id="hug-btn">
-            <span class="btn-text">обнимашки</span>
-        </button>
+        <button id="hug-btn"><span class="btn-text">обнимашки</span></button>
     </div>
-
     <div id="bottom-bar">
         <button id="calendar-icon" aria-label="Календарь">📅</button>
     </div>
-
     <button id="dev-btn" title="Dev">dev</button>
-
     <div id="dev-overlay">
         <div class="dev-panel">
             <div class="dev-header">
-                <div>
-                    <span class="dev-title">⚡ DEV PANEL</span>
-                    <span class="dev-user" id="dev-user-label"></span>
-                </div>
+                <div><span class="dev-title">⚡ DEV PANEL</span><span class="dev-user" id="dev-user-label"></span></div>
                 <button class="dev-close" id="dev-close">✕</button>
             </div>
-
             <div class="dev-hints" id="dev-hints">
                 <div class="hint-title">📋 ДОСТУПНЫЕ КОМАНДЫ</div>
-                <div class="hint-line">
-                    <span class="hint-cmd">Счётчик +5</span> / <span class="hint-cmd">Счётчик -3</span><br>
-                    <span class="hint-desc">меняет ТОЛЬКО число счётчика. Календарь и реальные обнимашки не трогает.</span>
-                </div>
-                <div class="hint-line">
-                    <span class="hint-cmd">+ обнимашка 2026-09-29 14:30:45</span><br>
-                    <span class="hint-desc">добавляет реальную обнимашку в календарь (+1 к счётчику)</span>
-                </div>
-                <div class="hint-line">
-                    <span class="hint-cmd">- обнимашка 2026-09-29 14:30:45</span><br>
-                    <span class="hint-desc">удаляет ближайшую обнимашку из календаря (−1 к счётчику)</span>
-                </div>
-                <div class="hint-line" style="margin-top:5px; padding-top:5px; border-top:1px solid #33284a;">
-                    <span class="hint-desc">
-                        <b style="color:#c0a0d0;">Форматы даты:</b><br>
-                        <code>2026-09-29</code> — точная дата<br>
-                        <code>сегодня</code> / <code>вчера</code> / <code>завтра</code><br>
-                        <b style="color:#c0a0d0;">Форматы времени:</b><br>
-                        <code>14:30</code> или <code>14:30:45</code> (секунды опциональны)
-                    </span>
-                </div>
+                <div class="hint-line"><span class="hint-cmd">Счётчик +5</span> / <span class="hint-cmd">Счётчик -3</span><br><span class="hint-desc">меняет ТОЛЬКО число счётчика. Календарь и реальные обнимашки не трогает.</span></div>
+                <div class="hint-line"><span class="hint-cmd">+ обнимашка 2026-09-29 14:30:45</span><br><span class="hint-desc">добавляет реальную обнимашку в календарь (+1 к счётчику)</span></div>
+                <div class="hint-line"><span class="hint-cmd">- обнимашка 2026-09-29 14:30:45</span><br><span class="hint-desc">удаляет ближайшую обнимашку из календаря (−1 к счётчику)</span></div>
+                <div class="hint-line" style="margin-top:5px; padding-top:5px; border-top:1px solid #33284a;"><span class="hint-desc"><b style="color:#c0a0d0;">Форматы даты:</b><br><code>2026-09-29</code> — точная дата<br><code>сегодня</code> / <code>вчера</code> / <code>завтра</code><br><b style="color:#c0a0d0;">Форматы времени:</b><br><code>14:30</code> или <code>14:30:45</code> (секунды опциональны)</span></div>
             </div>
-
-            <div class="dev-log" id="dev-log">
-                <div class="log-line log-sys">Панель готова. Введите команду ниже.</div>
-            </div>
-
+            <div class="dev-log" id="dev-log"><div class="log-line log-sys">Панель готова. Введите команду ниже.</div></div>
             <div class="dev-input-row">
                 <input type="text" class="dev-input" id="dev-input" placeholder="Счётчик +5" autocomplete="off" autocapitalize="off" spellcheck="false">
                 <button class="dev-run" id="dev-run">RUN</button>
             </div>
         </div>
     </div>
-
     <div id="settings-overlay" class="overlay">
         <div class="modal" id="settings-modal">
             <h2>Настройки <button id="close-settings">✕</button></h2>
-
-            <div class="setting-group">
-                <label>Цвет фона приложения</label>
-                <div class="color-picker-row">
-                    <input type="color" id="bg-color-picker" value="#f7f0fa">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button>
-                </div>
-            </div>
-
+            <div class="setting-group"><label>Цвет фона приложения</label><div class="color-picker-row"><input type="color" id="bg-color-picker" value="#f7f0fa"><span style="font-size:12px; color:#5a4a6a;">выберите</span><button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button></div></div>
             <div class="setting-group">
                 <label>Фото на фон приложения</label>
                 <div class="file-upload-wrapper">
@@ -883,33 +181,13 @@
                     <button class="remove-img" id="remove-bg-image" title="Удалить фото">✕</button>
                 </div>
                 <div class="image-editor" id="bg-image-editor">
-                    <div class="preview-container" id="bg-image-preview">
-                        <span class="no-image">Нет фото</span>
-                    </div>
-                    <div class="slider-group">
-                        <label>Масштаб <span id="bg-image-scale-val">100%</span></label>
-                        <input type="range" id="bg-image-scale" min="50" max="200" value="100">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение X <span id="bg-image-x-val">0%</span></label>
-                        <input type="range" id="bg-image-x" min="-50" max="50" value="0">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение Y <span id="bg-image-y-val">0%</span></label>
-                        <input type="range" id="bg-image-y" min="-50" max="50" value="0">
-                    </div>
+                    <div class="preview-container" id="bg-image-preview"><span class="no-image">Нет фото</span></div>
+                    <div class="slider-group"><label>Масштаб <span id="bg-image-scale-val">100%</span></label><input type="range" id="bg-image-scale" min="50" max="200" value="100"></div>
+                    <div class="slider-group"><label>Смещение X <span id="bg-image-x-val">0%</span></label><input type="range" id="bg-image-x" min="-50" max="50" value="0"></div>
+                    <div class="slider-group"><label>Смещение Y <span id="bg-image-y-val">0%</span></label><input type="range" id="bg-image-y" min="-50" max="50" value="0"></div>
                 </div>
             </div>
-
-            <div class="setting-group">
-                <label>Цвет самой кнопки</label>
-                <div class="color-picker-row">
-                    <input type="color" id="btn-color-picker" value="#ffb6c9">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button>
-                </div>
-            </div>
-
+            <div class="setting-group"><label>Цвет самой кнопки</label><div class="color-picker-row"><input type="color" id="btn-color-picker" value="#ffb6c9"><span style="font-size:12px; color:#5a4a6a;">выберите</span><button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button></div></div>
             <div class="setting-group">
                 <label>Фото на кнопку</label>
                 <div class="file-upload-wrapper">
@@ -919,438 +197,366 @@
                     <button class="remove-img" id="remove-btn-image" title="Удалить фото">✕</button>
                 </div>
                 <div class="image-editor" id="btn-image-editor">
-                    <div class="preview-container" id="btn-image-preview">
-                        <span class="no-image">Нет фото</span>
-                    </div>
-                    <div class="slider-group">
-                        <label>Масштаб <span id="btn-image-scale-val">100%</span></label>
-                        <input type="range" id="btn-image-scale" min="50" max="200" value="100">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение X <span id="btn-image-x-val">0%</span></label>
-                        <input type="range" id="btn-image-x" min="-50" max="50" value="0">
-                    </div>
-                    <div class="slider-group">
-                        <label>Смещение Y <span id="btn-image-y-val">0%</span></label>
-                        <input type="range" id="btn-image-y" min="-50" max="50" value="0">
-                    </div>
+                    <div class="preview-container" id="btn-image-preview"><span class="no-image">Нет фото</span></div>
+                    <div class="slider-group"><label>Масштаб <span id="btn-image-scale-val">100%</span></label><input type="range" id="btn-image-scale" min="50" max="200" value="100"></div>
+                    <div class="slider-group"><label>Смещение X <span id="btn-image-x-val">0%</span></label><input type="range" id="btn-image-x" min="-50" max="50" value="0"></div>
+                    <div class="slider-group"><label>Смещение Y <span id="btn-image-y-val">0%</span></label><input type="range" id="btn-image-y" min="-50" max="50" value="0"></div>
                 </div>
             </div>
-
-            <div class="setting-group">
-                <label>Цвет текста</label>
-                <div class="color-picker-row">
-                    <input type="color" id="text-color-picker" value="#000000">
-                    <span style="font-size:12px; color:#5a4a6a;">выберите</span>
-                    <button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button>
-                </div>
-            </div>
-
-            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
-                <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
-            </div>
+            <div class="setting-group"><label>Цвет текста</label><div class="color-picker-row"><input type="color" id="text-color-picker" value="#000000"><span style="font-size:12px; color:#5a4a6a;">выберите</span><button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button></div></div>
+            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;"><button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button></div>
         </div>
     </div>
-
     <div id="calendar-overlay" class="overlay">
         <div class="modal" id="calendar-modal">
             <h2>📅 Календарь <button id="close-calendar">✕</button></h2>
-            <div class="calendar-nav">
-                <button id="prev-month">‹</button>
-                <span id="month-year">Январь 2026</span>
-                <button id="next-month">›</button>
-            </div>
+            <div class="calendar-nav"><button id="prev-month">‹</button><span id="month-year">Январь 2026</span><button id="next-month">›</button></div>
             <div class="weekdays" id="weekdays"></div>
             <div class="days-grid" id="days-grid"></div>
             <div id="day-info">Выберите день</div>
             <div id="day-clicks-list"></div>
         </div>
     </div>
-
     <div class="confirm-overlay" id="confirm-overlay">
         <div class="confirm-box">
             <h3>⚠️ Подтверждение</h3>
             <p id="confirm-message">Вы уверены, что хотите сбросить счётчик обнимашек?</p>
-            <div class="confirm-btns">
-                <button class="confirm-yes" id="confirm-yes">Да</button>
-                <button class="confirm-no" id="confirm-no">Отмена</button>
-            </div>
+            <div class="confirm-btns"><button class="confirm-yes" id="confirm-yes">Да</button><button class="confirm-no" id="confirm-no">Отмена</button></div>
         </div>
     </div>
-
     <div class="confirm-overlay" id="tz-overlay">
         <div class="confirm-box">
             <h3>🕒 Изменился часовой пояс</h3>
             <p id="tz-message">Похоже, у вас изменился часовой пояс. Пересчитать все прошлые обнимашки с новым сдвигом?</p>
-            <div class="confirm-btns">
-                <button class="confirm-yes" id="tz-yes">Да, пересчитать</button>
-                <button class="confirm-no" id="tz-no">Нет, оставить</button>
-            </div>
+            <div class="confirm-btns"><button class="confirm-yes" id="tz-yes">Да, пересчитать</button><button class="confirm-no" id="tz-no">Нет, оставить</button></div>
         </div>
     </div>
 </div>
-
 <script>
-    (function(){
-        // ============================================================
-        // DEV-ДОСТУП
-        // ============================================================
-        const DEV_USERNAMES = ['enn_vel', 'kirka5466'];
+(function(){
+    // ============================================================
+    // DEV-ДОСТУП
+    // ============================================================
+    const DEV_USERNAMES = ['enn_vel', 'kirka5466'];
+    function checkDevAccess() {
+        try {
+            const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            if (u && u.username && DEV_USERNAMES.includes(u.username.toLowerCase())) return u.username;
+        } catch (e) {}
+        try {
+            const params = new URLSearchParams(location.search);
+            const p = (params.get('dev') || '').toLowerCase();
+            if (DEV_USERNAMES.includes(p)) return params.get('dev');
+        } catch (e) {}
+        try { if (localStorage.getItem('dev_mode') === '1') return '(local)'; } catch (e) {}
+        return null;
+    }
 
-        function checkDevAccess() {
-            try {
-                const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
-                if (u && u.username && DEV_USERNAMES.includes(u.username.toLowerCase())) {
-                    return u.username;
-                }
-            } catch (e) {}
-            try {
-                const params = new URLSearchParams(location.search);
-                const p = (params.get('dev') || '').toLowerCase();
-                if (DEV_USERNAMES.includes(p)) return params.get('dev');
-            } catch (e) {}
-            try {
-                if (localStorage.getItem('dev_mode') === '1') return '(local)';
-            } catch (e) {}
-            return null;
+    // ============================================================
+    // АККАУНТ
+    // ============================================================
+    const tg = window.Telegram?.WebApp;
+    const hasCloudStorage = !!(tg && tg.CloudStorage);
+    function getAccountKey() {
+        try {
+            const u = tg?.initDataUnsafe?.user;
+            if (u && u.id) return 'u' + u.id;
+            if (u && u.username) return 'un_' + u.username.toLowerCase();
+        } catch (e) {}
+        return 'anon';
+    }
+    const ACCOUNT_KEY = getAccountKey();
+    function K(base) { return 'hugApp_' + ACCOUNT_KEY + '_' + base; }
+    const K_VERSION = K('v');
+    const K_SETTINGS = K('settings');
+    const K_HISTORY_META = K('history_meta');
+    const K_HISTORY_CHUNK = (i) => K('history_' + i);
+    const K_COUNTER_OFFSET = K('counter_offset');
+    const K_SYNC_META = K('sync_meta');
+    const LS_IMAGES = K('images');
+
+    // CloudStorage-ключи (глобальные — сохранены как в оригинале
+    // для обратной совместимости уже сохранённых данных).
+    const CP = 'hugApp_';
+    const CK = {
+        VERSION: CP + 'v',
+        SETTINGS: CP + 'settings',
+        HISTORY_META: CP + 'history_meta',
+        HISTORY_CHUNK: (i) => CP + 'history_' + i,
+        COUNTER_OFFSET: CP + 'counter_offset',
+        SYNC_META: CP + 'sync_meta',
+    };
+
+    const VERSION = 8;
+    // 4096 — жёсткий лимит Telegram на значение. 3400 — с запасом,
+    // чтобы избежать проблем на границе и при экранировании.
+    const CLOUD_LIMIT = 3400;
+
+    // ============================================================
+    // СОСТОЯНИЕ
+    // ============================================================
+    let history = {};
+    let counterOffset = 0;
+    let hugCount = 0;
+    let localSyncMeta = { revision: 0, lastModified: 0 };
+
+    let pendingPush = false;
+    let isPushing = false;
+    let cloudLoading = false;
+    let isInitialized = false;
+
+    // -------- Retry-состояние для push --------
+    let pushRetryCount = 0;
+    let pushRetryTimer = null;
+
+    let settings = {
+        bgColor: '#f7f0fa', textColor: '#000000', btnColor: '#ffb6c9',
+        bgImageSettings: { scale: 100, x: 0, y: 0 },
+        btnImageSettings: { scale: 100, x: 0, y: 0 },
+    };
+    let images = { bgImage: null, btnImage: null };
+
+    function getTzOffsetMinutes() { return -new Date().getTimezoneOffset(); }
+    let savedTzOffset = getTzOffsetMinutes();
+
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let selectedDate = null;
+
+    // DOM
+    const app = document.getElementById('app');
+    const hugBtn = document.getElementById('hug-btn');
+    const btnText = hugBtn.querySelector('.btn-text');
+    const counterEl = document.getElementById('counter');
+    const settingsBtn = document.getElementById('settings-btn');
+    const settingsOverlay = document.getElementById('settings-overlay');
+    const closeSettings = document.getElementById('close-settings');
+    const calendarOverlay = document.getElementById('calendar-overlay');
+    const calendarIcon = document.getElementById('calendar-icon');
+    const closeCalendar = document.getElementById('close-calendar');
+    const bgPicker = document.getElementById('bg-color-picker');
+    const textPicker = document.getElementById('text-color-picker');
+    const btnColorPicker = document.getElementById('btn-color-picker');
+    const resetBg = document.getElementById('reset-bg-color');
+    const resetText = document.getElementById('reset-text-color');
+    const resetBtnColor = document.getElementById('reset-btn-color');
+    const bgImageUpload = document.getElementById('bg-image-upload');
+    const btnImageUpload = document.getElementById('btn-image-upload');
+    const removeBgImage = document.getElementById('remove-bg-image');
+    const removeBtnImage = document.getElementById('remove-btn-image');
+    const bgImageEdit = document.getElementById('bg-image-edit');
+    const btnImageEdit = document.getElementById('btn-image-edit');
+    const resetCounterBtn = document.getElementById('reset-counter-btn');
+    const confirmOverlay = document.getElementById('confirm-overlay');
+    const confirmYes = document.getElementById('confirm-yes');
+    const confirmNo = document.getElementById('confirm-no');
+    const confirmMessage = document.getElementById('confirm-message');
+    const tzOverlay = document.getElementById('tz-overlay');
+    const tzYes = document.getElementById('tz-yes');
+    const tzNo = document.getElementById('tz-no');
+    const monthYearSpan = document.getElementById('month-year');
+    const prevMonthBtn = document.getElementById('prev-month');
+    const nextMonthBtn = document.getElementById('next-month');
+    const daysGrid = document.getElementById('days-grid');
+    const weekdaysEl = document.getElementById('weekdays');
+    const dayInfo = document.getElementById('day-info');
+    const dayClicksList = document.getElementById('day-clicks-list');
+    const devBtn = document.getElementById('dev-btn');
+    const devOverlay = document.getElementById('dev-overlay');
+    const devClose = document.getElementById('dev-close');
+    const devInput = document.getElementById('dev-input');
+    const devRun = document.getElementById('dev-run');
+    const devLog = document.getElementById('dev-log');
+    const devUserLabel = document.getElementById('dev-user-label');
+
+    // ============================================================
+    // УТИЛИТЫ
+    // ============================================================
+    function byteSize(str) {
+        let bytes = 0;
+        for (let i = 0; i < str.length; i++) {
+            const c = str.charCodeAt(i);
+            if (c < 0x80) bytes += 1;
+            else if (c < 0x800) bytes += 2;
+            else if (c < 0xd800 || c >= 0xe000) bytes += 3;
+            else { bytes += 4; i++; }
         }
+        return bytes;
+    }
+    function darkenColor(hex, percent) {
+        let r = parseInt(hex.slice(1,3), 16);
+        let g = parseInt(hex.slice(3,5), 16);
+        let b = parseInt(hex.slice(5,7), 16);
+        r = Math.max(0, r - (r * percent / 100));
+        g = Math.max(0, g - (g * percent / 100));
+        b = Math.max(0, b - (b * percent / 100));
+        return `#${Math.round(r).toString(16).padStart(2,'0')}${Math.round(g).toString(16).padStart(2,'0')}${Math.round(b).toString(16).padStart(2,'0')}`;
+    }
+    function updateButtonShadow(color) {
+        const dark = darkenColor(color, 35);
+        hugBtn.style.boxShadow = `0 10px 0 ${dark}, 0 10px 20px rgba(0,0,0,0.15)`;
+    }
+    function formatClickTime(timestamp) {
+        const d = new Date(timestamp);
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        const ss = String(d.getSeconds()).padStart(2, '0');
+        return `${hh}:${mm}:${ss}`;
+    }
+    function calcHugCount() {
+        let n = counterOffset;
+        for (const d in history) n += history[d].length;
+        if (n < 0) n = 0;
+        return n;
+    }
 
-        // ============================================================
-        // АККАУНТ
-        // ============================================================
-        const tg = window.Telegram?.WebApp;
-        const hasCloudStorage = !!(tg && tg.CloudStorage);
+    // ============================================================
+    // CLOUD STORAGE
+    // ============================================================
+    function cloudSet(key, value) {
+        return new Promise((resolve) => {
+            if (!hasCloudStorage) return resolve(false);
+            try { tg.CloudStorage.setItem(key, value, (err) => resolve(!err)); }
+            catch (e) { resolve(false); }
+        });
+    }
+    function cloudGet(key) {
+        return new Promise((resolve) => {
+            if (!hasCloudStorage) return resolve(null);
+            try { tg.CloudStorage.getItem(key, (err, value) => resolve(err ? null : value)); }
+            catch (e) { resolve(null); }
+        });
+    }
+    function cloudRemove(key) {
+        return new Promise((resolve) => {
+            if (!hasCloudStorage) return resolve(false);
+            try { tg.CloudStorage.removeItem(key, () => resolve(true)); }
+            catch (e) { resolve(false); }
+        });
+    }
+    function cloudGetAllKeys() {
+        return new Promise((resolve) => {
+            if (!hasCloudStorage) return resolve([]);
+            try { tg.CloudStorage.getKeys((err, keys) => resolve(err || !keys ? [] : keys)); }
+            catch (e) { resolve([]); }
+        });
+    }
 
-        function getAccountKey() {
-            try {
-                const u = tg?.initDataUnsafe?.user;
-                if (u && u.id) return 'u' + u.id;
-                if (u && u.username) return 'un_' + u.username.toLowerCase();
-            } catch (e) {}
-            return 'anon';
+    // ============================================================
+    // ИСТОРИЯ
+    // ============================================================
+    function serializeHistory() {
+        const out = {};
+        for (const date in history) {
+            out[date] = history[date].map(c => c.approx ? [c.t, c.h, 1] : [c.t, c.h]);
         }
-
-        const ACCOUNT_KEY = getAccountKey();
-
-        function K(base) { return 'hugApp_' + ACCOUNT_KEY + '_' + base; }
-
-        const K_VERSION = K('v');
-        const K_SETTINGS = K('settings');
-        const K_HISTORY_META = K('history_meta');
-        const K_HISTORY_CHUNK = (i) => K('history_' + i);
-        const K_COUNTER_OFFSET = K('counter_offset');
-        const K_SYNC_META = K('sync_meta');
-        const LS_IMAGES = K('images');
-
-        const CP = 'hugApp_';
-        const CK = {
-            VERSION: CP + 'v',
-            SETTINGS: CP + 'settings',
-            HISTORY_META: CP + 'history_meta',
-            HISTORY_CHUNK: (i) => CP + 'history_' + i,
-            COUNTER_OFFSET: CP + 'counter_offset',
-            SYNC_META: CP + 'sync_meta',
-        };
-
-        const VERSION = 8;
-        const CLOUD_LIMIT = 3800;
-
-        // ============================================================
-        // СОСТОЯНИЕ
-        // ============================================================
-        let history = {};
-        let counterOffset = 0;
-        let hugCount = 0;
-
-        let localSyncMeta = { revision: 0, lastModified: 0 };
-
-        let pendingPush = false;
-        let isPushing = false;
-        let cloudLoading = false;
-        let isInitialized = false;
-
-        let settings = {
-            bgColor: '#f7f0fa',
-            textColor: '#000000',
-            btnColor: '#ffb6c9',
-            bgImageSettings: { scale: 100, x: 0, y: 0 },
-            btnImageSettings: { scale: 100, x: 0, y: 0 },
-        };
-        let images = { bgImage: null, btnImage: null };
-
-        function getTzOffsetMinutes() { return -new Date().getTimezoneOffset(); }
-        let savedTzOffset = getTzOffsetMinutes();
-
-        let currentYear = new Date().getFullYear();
-        let currentMonth = new Date().getMonth();
-        let selectedDate = null;
-
-        // DOM
-        const app = document.getElementById('app');
-        const hugBtn = document.getElementById('hug-btn');
-        const btnText = hugBtn.querySelector('.btn-text');
-        const counterEl = document.getElementById('counter');
-        const settingsBtn = document.getElementById('settings-btn');
-        const settingsOverlay = document.getElementById('settings-overlay');
-        const closeSettings = document.getElementById('close-settings');
-        const calendarOverlay = document.getElementById('calendar-overlay');
-        const calendarIcon = document.getElementById('calendar-icon');
-        const closeCalendar = document.getElementById('close-calendar');
-
-        const bgPicker = document.getElementById('bg-color-picker');
-        const textPicker = document.getElementById('text-color-picker');
-        const btnColorPicker = document.getElementById('btn-color-picker');
-
-        const resetBg = document.getElementById('reset-bg-color');
-        const resetText = document.getElementById('reset-text-color');
-        const resetBtnColor = document.getElementById('reset-btn-color');
-
-        const bgImageUpload = document.getElementById('bg-image-upload');
-        const btnImageUpload = document.getElementById('btn-image-upload');
-        const removeBgImage = document.getElementById('remove-bg-image');
-        const removeBtnImage = document.getElementById('remove-btn-image');
-
-        const bgImageEdit = document.getElementById('bg-image-edit');
-        const btnImageEdit = document.getElementById('btn-image-edit');
-
-        const resetCounterBtn = document.getElementById('reset-counter-btn');
-        const confirmOverlay = document.getElementById('confirm-overlay');
-        const confirmYes = document.getElementById('confirm-yes');
-        const confirmNo = document.getElementById('confirm-no');
-        const confirmMessage = document.getElementById('confirm-message');
-
-        const tzOverlay = document.getElementById('tz-overlay');
-        const tzYes = document.getElementById('tz-yes');
-        const tzNo = document.getElementById('tz-no');
-
-        const monthYearSpan = document.getElementById('month-year');
-        const prevMonthBtn = document.getElementById('prev-month');
-        const nextMonthBtn = document.getElementById('next-month');
-        const daysGrid = document.getElementById('days-grid');
-        const weekdaysEl = document.getElementById('weekdays');
-        const dayInfo = document.getElementById('day-info');
-        const dayClicksList = document.getElementById('day-clicks-list');
-
-        // DEV DOM
-        const devBtn = document.getElementById('dev-btn');
-        const devOverlay = document.getElementById('dev-overlay');
-        const devClose = document.getElementById('dev-close');
-        const devInput = document.getElementById('dev-input');
-        const devRun = document.getElementById('dev-run');
-        const devLog = document.getElementById('dev-log');
-        const devUserLabel = document.getElementById('dev-user-label');
-
-        // ============================================================
-        // УТИЛИТЫ
-        // ============================================================
-        function byteSize(str) {
-            let bytes = 0;
-            for (let i = 0; i < str.length; i++) {
-                const c = str.charCodeAt(i);
-                if (c < 0x80) bytes += 1;
-                else if (c < 0x800) bytes += 2;
-                else if (c < 0xd800 || c >= 0xe000) bytes += 3;
-                else { bytes += 4; i++; }
+        return out;
+    }
+    function deserializeHistory(obj) {
+        const out = {};
+        for (const date in obj) {
+            const arr = obj[date];
+            if (!Array.isArray(arr)) continue;
+            out[date] = arr
+                .filter(x => Array.isArray(x) && typeof x[0] === 'number')
+                .map(x => ({ t: x[0], h: x[1] || 0, approx: x[2] === 1 }));
+        }
+        return out;
+    }
+    function splitHistoryIntoChunks(serialized) {
+        const dates = Object.keys(serialized);
+        const chunks = [];
+        let current = {};
+        let currentSize = 2;
+        for (const date of dates) {
+            const entry = JSON.stringify({ [date]: serialized[date] });
+            const entrySize = byteSize(entry);
+            if (currentSize + entrySize + 1 > CLOUD_LIMIT && Object.keys(current).length > 0) {
+                chunks.push(current);
+                current = {};
+                currentSize = 2;
             }
-            return bytes;
+            current[date] = serialized[date];
+            currentSize += entrySize + 1;
         }
+        if (Object.keys(current).length > 0) chunks.push(current);
+        return chunks;
+    }
 
-        function darkenColor(hex, percent) {
-            let r = parseInt(hex.slice(1,3), 16);
-            let g = parseInt(hex.slice(3,5), 16);
-            let b = parseInt(hex.slice(5,7), 16);
-            r = Math.max(0, r - (r * percent / 100));
-            g = Math.max(0, g - (g * percent / 100));
-            b = Math.max(0, b - (b * percent / 100));
-            return `#${Math.round(r).toString(16).padStart(2,'0')}${Math.round(g).toString(16).padStart(2,'0')}${Math.round(b).toString(16).padStart(2,'0')}`;
-        }
+    // ============================================================
+    // LOCALSTORAGE
+    // ============================================================
+    function saveToLocalStorageImmediate() {
+        try { localStorage.setItem(K_VERSION, String(VERSION)); } catch (e) {}
+        try { localStorage.setItem(K_COUNTER_OFFSET, String(counterOffset)); } catch (e) {}
+        try {
+            localStorage.setItem(K_SETTINGS, JSON.stringify({
+                bgColor: settings.bgColor, textColor: settings.textColor, btnColor: settings.btnColor,
+                bgImageSettings: settings.bgImageSettings, btnImageSettings: settings.btnImageSettings,
+            }));
+        } catch (e) {}
+        try { localStorage.setItem(LS_IMAGES, JSON.stringify(images)); }
+        catch (e) { try { localStorage.removeItem(LS_IMAGES); } catch (e2) {} }
 
-        function updateButtonShadow(color) {
-            const dark = darkenColor(color, 35);
-            hugBtn.style.boxShadow = `0 10px 0 ${dark}, 0 10px 20px rgba(0,0,0,0.15)`;
-        }
-
-        function formatClickTime(timestamp) {
-            const d = new Date(timestamp);
-            const hh = String(d.getHours()).padStart(2, '0');
-            const mm = String(d.getMinutes()).padStart(2, '0');
-            const ss = String(d.getSeconds()).padStart(2, '0');
-            return `${hh}:${mm}:${ss}`;
-        }
-
-        function calcHugCount() {
-            let n = counterOffset;
-            for (const d in history) n += history[d].length;
-            if (n < 0) n = 0;
-            return n;
-        }
-
-        // ============================================================
-        // CLOUD STORAGE
-        // ============================================================
-        function cloudSet(key, value) {
-            return new Promise((resolve) => {
-                if (!hasCloudStorage) return resolve(false);
-                try {
-                    tg.CloudStorage.setItem(key, value, (err) => resolve(!err));
-                } catch (e) { resolve(false); }
-            });
-        }
-        function cloudGet(key) {
-            return new Promise((resolve) => {
-                if (!hasCloudStorage) return resolve(null);
-                try {
-                    tg.CloudStorage.getItem(key, (err, value) => resolve(err ? null : value));
-                } catch (e) { resolve(null); }
-            });
-        }
-        function cloudRemove(key) {
-            return new Promise((resolve) => {
-                if (!hasCloudStorage) return resolve(false);
-                try {
-                    tg.CloudStorage.removeItem(key, () => resolve(true));
-                } catch (e) { resolve(false); }
-            });
-        }
-        function cloudGetAllKeys() {
-            return new Promise((resolve) => {
-                if (!hasCloudStorage) return resolve([]);
-                try {
-                    tg.CloudStorage.getKeys((err, keys) => resolve(err || !keys ? [] : keys));
-                } catch (e) { resolve([]); }
-            });
-        }
-
-        // ============================================================
-        // ИСТОРИЯ
-        // ============================================================
-        function serializeHistory() {
-            const out = {};
-            for (const date in history) {
-                out[date] = history[date].map(c => c.approx ? [c.t, c.h, 1] : [c.t, c.h]);
+        const serialized = serializeHistory();
+        const chunks = splitHistoryIntoChunks(serialized);
+        try {
+            localStorage.setItem(K_HISTORY_META, JSON.stringify({ chunks: chunks.length, tz: savedTzOffset }));
+        } catch (e) {}
+        chunks.forEach((chunk, i) => {
+            try { localStorage.setItem(K_HISTORY_CHUNK(i), JSON.stringify(chunk)); } catch (e) {}
+        });
+        try {
+            for (let i = chunks.length; i < chunks.length + 20; i++) {
+                if (localStorage.getItem(K_HISTORY_CHUNK(i)) !== null) localStorage.removeItem(K_HISTORY_CHUNK(i));
+                else break;
             }
-            return out;
-        }
+        } catch (e) {}
+        try { localStorage.setItem(K_SYNC_META, JSON.stringify(localSyncMeta)); } catch (e) {}
+    }
 
-        function deserializeHistory(obj) {
-            const out = {};
-            for (const date in obj) {
-                const arr = obj[date];
-                if (!Array.isArray(arr)) continue;
-                out[date] = arr
-                    .filter(x => Array.isArray(x) && typeof x[0] === 'number')
-                    .map(x => ({ t: x[0], h: x[1] || 0, approx: x[2] === 1 }));
+    // ============================================================
+    // ОТПРАВКА В ОБЛАКО — С ПОВТОРАМИ И БЕЗ ЗАВИСАНИЙ
+    // ============================================================
+    let pushChain = Promise.resolve();
+
+    async function setCloud(key, value, retries = 3) {
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            const ok = await cloudSet(key, value);
+            if (ok) return true;
+            if (attempt < retries) {
+                await new Promise(r => setTimeout(r, 200 * (attempt + 1)));
             }
-            return out;
         }
+        return false;
+    }
 
-        function splitHistoryIntoChunks(serialized) {
-            const dates = Object.keys(serialized);
-            const chunks = [];
-            let current = {};
-            let currentSize = 2;
-
-            for (const date of dates) {
-                const entry = JSON.stringify({ [date]: serialized[date] });
-                const entrySize = byteSize(entry);
-                if (currentSize + entrySize + 1 > CLOUD_LIMIT && Object.keys(current).length > 0) {
-                    chunks.push(current);
-                    current = {};
-                    currentSize = 2;
-                }
-                current[date] = serialized[date];
-                currentSize += entrySize + 1;
+    function schedulePushRetry() {
+        if (pushRetryTimer) return;
+        const delay = Math.min(30000, 1500 * Math.pow(2, Math.min(pushRetryCount, 5)));
+        pushRetryCount++;
+        pushRetryTimer = setTimeout(() => {
+            pushRetryTimer = null;
+            if (pendingPush && !isPushing) {
+                pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
             }
-            if (Object.keys(current).length > 0) chunks.push(current);
-            return chunks;
-        }
+        }, delay);
+    }
 
-        // ============================================================
-        // LOCALSTORAGE — синхронное сохранение
-        // ============================================================
-        function saveToLocalStorageImmediate() {
-            try { localStorage.setItem(K_VERSION, String(VERSION)); } catch (e) {}
-            try { localStorage.setItem(K_COUNTER_OFFSET, String(counterOffset)); } catch (e) {}
-            try {
-                localStorage.setItem(K_SETTINGS, JSON.stringify({
-                    bgColor: settings.bgColor,
-                    textColor: settings.textColor,
-                    btnColor: settings.btnColor,
-                    bgImageSettings: settings.bgImageSettings,
-                    btnImageSettings: settings.btnImageSettings,
-                }));
-            } catch (e) {}
-            try {
-                localStorage.setItem(LS_IMAGES, JSON.stringify(images));
-            } catch (e) {
-                try { localStorage.removeItem(LS_IMAGES); } catch (e2) {}
-            }
+    async function pushToCloudNow() {
+        if (!hasCloudStorage) { pendingPush = false; return; }
+        if (isPushing) return;
+        isPushing = true;
+        let allOk = true;
 
-            const serialized = serializeHistory();
-            const chunks = splitHistoryIntoChunks(serialized);
-
-            try {
-                localStorage.setItem(K_HISTORY_META, JSON.stringify({
-                    chunks: chunks.length,
-                    tz: savedTzOffset,
-                }));
-            } catch (e) {}
-
-            chunks.forEach((chunk, i) => {
-                try { localStorage.setItem(K_HISTORY_CHUNK(i), JSON.stringify(chunk)); } catch (e) {}
-            });
-
-            try {
-                for (let i = chunks.length; i < chunks.length + 20; i++) {
-                    if (localStorage.getItem(K_HISTORY_CHUNK(i)) !== null) {
-                        localStorage.removeItem(K_HISTORY_CHUNK(i));
-                    } else break;
-                }
-            } catch (e) {}
-
-            try {
-                localStorage.setItem(K_SYNC_META, JSON.stringify(localSyncMeta));
-            } catch (e) {}
-        }
-
-        // ============================================================
-        // ОТПРАВКА В ОБЛАКО — МГНОВЕННАЯ
-        // ============================================================
-        let pushChain = Promise.resolve();
-
-        async function setCloud(key, value, retries = 2) {
-            for (let attempt = 0; attempt <= retries; attempt++) {
-                const ok = await cloudSet(key, value);
-                if (ok) return true;
-                if (attempt < retries) await new Promise(r => setTimeout(r, 300));
-            }
-            return false;
-        }
-
-        async function pushToCloudNow() {
-            if (!hasCloudStorage) {
-                pendingPush = false;
-                return;
-            }
-            if (isPushing) return;
-            isPushing = true;
-
+        try {
             const settingsJson = JSON.stringify({
-                bgColor: settings.bgColor,
-                textColor: settings.textColor,
-                btnColor: settings.btnColor,
-                bgImageSettings: settings.bgImageSettings,
-                btnImageSettings: settings.btnImageSettings,
+                bgColor: settings.bgColor, textColor: settings.textColor, btnColor: settings.btnColor,
+                bgImageSettings: settings.bgImageSettings, btnImageSettings: settings.btnImageSettings,
             });
-
             const serialized = serializeHistory();
             const chunks = splitHistoryIntoChunks(serialized);
-
-            const metaJson = JSON.stringify({
-                chunks: chunks.length,
-                tz: savedTzOffset,
-            });
-
+            const metaJson = JSON.stringify({ chunks: chunks.length, tz: savedTzOffset });
             const syncMetaJson = JSON.stringify(localSyncMeta);
 
             const entries = [
@@ -1362,969 +568,783 @@
                 ...chunks.map((chunk, i) => [CK.HISTORY_CHUNK(i), JSON.stringify(chunk)]),
             ];
 
-            // Параллельная отправка всех ключей — быстрее
-            const results = await Promise.all(
-                entries.map(([k, v]) => setCloud(k, v, 2))
-            );
-            const allOk = results.every(Boolean);
+            // ВАЖНО: последовательная запись, а не Promise.all.
+            // Параллельные setItem при 6+ чанках упираются в лимиты
+            // Telegram CloudStorage и валят весь push.
+            for (const [k, v] of entries) {
+                const ok = await setCloud(k, v, 3);
+                if (!ok) { allOk = false; break; }
+            }
 
-            // Чистим лишние чанки
-            try {
-                const allKeys = await cloudGetAllKeys();
-                const ourChunkKeys = allKeys.filter(k =>
-                    k.startsWith(CP + 'history_') && k !== CK.HISTORY_META
-                );
-                if (ourChunkKeys.length) {
+            // Чистим лишние чанки только если основные записи успешны
+            if (allOk) {
+                try {
+                    const allKeys = await cloudGetAllKeys();
+                    const ourChunkKeys = allKeys.filter(k =>
+                        k.startsWith(CP + 'history_') && k !== CK.HISTORY_META
+                    );
                     const toRemove = ourChunkKeys.filter(k => {
                         const idx = parseInt(k.replace(CP + 'history_', ''), 10);
                         return !isNaN(idx) && idx >= chunks.length;
                     });
-                    await Promise.all(toRemove.map(k => cloudRemove(k)));
-                }
-            } catch (e) {}
-
+                    for (const k of toRemove) await cloudRemove(k);
+                } catch (e) {}
+            }
+        } catch (e) {
+            allOk = false;
+        } finally {
             isPushing = false;
             pendingPush = !allOk;
+
+            if (!allOk) {
+                // Не даём pendingPush застрять навсегда — планируем retry.
+                schedulePushRetry();
+            } else {
+                pushRetryCount = 0;
+                if (pushRetryTimer) { clearTimeout(pushRetryTimer); pushRetryTimer = null; }
+            }
         }
+    }
 
-        let pushScheduled = false;
-        function schedulePush() {
-            if (pushScheduled) return;
-            pushScheduled = true;
-            // Микрозадача — без setTimeout, максимально быстро
-            Promise.resolve().then(() => {
-                pushScheduled = false;
-                pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
-            });
+    let pushScheduled = false;
+    function schedulePush() {
+        if (pushScheduled) return;
+        pushScheduled = true;
+        Promise.resolve().then(() => {
+            pushScheduled = false;
+            pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
+        });
+    }
+
+    // ============================================================
+    // LOCAL LOAD
+    // ============================================================
+    function loadFromLocalStorage() {
+        const settingsStr = localStorage.getItem(K_SETTINGS);
+        const metaStr = localStorage.getItem(K_HISTORY_META);
+        const offsetStr = localStorage.getItem(K_COUNTER_OFFSET);
+        const syncMetaStr = localStorage.getItem(K_SYNC_META);
+
+        if (settingsStr) {
+            try {
+                const s = JSON.parse(settingsStr);
+                settings = {
+                    bgColor: s.bgColor || '#f7f0fa',
+                    textColor: s.textColor || '#000000',
+                    btnColor: s.btnColor || '#ffb6c9',
+                    bgImageSettings: s.bgImageSettings || { scale: 100, x: 0, y: 0 },
+                    btnImageSettings: s.btnImageSettings || { scale: 100, x: 0, y: 0 },
+                };
+            } catch (e) {}
         }
-
-        // ============================================================
-        // LOCAL LOAD
-        // ============================================================
-        function loadFromLocalStorage() {
-            const settingsStr = localStorage.getItem(K_SETTINGS);
-            const metaStr = localStorage.getItem(K_HISTORY_META);
-            const offsetStr = localStorage.getItem(K_COUNTER_OFFSET);
-            const syncMetaStr = localStorage.getItem(K_SYNC_META);
-
-            if (settingsStr) {
+        try {
+            const imgStr = localStorage.getItem(LS_IMAGES);
+            if (imgStr) {
+                const im = JSON.parse(imgStr);
+                images.bgImage = im.bgImage || null;
+                images.btnImage = im.btnImage || null;
+            }
+        } catch (e) {}
+        if (offsetStr !== null) {
+            const n = parseInt(offsetStr, 10);
+            if (!isNaN(n)) counterOffset = n;
+        }
+        let meta = null;
+        if (metaStr) { try { meta = JSON.parse(metaStr); } catch (e) {} }
+        if (meta && meta.chunks > 0) {
+            const merged = {};
+            for (let i = 0; i < meta.chunks; i++) {
+                const chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
+                if (!chunkStr) continue;
                 try {
-                    const s = JSON.parse(settingsStr);
-                    settings = {
-                        bgColor: s.bgColor || '#f7f0fa',
-                        textColor: s.textColor || '#000000',
-                        btnColor: s.btnColor || '#ffb6c9',
-                        bgImageSettings: s.bgImageSettings || { scale: 100, x: 0, y: 0 },
-                        btnImageSettings: s.btnImageSettings || { scale: 100, x: 0, y: 0 },
-                    };
+                    const chunkObj = JSON.parse(chunkStr);
+                    for (const date in chunkObj) merged[date] = chunkObj[date];
                 } catch (e) {}
             }
-
+            history = deserializeHistory(merged);
+        }
+        if (meta && typeof meta.tz === 'number') savedTzOffset = meta.tz;
+        if (syncMetaStr) {
             try {
-                const imgStr = localStorage.getItem(LS_IMAGES);
-                if (imgStr) {
-                    const im = JSON.parse(imgStr);
-                    images.bgImage = im.bgImage || null;
-                    images.btnImage = im.btnImage || null;
+                const sm = JSON.parse(syncMetaStr);
+                if (sm && typeof sm.revision === 'number') {
+                    localSyncMeta = { revision: sm.revision, lastModified: sm.lastModified || 0 };
                 }
             } catch (e) {}
+        }
+        hugCount = calcHugCount();
+    }
 
-            if (offsetStr !== null) {
-                const n = parseInt(offsetStr, 10);
-                if (!isNaN(n)) counterOffset = n;
-            }
+    // ============================================================
+    // ЧТЕНИЕ ОБЛАКА
+    // ============================================================
+    async function fetchCloudSyncMeta() {
+        if (!hasCloudStorage) return null;
+        const s = await cloudGet(CK.SYNC_META);
+        if (!s) return null;
+        try { return JSON.parse(s); } catch (e) { return null; }
+    }
 
-            let meta = null;
-            if (metaStr) {
-                try { meta = JSON.parse(metaStr); } catch (e) {}
-            }
+    async function fetchCloudFull() {
+        const [settingsStr, metaStr, offsetStr, syncMetaStr] = await Promise.all([
+            cloudGet(CK.SETTINGS),
+            cloudGet(CK.HISTORY_META),
+            cloudGet(CK.COUNTER_OFFSET),
+            cloudGet(CK.SYNC_META),
+        ]);
 
-            if (meta && meta.chunks > 0) {
-                const merged = {};
-                for (let i = 0; i < meta.chunks; i++) {
-                    const chunkStr = localStorage.getItem(K_HISTORY_CHUNK(i));
-                    if (!chunkStr) continue;
-                    try {
-                        const chunkObj = JSON.parse(chunkStr);
-                        for (const date in chunkObj) merged[date] = chunkObj[date];
-                    } catch (e) {}
-                }
-                history = deserializeHistory(merged);
-            }
+        let settingsObj = null;
+        if (settingsStr) { try { settingsObj = JSON.parse(settingsStr); } catch (e) {} }
+        let metaObj = null;
+        if (metaStr) { try { metaObj = JSON.parse(metaStr); } catch (e) {} }
+        let syncMetaObj = null;
+        if (syncMetaStr) { try { syncMetaObj = JSON.parse(syncMetaStr); } catch (e) {} }
 
-            if (meta && typeof meta.tz === 'number') {
-                savedTzOffset = meta.tz;
-            }
-
-            if (syncMetaStr) {
+        let cloudHistory = {};
+        if (metaObj && metaObj.chunks > 0) {
+            const chunkPromises = [];
+            for (let i = 0; i < metaObj.chunks; i++) chunkPromises.push(cloudGet(CK.HISTORY_CHUNK(i)));
+            const chunkStrs = await Promise.all(chunkPromises);
+            const merged = {};
+            for (const chunkStr of chunkStrs) {
+                if (!chunkStr) continue;
                 try {
-                    const sm = JSON.parse(syncMetaStr);
-                    if (sm && typeof sm.revision === 'number') {
-                        localSyncMeta = {
-                            revision: sm.revision,
-                            lastModified: sm.lastModified || 0,
-                        };
-                    }
+                    const chunkObj = JSON.parse(chunkStr);
+                    for (const date in chunkObj) merged[date] = chunkObj[date];
                 } catch (e) {}
             }
-
-            hugCount = calcHugCount();
+            cloudHistory = deserializeHistory(merged);
         }
-
-        // ============================================================
-        // БЫСТРОЕ ЧТЕНИЕ ОБЛАКА — ПАРАЛЛЕЛЬНО
-        // ============================================================
-        // 1) Сначала читаем sync_meta одним запросом
-        // 2) Если нужно — читаем остальное ПАРАЛЛЕЛЬНО
-        async function fetchCloudSyncMeta() {
-            if (!hasCloudStorage) return null;
-            const s = await cloudGet(CK.SYNC_META);
-            if (!s) return null;
-            try { return JSON.parse(s); } catch (e) { return null; }
+        let offsetNum = 0;
+        if (offsetStr !== null && offsetStr !== undefined) {
+            const n = parseInt(offsetStr, 10);
+            if (!isNaN(n)) offsetNum = n;
         }
+        return {
+            settings: settingsObj, meta: metaObj, syncMeta: syncMetaObj,
+            history: cloudHistory, offset: offsetNum,
+            hasAnyData: !!(settingsStr || metaStr || offsetStr !== null),
+        };
+    }
 
-        async function fetchCloudFull() {
-            // Параллельно читаем всё, что нужно
-            const [settingsStr, metaStr, offsetStr, syncMetaStr] = await Promise.all([
-                cloudGet(CK.SETTINGS),
-                cloudGet(CK.HISTORY_META),
-                cloudGet(CK.COUNTER_OFFSET),
-                cloudGet(CK.SYNC_META),
-            ]);
-
-            let settingsObj = null;
-            if (settingsStr) { try { settingsObj = JSON.parse(settingsStr); } catch (e) {} }
-
-            let metaObj = null;
-            if (metaStr) { try { metaObj = JSON.parse(metaStr); } catch (e) {} }
-
-            let syncMetaObj = null;
-            if (syncMetaStr) { try { syncMetaObj = JSON.parse(syncMetaStr); } catch (e) {} }
-
-            // История — параллельно все чанки
-            let cloudHistory = {};
-            if (metaObj && metaObj.chunks > 0) {
-                const chunkPromises = [];
-                for (let i = 0; i < metaObj.chunks; i++) {
-                    chunkPromises.push(cloudGet(CK.HISTORY_CHUNK(i)));
-                }
-                const chunkStrs = await Promise.all(chunkPromises);
-                const merged = {};
-                for (const chunkStr of chunkStrs) {
-                    if (!chunkStr) continue;
-                    try {
-                        const chunkObj = JSON.parse(chunkStr);
-                        for (const date in chunkObj) merged[date] = chunkObj[date];
-                    } catch (e) {}
-                }
-                cloudHistory = deserializeHistory(merged);
-            }
-
-            let offsetNum = 0;
-            if (offsetStr !== null && offsetStr !== undefined) {
-                const n = parseInt(offsetStr, 10);
-                if (!isNaN(n)) offsetNum = n;
-            }
-
-            return {
-                settings: settingsObj,
-                meta: metaObj,
-                syncMeta: syncMetaObj,
-                history: cloudHistory,
-                offset: offsetNum,
-                hasAnyData: !!(settingsStr || metaStr || offsetStr !== null),
+    function applyCloudToMemory(cloudData) {
+        history = cloudData.history;
+        counterOffset = cloudData.offset;
+        if (cloudData.settings) {
+            settings = {
+                bgColor: cloudData.settings.bgColor || settings.bgColor,
+                textColor: cloudData.settings.textColor || settings.textColor,
+                btnColor: cloudData.settings.btnColor || settings.btnColor,
+                bgImageSettings: cloudData.settings.bgImageSettings || settings.bgImageSettings,
+                btnImageSettings: cloudData.settings.btnImageSettings || settings.btnImageSettings,
             };
         }
+        if (cloudData.meta && typeof cloudData.meta.tz === 'number') savedTzOffset = cloudData.meta.tz;
+        hugCount = calcHugCount();
+    }
 
-        function applyCloudToMemory(cloudData) {
-            history = cloudData.history;
-            counterOffset = cloudData.offset;
+    // ============================================================
+    // ПРИМЕНЕНИЕ НАСТРОЕК
+    // ============================================================
+    function applyAllSettings() {
+        if (images.bgImage) {
+            const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
+            app.style.backgroundImage = `url(${images.bgImage})`;
+            app.style.backgroundSize = `${s.scale}%`;
+            app.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
+            app.style.backgroundColor = 'transparent';
+        } else {
+            app.style.backgroundImage = 'none';
+            app.style.backgroundColor = settings.bgColor;
+        }
+        hugBtn.style.backgroundColor = settings.btnColor;
+        updateButtonShadow(settings.btnColor);
+        applyTextColor(settings.textColor);
+        if (images.btnImage) {
+            const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
+            hugBtn.style.backgroundImage = `url(${images.btnImage})`;
+            hugBtn.style.backgroundSize = `${s.scale}%`;
+            hugBtn.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
+            hugBtn.classList.add('has-image');
+        } else {
+            hugBtn.style.backgroundImage = 'none';
+            hugBtn.classList.remove('has-image');
+        }
+        updateCounter();
+    }
 
-            if (cloudData.settings) {
-                settings = {
-                    bgColor: cloudData.settings.bgColor || settings.bgColor,
-                    textColor: cloudData.settings.textColor || settings.textColor,
-                    btnColor: cloudData.settings.btnColor || settings.btnColor,
-                    bgImageSettings: cloudData.settings.bgImageSettings || settings.bgImageSettings,
-                    btnImageSettings: cloudData.settings.btnImageSettings || settings.btnImageSettings,
-                };
+    function applyTextColor(color) {
+        document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *').forEach(el => {
+            if (el.tagName === 'INPUT' && el.type === 'color') return;
+            if (el.closest('.modal') && !el.closest('.color-picker-row') && !el.closest('.file-upload-wrapper') && !el.closest('.image-editor')) {
+                el.style.color = color;
             }
+        });
+        document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
+            .forEach(el => el.style.color = color);
+        document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
+            .forEach(el => el.style.color = color);
+        counterEl.style.color = color;
+        hugBtn.style.color = color;
+        btnText.style.color = color;
+    }
 
-            if (cloudData.meta && typeof cloudData.meta.tz === 'number') {
-                savedTzOffset = cloudData.meta.tz;
-            }
+    function updateCounter() {
+        hugCount = calcHugCount();
+        counterEl.innerHTML = `🤗 ${hugCount}`;
+    }
 
-            hugCount = calcHugCount();
+    function markLocalChange() {
+        localSyncMeta.revision++;
+        localSyncMeta.lastModified = Date.now();
+        pendingPush = true;
+        saveToLocalStorageImmediate();
+        schedulePush();
+    }
+
+    // ============================================================
+    // СИНХРОНИЗАЦИЯ ИЗ ОБЛАКА
+    // ============================================================
+    async function syncFromCloud() {
+        if (!hasCloudStorage) return;
+        if (cloudLoading) return;
+        if (!isInitialized) return;
+        if (isPushing) return;
+
+        // Если есть несинхронизированные локальные изменения — не блокируемся
+        // навсегда, а инициируем повторный push (у которого свой retry).
+        if (pendingPush) {
+            pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
+            return;
         }
 
-        // ============================================================
-        // ПРИМЕНЕНИЕ
-        // ============================================================
-        function applyAllSettings() {
-            if (images.bgImage) {
-                const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                app.style.backgroundImage = `url(${images.bgImage})`;
-                app.style.backgroundSize = `${s.scale}%`;
-                app.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-                app.style.backgroundColor = 'transparent';
-            } else {
-                app.style.backgroundImage = 'none';
-                app.style.backgroundColor = settings.bgColor;
-            }
+        cloudLoading = true;
+        try {
+            const cloudSyncMeta = await fetchCloudSyncMeta();
 
-            hugBtn.style.backgroundColor = settings.btnColor;
-            updateButtonShadow(settings.btnColor);
-
-            applyTextColor(settings.textColor);
-
-            if (images.btnImage) {
-                const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                hugBtn.style.backgroundImage = `url(${images.btnImage})`;
-                hugBtn.style.backgroundSize = `${s.scale}%`;
-                hugBtn.style.backgroundPosition = `${50 + s.x}% ${50 + s.y}%`;
-                hugBtn.classList.add('has-image');
-            } else {
-                hugBtn.style.backgroundImage = 'none';
-                hugBtn.classList.remove('has-image');
-            }
-
-            updateCounter();
-        }
-
-        function applyTextColor(color) {
-            document.querySelectorAll('#counter, #settings-btn, #calendar-icon, .modal, .modal *').forEach(el => {
-                if (el.tagName === 'INPUT' && el.type === 'color') return;
-                if (el.closest('.modal') && !el.closest('.color-picker-row') && !el.closest('.file-upload-wrapper') && !el.closest('.image-editor')) {
-                    el.style.color = color;
-                }
-            });
-            document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
-                .forEach(el => el.style.color = color);
-            document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
-                .forEach(el => el.style.color = color);
-            counterEl.style.color = color;
-            hugBtn.style.color = color;
-            btnText.style.color = color;
-        }
-
-        function updateCounter() {
-            hugCount = calcHugCount();
-            counterEl.innerHTML = `🤗 ${hugCount}`;
-        }
-
-        function markLocalChange() {
-            localSyncMeta.revision++;
-            localSyncMeta.lastModified = Date.now();
-            pendingPush = true;
-            saveToLocalStorageImmediate();
-            schedulePush();
-        }
-
-        // ============================================================
-        // СИНХРОНИЗАЦИЯ ИЗ ОБЛАКА
-        // ============================================================
-        async function syncFromCloud() {
-            if (!hasCloudStorage) return;
-            if (cloudLoading) return;
-            if (!isInitialized) return;
-            if (pendingPush) return;
-            if (isPushing) return;
-
-            cloudLoading = true;
-            try {
-                // 1) Один запрос — sync_meta. По нему уже видно, чьи новее.
-                const cloudSyncMeta = await fetchCloudSyncMeta();
-
-                if (!cloudSyncMeta) {
-                    // В облаке нет меты — возможно, старая версия. Проверим,
-                    // есть ли вообще данные, и если у нас нет ничего — подтянем.
-                    const cloudData = await fetchCloudFull();
-                    if (!cloudData.hasAnyData) return;
-                    if (localSyncMeta.revision > 0) return; // у нас данные есть, не трогаем
-                    applyCloudToMemory(cloudData);
-                    localSyncMeta = { revision: 1, lastModified: Date.now() };
-                    saveToLocalStorageImmediate();
-                    applyAllSettings();
-                    return;
-                }
-
-                const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 1;
-                const cloudLastModified = cloudSyncMeta.lastModified || 0;
-                const localRev = localSyncMeta.revision;
-                const localLastModified = localSyncMeta.lastModified || 0;
-
-                // Облако новее — читаем полные данные и применяем
-                if (cloudRev > localRev ||
-                    (cloudRev === localRev && cloudLastModified > localLastModified)) {
-
-                    const cloudData = await fetchCloudFull();
-                    applyCloudToMemory(cloudData);
-                    localSyncMeta = {
-                        revision: cloudRev,
-                        lastModified: cloudLastModified,
-                    };
-                    saveToLocalStorageImmediate();
-                    applyAllSettings();
-                    if (calendarOverlay.classList.contains('open')) {
-                        renderCalendar(currentYear, currentMonth);
-                    }
-                }
-            } catch (e) {}
-            finally {
-                cloudLoading = false;
-            }
-        }
-
-        // ============================================================
-        // СЖАТИЕ КАРТИНОК
-        // ============================================================
-        function compressImage(file, maxDim, quality) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function(ev) {
-                    const img = new Image();
-                    img.onload = function() {
-                        let w = img.width, h = img.height;
-                        const ratio = Math.min(1, maxDim / Math.max(w, h));
-                        w = Math.round(w * ratio);
-                        h = Math.round(h * ratio);
-                        const canvas = document.createElement('canvas');
-                        canvas.width = w;
-                        canvas.height = h;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, w, h);
-                        try {
-                            resolve(canvas.toDataURL('image/jpeg', quality));
-                        } catch (e) {
-                            resolve(ev.target.result);
-                        }
-                    };
-                    img.onerror = () => resolve(ev.target.result);
-                    img.src = ev.target.result;
-                };
-                reader.onerror = () => resolve(null);
-                reader.readAsDataURL(file);
-            });
-        }
-
-        // ============================================================
-        // РЕДАКТОР ИЗОБРАЖЕНИЙ
-        // ============================================================
-        function toggleEditor(editorId, imageData) {
-            const editor = document.getElementById(editorId);
-            const isOpen = editor.classList.contains('open');
-            if (imageData) {
-                if (isOpen) editor.classList.remove('open');
-                else {
-                    editor.classList.add('open');
-                    updateEditorPreview(editorId, imageData);
-                }
-            } else {
-                editor.classList.remove('open');
-            }
-        }
-
-        function updateEditorPreview(editorId, imageData) {
-            const editor = document.getElementById(editorId);
-            const preview = editor.querySelector('.preview-container');
-            const noImage = preview.querySelector('.no-image');
-            let img = preview.querySelector('img');
-
-            if (imageData) {
-                if (!img) {
-                    img = document.createElement('img');
-                    preview.appendChild(img);
-                }
-                img.src = imageData;
-                img.style.display = 'block';
-                if (noImage) noImage.style.display = 'none';
-
-                let scale = 100, x = 0, y = 0;
-                if (editorId === 'bg-image-editor') {
-                    const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
-                    scale = s.scale; x = s.x; y = s.y;
-                } else if (editorId === 'btn-image-editor') {
-                    const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
-                    scale = s.scale; x = s.x; y = s.y;
-                }
-                img.style.width = `${scale}%`;
-                img.style.height = `${scale}%`;
-                img.style.transform = `translate(${x}%, ${y}%)`;
-            } else {
-                if (img) img.style.display = 'none';
-                if (noImage) noImage.style.display = 'block';
-            }
-        }
-
-        // ============================================================
-        // НАСТРОЙКИ
-        // ============================================================
-        function openSettings() {
-            bgPicker.value = settings.bgColor;
-            textPicker.value = settings.textColor;
-            btnColorPicker.value = settings.btnColor;
-            document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
-            settingsOverlay.classList.add('open');
-        }
-
-        function closeSettingsFn() {
-            settingsOverlay.classList.remove('open');
-        }
-
-        // ============================================================
-        // КАЛЕНДАРЬ
-        // ============================================================
-        function renderCalendar(year, month) {
-            const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь',
-                                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-            monthYearSpan.textContent = monthNames[month] + ' ' + year;
-
-            const shortDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-            weekdaysEl.innerHTML = shortDays.map(d => `<div>${d}</div>`).join('');
-
-            const firstDay = new Date(year, month, 1);
-            const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
-            const daysInMonth = new Date(year, month+1, 0).getDate();
-
-            let gridHtml = '';
-            for (let i = 0; i < startDay; i++) {
-                gridHtml += `<div class="day-cell empty"></div>`;
-            }
-
-            for (let d = 1; d <= daysInMonth; d++) {
-                const key = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-                const clicks = history[key] || [];
-                const count = clicks.length;
-                const isSelected = (selectedDate === key);
-                let classes = 'day-cell';
-                if (isSelected) classes += ' selected';
-                let indicator = count > 0 ? `<span class="hug-indicator">❤️${count}</span>` : '';
-                gridHtml += `<div class="${classes}" data-date="${key}">${d}${indicator}</div>`;
-            }
-
-            daysGrid.innerHTML = gridHtml;
-
-            document.querySelectorAll('.day-cell:not(.empty)').forEach(cell => {
-                cell.addEventListener('click', function() {
-                    const dateKey = this.dataset.date;
-                    if (dateKey) {
-                        selectedDate = dateKey;
-                        renderCalendar(currentYear, currentMonth);
-                        showDayInfo(dateKey);
-                    }
-                });
-            });
-
-            if (selectedDate) {
-                const [y,m] = selectedDate.split('-').map(Number);
-                if (y === year && m-1 === month) {
-                    showDayInfo(selectedDate);
-                } else {
-                    dayInfo.textContent = 'Выберите день';
-                    dayClicksList.innerHTML = '';
-                }
-            } else {
-                dayInfo.textContent = 'Выберите день';
-                dayClicksList.innerHTML = '';
-            }
-        }
-
-        function showDayInfo(dateKey) {
-            const clicks = history[dateKey] || [];
-            const parts = dateKey.split('-');
-            const d = new Date(parts[0], parts[1]-1, parts[2]);
-            const weekdays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
-            const wd = weekdays[d.getDay() === 0 ? 6 : d.getDay()-1];
-            const dateStr = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]} ${d.getFullYear()}`;
-            dayInfo.textContent = `${dateStr} (${wd}) — ${clicks.length} обнимашек`;
-
-            if (clicks.length === 0) {
-                dayClicksList.innerHTML = `<div class="no-clicks">Нет кликов в этот день</div>`;
+            if (!cloudSyncMeta) {
+                const cloudData = await fetchCloudFull();
+                if (!cloudData.hasAnyData) return;
+                if (localSyncMeta.revision > 0) return;
+                applyCloudToMemory(cloudData);
+                localSyncMeta = { revision: 1, lastModified: Date.now() };
+                saveToLocalStorageImmediate();
+                applyAllSettings();
                 return;
             }
 
-            const sorted = [...clicks].sort((a, b) => a.t - b.t);
+            const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 1;
+            const cloudLastModified = cloudSyncMeta.lastModified || 0;
+            const localRev = localSyncMeta.revision;
+            const localLastModified = localSyncMeta.lastModified || 0;
 
-            let html = '';
-            sorted.forEach((click, i) => {
-                const timeStr = formatClickTime(click.t);
-                const approx = click.approx ? ' <span style="color:#a080b0; font-size:10px;">(~)</span>' : '';
-                html += `
-                    <div class="click-item">
-                        <span class="click-num">#${i + 1}</span>
-                        <span class="click-time">${timeStr}${approx}</span>
-                    </div>
-                `;
-            });
-            dayClicksList.innerHTML = html;
-        }
-
-        function changeMonth(delta) {
-            currentMonth += delta;
-            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-            renderCalendar(currentYear, currentMonth);
-        }
-
-        function openCalendar() {
-            calendarOverlay.classList.add('open');
-            if (!selectedDate) {
-                const today = new Date();
-                selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-            }
-            const [y,m] = selectedDate.split('-').map(Number);
-            currentYear = y;
-            currentMonth = m-1;
-            renderCalendar(currentYear, currentMonth);
-        }
-
-        // ============================================================
-        // КЛИК ПО КНОПКЕ
-        // ============================================================
-        function handleHugClick() {
-            const now = new Date();
-            const key = now.getFullYear() + '-' +
-                        String(now.getMonth()+1).padStart(2,'0') + '-' +
-                        String(now.getDate()).padStart(2,'0');
-            const tz = getTzOffsetMinutes();
-
-            if (!history[key]) history[key] = [];
-            history[key].push({ t: now.getTime(), h: tz });
-
-            updateCounter();
-            markLocalChange();
-
-            if (calendarOverlay.classList.contains('open') && selectedDate === key) {
-                showDayInfo(key);
-            }
-            if (calendarOverlay.classList.contains('open')) {
-                renderCalendar(currentYear, currentMonth);
-            }
-        }
-
-        // ============================================================
-        // DEV-ПАНЕЛЬ
-        // ============================================================
-        function devLogLine(text, type) {
-            const div = document.createElement('div');
-            div.className = 'log-line ' + (type || 'log-info');
-            div.textContent = text;
-            devLog.appendChild(div);
-            devLog.scrollTop = devLog.scrollHeight;
-        }
-
-        function parseDevDate(s) {
-            if (!s) return null;
-            const low = s.toLowerCase();
-            const today = new Date();
-            if (low === 'сегодня') return { y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() };
-            if (low === 'вчера') {
-                const yest = new Date(today.getTime() - 86400000);
-                return { y: yest.getFullYear(), m: yest.getMonth()+1, d: yest.getDate() };
-            }
-            if (low === 'завтра') {
-                const tm = new Date(today.getTime() + 86400000);
-                return { y: tm.getFullYear(), m: tm.getMonth()+1, d: tm.getDate() };
-            }
-            const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-            if (!m) return null;
-            return { y: parseInt(m[1],10), m: parseInt(m[2],10), d: parseInt(m[3],10) };
-        }
-
-        function parseDevTime(s) {
-            if (!s) return { h: 12, mi: 0, se: 0 };
-            const parts = s.split(':').map(x => parseInt(x, 10));
-            if (parts.length < 2 || parts.some(isNaN)) return null;
-            const h = parts[0], mi = parts[1], se = parts[2] || 0;
-            if (h < 0 || h > 23 || mi < 0 || mi > 59 || se < 0 || se > 59) return null;
-            return { h, mi, se };
-        }
-
-        function dateKeyFromParts(p) {
-            return p.y + '-' + String(p.m).padStart(2,'0') + '-' + String(p.d).padStart(2,'0');
-        }
-
-        function cmdCounter(amountStr) {
-            const amount = parseInt(amountStr, 10);
-            if (isNaN(amount)) { devLogLine('❌ Неверное число: ' + amountStr, 'log-err'); return; }
-            if (amount === 0) { devLogLine('ℹ️ Счётчик не изменён (0).', 'log-info'); return; }
-
-            const before = hugCount;
-            counterOffset += amount;
-
-            const newCount = calcHugCount();
-            if (newCount < 0) {
-                counterOffset -= newCount;
-                devLogLine(`⚠️ Ограничение: счётчик не может быть меньше 0. Offset скорректирован.`, 'log-info');
-            }
-
-            updateCounter();
-            markLocalChange();
-
-            devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}).`, 'log-ok');
-        }
-
-        function cmdHug(sign, dateStr, timeStr) {
-            const dp = parseDevDate(dateStr);
-            if (!dp) { devLogLine('❌ Неверная дата: ' + dateStr, 'log-err'); return; }
-            const tp = parseDevTime(timeStr);
-            if (!tp) { devLogLine('❌ Неверное время: ' + timeStr, 'log-err'); return; }
-
-            const dt = new Date(dp.y, dp.m - 1, dp.d, tp.h, tp.mi, tp.se, 0);
-            const ts = dt.getTime();
-            const key = dateKeyFromParts(dp);
-            const tz = getTzOffsetMinutes();
-
-            if (sign === '+') {
-                if (!history[key]) history[key] = [];
-                history[key].push({ t: ts, h: tz });
-                updateCounter();
-                markLocalChange();
-                devLogLine(`✅ Добавлена обнимашка: ${key} (счётчик: ${hugCount})`, 'log-ok');
-            } else {
-                const arr = history[key];
-                if (!arr || arr.length === 0) {
-                    devLogLine(`❌ В ${key} нет обнимашек для удаления`, 'log-err');
-                    return;
-                }
-                let bestIdx = -1;
-                let bestDiff = Infinity;
-                for (let i = 0; i < arr.length; i++) {
-                    const diff = Math.abs(arr[i].t - ts);
-                    if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
-                }
-                if (bestIdx === -1) { devLogLine(`❌ Не удалось найти обнимашку`, 'log-err'); return; }
-                const removed = arr.splice(bestIdx, 1)[0];
-                if (arr.length === 0) delete history[key];
-                updateCounter();
-                markLocalChange();
-
-                const rTime = formatClickTime(removed.t);
-                devLogLine(`✅ Удалена обнимашка из ${key} (${rTime}), счётчик: ${hugCount}`, 'log-ok');
-            }
-
-            if (calendarOverlay.classList.contains('open')) {
-                renderCalendar(currentYear, currentMonth);
-            }
-        }
-
-        function runDevCommand(raw) {
-            const cmd = (raw || '').trim();
-            if (!cmd) return;
-            devLogLine('> ' + cmd, 'log-sys');
-
-            let m = cmd.match(/^(?:счётчик|счетчик|counter)\s*([+-]?\d+)\s*$/i);
-            if (m) { cmdCounter(m[1]); return; }
-
-            m = cmd.match(/^([+-])\s*обнимашка\s+(\S+)(?:\s+(\S+))?\s*$/i);
-            if (m) { cmdHug(m[1], m[2], m[3] || null); return; }
-
-            devLogLine('❌ Неизвестная команда. Смотри подсказки сверху.', 'log-err');
-        }
-
-        function openDevPanel() {
-            devOverlay.classList.add('open');
-            try {
-                const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
-                if (u && u.username) devUserLabel.textContent = '@' + u.username;
-                else devUserLabel.textContent = '(local)';
-            } catch (e) { devUserLabel.textContent = ''; }
-            setTimeout(() => devInput.focus(), 100);
-        }
-        function closeDevPanel() {
-            devOverlay.classList.remove('open');
-            devInput.blur();
-        }
-
-        devBtn.addEventListener('click', openDevPanel);
-        devClose.addEventListener('click', closeDevPanel);
-        devOverlay.addEventListener('click', function(e) { if (e.target === this) closeDevPanel(); });
-        devRun.addEventListener('click', function() {
-            const v = devInput.value;
-            devInput.value = '';
-            runDevCommand(v);
-        });
-        devInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const v = devInput.value;
-                devInput.value = '';
-                runDevCommand(v);
-            }
-        });
-
-        // ============================================================
-        // СОБЫТИЯ
-        // ============================================================
-        hugBtn.addEventListener('click', handleHugClick);
-
-        settingsBtn.addEventListener('click', openSettings);
-        closeSettings.addEventListener('click', closeSettingsFn);
-        settingsOverlay.addEventListener('click', function(e) {
-            if (e.target === this) closeSettingsFn();
-        });
-
-        bgPicker.addEventListener('input', function() {
-            settings.bgColor = this.value;
-            applyAllSettings();
-            markLocalChange();
-        });
-        textPicker.addEventListener('input', function() {
-            settings.textColor = this.value;
-            applyAllSettings();
-            markLocalChange();
-        });
-        btnColorPicker.addEventListener('input', function() {
-            settings.btnColor = this.value;
-            applyAllSettings();
-            markLocalChange();
-        });
-
-        resetBg.addEventListener('click', () => {
-            settings.bgColor = '#f7f0fa';
-            bgPicker.value = '#f7f0fa';
-            applyAllSettings();
-            markLocalChange();
-        });
-        resetText.addEventListener('click', () => {
-            settings.textColor = '#000000';
-            textPicker.value = '#000000';
-            applyAllSettings();
-            markLocalChange();
-        });
-        resetBtnColor.addEventListener('click', () => {
-            settings.btnColor = '#ffb6c9';
-            btnColorPicker.value = '#ffb6c9';
-            applyAllSettings();
-            markLocalChange();
-        });
-
-        bgImageUpload.addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const dataUrl = await compressImage(file, 1280, 0.82);
-                if (dataUrl) {
-                    images.bgImage = dataUrl;
-                    if (!settings.bgImageSettings) settings.bgImageSettings = { scale: 100, x: 0, y: 0 };
-                    applyAllSettings();
-                    markLocalChange();
-                }
-            }
-            e.target.value = '';
-        });
-
-        btnImageUpload.addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const dataUrl = await compressImage(file, 800, 0.85);
-                if (dataUrl) {
-                    images.btnImage = dataUrl;
-                    if (!settings.btnImageSettings) settings.btnImageSettings = { scale: 100, x: 0, y: 0 };
-                    applyAllSettings();
-                    markLocalChange();
-                }
-            }
-            e.target.value = '';
-        });
-
-        removeBgImage.addEventListener('click', function() {
-            images.bgImage = null;
-            bgImageUpload.value = '';
-            document.getElementById('bg-image-editor').classList.remove('open');
-            applyAllSettings();
-            markLocalChange();
-        });
-        removeBtnImage.addEventListener('click', function() {
-            images.btnImage = null;
-            btnImageUpload.value = '';
-            document.getElementById('btn-image-editor').classList.remove('open');
-            applyAllSettings();
-            markLocalChange();
-        });
-
-        bgImageEdit.addEventListener('click', function() {
-            if (images.bgImage) toggleEditor('bg-image-editor', images.bgImage);
-        });
-        btnImageEdit.addEventListener('click', function() {
-            if (images.btnImage) toggleEditor('btn-image-editor', images.btnImage);
-        });
-
-        function setupSlider(sliderId, valId, editorId, settingsKey) {
-            const slider = document.getElementById(sliderId);
-            const valSpan = document.getElementById(valId);
-            slider.addEventListener('input', function() {
-                const val = parseInt(this.value);
-                valSpan.textContent = val + '%';
-                if (!settings[settingsKey]) settings[settingsKey] = { scale: 100, x: 0, y: 0 };
-                const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
-                settings[settingsKey][key] = val;
+            if (cloudRev > localRev ||
+                (cloudRev === localRev && cloudLastModified > localLastModified)) {
+                const cloudData = await fetchCloudFull();
+                applyCloudToMemory(cloudData);
+                localSyncMeta = { revision: cloudRev, lastModified: cloudLastModified };
+                saveToLocalStorageImmediate();
                 applyAllSettings();
-                markLocalChange();
-                let imageData = null;
-                if (settingsKey === 'bgImageSettings') imageData = images.bgImage;
-                else if (settingsKey === 'btnImageSettings') imageData = images.btnImage;
-                if (imageData) updateEditorPreview(editorId, imageData);
+                if (calendarOverlay.classList.contains('open')) {
+                    renderCalendar(currentYear, currentMonth);
+                }
+            }
+        } catch (e) {}
+        finally { cloudLoading = false; }
+    }
+
+    // ============================================================
+    // СЖАТИЕ КАРТИНОК
+    // ============================================================
+    function compressImage(file, maxDim, quality) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = new Image();
+                img.onload = function() {
+                    let w = img.width, h = img.height;
+                    const ratio = Math.min(1, maxDim / Math.max(w, h));
+                    w = Math.round(w * ratio);
+                    h = Math.round(h * ratio);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    try { resolve(canvas.toDataURL('image/jpeg', quality)); }
+                    catch (e) { resolve(ev.target.result); }
+                };
+                img.onerror = () => resolve(ev.target.result);
+                img.src = ev.target.result;
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // ============================================================
+    // РЕДАКТОР ИЗОБРАЖЕНИЙ
+    // ============================================================
+    function toggleEditor(editorId, imageData) {
+        const editor = document.getElementById(editorId);
+        const isOpen = editor.classList.contains('open');
+        if (imageData) {
+            if (isOpen) editor.classList.remove('open');
+            else { editor.classList.add('open'); updateEditorPreview(editorId, imageData); }
+        } else { editor.classList.remove('open'); }
+    }
+
+    function updateEditorPreview(editorId, imageData) {
+        const editor = document.getElementById(editorId);
+        const preview = editor.querySelector('.preview-container');
+        const noImage = preview.querySelector('.no-image');
+        let img = preview.querySelector('img');
+        if (imageData) {
+            if (!img) { img = document.createElement('img'); preview.appendChild(img); }
+            img.src = imageData;
+            img.style.display = 'block';
+            if (noImage) noImage.style.display = 'none';
+            let scale = 100, x = 0, y = 0;
+            if (editorId === 'bg-image-editor') {
+                const s = settings.bgImageSettings || { scale: 100, x: 0, y: 0 };
+                scale = s.scale; x = s.x; y = s.y;
+            } else if (editorId === 'btn-image-editor') {
+                const s = settings.btnImageSettings || { scale: 100, x: 0, y: 0 };
+                scale = s.scale; x = s.x; y = s.y;
+            }
+            img.style.width = `${scale}%`;
+            img.style.height = `${scale}%`;
+            img.style.transform = `translate(${x}%, ${y}%)`;
+        } else {
+            if (img) img.style.display = 'none';
+            if (noImage) noImage.style.display = 'block';
+        }
+    }
+
+    // ============================================================
+    // НАСТРОЙКИ
+    // ============================================================
+    function openSettings() {
+        bgPicker.value = settings.bgColor;
+        textPicker.value = settings.textColor;
+        btnColorPicker.value = settings.btnColor;
+        document.querySelectorAll('.image-editor').forEach(el => el.classList.remove('open'));
+        settingsOverlay.classList.add('open');
+    }
+    function closeSettingsFn() { settingsOverlay.classList.remove('open'); }
+
+    // ============================================================
+    // КАЛЕНДАРЬ
+    // ============================================================
+    function renderCalendar(year, month) {
+        const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+        monthYearSpan.textContent = monthNames[month] + ' ' + year;
+        const shortDays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+        weekdaysEl.innerHTML = shortDays.map(d => `<div>${d}</div>`).join('');
+        const firstDay = new Date(year, month, 1);
+        const startDay = firstDay.getDay() === 0 ? 6 : firstDay.getDay() - 1;
+        const daysInMonth = new Date(year, month+1, 0).getDate();
+        let gridHtml = '';
+        for (let i = 0; i < startDay; i++) gridHtml += `<div class="day-cell empty"></div>`;
+        for (let d = 1; d <= daysInMonth; d++) {
+            const key = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+            const clicks = history[key] || [];
+            const count = clicks.length;
+            const isSelected = (selectedDate === key);
+            let classes = 'day-cell';
+            if (isSelected) classes += ' selected';
+            let indicator = count > 0 ? `<span class="hug-indicator">❤️${count}</span>` : '';
+            gridHtml += `<div class="${classes}" data-date="${key}">${d}${indicator}</div>`;
+        }
+        daysGrid.innerHTML = gridHtml;
+        document.querySelectorAll('.day-cell:not(.empty)').forEach(cell => {
+            cell.addEventListener('click', function() {
+                const dateKey = this.dataset.date;
+                if (dateKey) {
+                    selectedDate = dateKey;
+                    renderCalendar(currentYear, currentMonth);
+                    showDayInfo(dateKey);
+                }
             });
+        });
+        if (selectedDate) {
+            const [y,m] = selectedDate.split('-').map(Number);
+            if (y === year && m-1 === month) showDayInfo(selectedDate);
+            else { dayInfo.textContent = 'Выберите день'; dayClicksList.innerHTML = ''; }
+        } else { dayInfo.textContent = 'Выберите день'; dayClicksList.innerHTML = ''; }
+    }
+
+    function showDayInfo(dateKey) {
+        const clicks = history[dateKey] || [];
+        const parts = dateKey.split('-');
+        const d = new Date(parts[0], parts[1]-1, parts[2]);
+        const weekdays = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+        const wd = weekdays[d.getDay() === 0 ? 6 : d.getDay()-1];
+        const dateStr = `${d.getDate()} ${['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'][d.getMonth()]} ${d.getFullYear()}`;
+        dayInfo.textContent = `${dateStr} (${wd}) — ${clicks.length} обнимашек`;
+        if (clicks.length === 0) {
+            dayClicksList.innerHTML = `<div class="no-clicks">Нет кликов в этот день</div>`;
+            return;
         }
-
-        setupSlider('bg-image-scale', 'bg-image-scale-val', 'bg-image-editor', 'bgImageSettings');
-        setupSlider('bg-image-x', 'bg-image-x-val', 'bg-image-editor', 'bgImageSettings');
-        setupSlider('bg-image-y', 'bg-image-y-val', 'bg-image-editor', 'bgImageSettings');
-        setupSlider('btn-image-scale', 'btn-image-scale-val', 'btn-image-editor', 'btnImageSettings');
-        setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
-        setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
-
-        resetCounterBtn.addEventListener('click', function() {
-            confirmMessage.textContent = 'Вы уверены, что хотите сбросить счётчик обнимашек?';
-            confirmOverlay.classList.add('open');
+        const sorted = [...clicks].sort((a, b) => a.t - b.t);
+        let html = '';
+        sorted.forEach((click, i) => {
+            const timeStr = formatClickTime(click.t);
+            const approx = click.approx ? ' <span style="color:#a080b0; font-size:10px;">(~)</span>' : '';
+            html += `<div class="click-item"><span class="click-num">#${i + 1}</span><span class="click-time">${timeStr}${approx}</span></div>`;
         });
-        confirmYes.addEventListener('click', function() {
-            history = {};
-            counterOffset = 0;
-            updateCounter();
-            markLocalChange();
-            if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
-            selectedDate = null;
-            dayInfo.textContent = 'Выберите день';
-            dayClicksList.innerHTML = '';
-            confirmOverlay.classList.remove('open');
-        });
-        confirmNo.addEventListener('click', () => confirmOverlay.classList.remove('open'));
-        confirmOverlay.addEventListener('click', function(e) {
-            if (e.target === this) confirmOverlay.classList.remove('open');
-        });
+        dayClicksList.innerHTML = html;
+    }
 
-        calendarIcon.addEventListener('click', openCalendar);
-        closeCalendar.addEventListener('click', () => calendarOverlay.classList.remove('open'));
-        calendarOverlay.addEventListener('click', function(e) {
-            if (e.target === this) calendarOverlay.classList.remove('open');
-        });
-        prevMonthBtn.addEventListener('click', () => changeMonth(-1));
-        nextMonthBtn.addEventListener('click', () => changeMonth(1));
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar(currentYear, currentMonth);
+    }
 
-        // ============================================================
-        // СМЕНА ЧАСОВОГО ПОЯСА
-        // ============================================================
-        function checkTimezoneChange() {
-            const currentTz = getTzOffsetMinutes();
-            if (currentTz !== savedTzOffset) {
-                const diffMinutes = currentTz - savedTzOffset;
-                const diffH = diffMinutes / 60;
-                const diffStr = diffH > 0 ? `+${diffH}` : `${diffH}`;
-                document.getElementById('tz-message').textContent =
-                    `Похоже, у вас изменился часовой пояс (сдвиг ${diffStr} ч). Пересчитать все прошлые обнимашки с новым сдвигом?`;
-                tzOverlay.classList.add('open');
-            }
-        }
-
-        tzYes.addEventListener('click', function() {
-            const currentTz = getTzOffsetMinutes();
-            const diffMs = (currentTz - savedTzOffset) * 60 * 1000;
-            for (const date in history) {
-                history[date] = history[date].map(c => ({
-                    t: c.t + diffMs,
-                    h: currentTz,
-                    approx: c.approx
-                }));
-            }
-            savedTzOffset = currentTz;
-            markLocalChange();
-            if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
-            tzOverlay.classList.remove('open');
-        });
-
-        tzNo.addEventListener('click', function() {
-            savedTzOffset = getTzOffsetMinutes();
-            markLocalChange();
-            tzOverlay.classList.remove('open');
-        });
-
-        // ============================================================
-        // ВИДИМОСТЬ / ФОКУС
-        // ============================================================
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible') syncFromCloud();
-            else saveToLocalStorageImmediate();
-        });
-        window.addEventListener('focus', function() { syncFromCloud(); });
-
-        // Периодическая синхронизация (тихая)
-        setInterval(function() { syncFromCloud(); }, 3000);
-
-        // ============================================================
-        // INIT — МГНОВЕННЫЙ СТАРТ
-        // ============================================================
-        async function init() {
-            // === ШАГ 1: мгновенный рендер из localStorage ===
-            // Никаких await — localStorage синхронный.
-            // Пользователь сразу видит свой счётчик.
-            loadFromLocalStorage();
-            applyAllSettings();
-
-            // === ШАГ 2: параллельно с рендером — читаем только sync_meta ===
-            // Один запрос. По нему видно, есть ли в облаке что-то новее.
-            if (hasCloudStorage) {
-                try {
-                    const cloudSyncMeta = await fetchCloudSyncMeta();
-
-                    if (!cloudSyncMeta) {
-                        // В облаке нет меты → либо пусто, либо старая версия.
-                        // Подтянем полностью (один раз, чтобы мигрировать).
-                        const cloudData = await fetchCloudFull();
-                        if (cloudData.hasAnyData) {
-                            // В облаке есть данные (старая версия).
-                            // Если у нас ревизия 0 (пустые) — применяем облако.
-                            if (localSyncMeta.revision === 0) {
-                                applyCloudToMemory(cloudData);
-                                localSyncMeta = { revision: 1, lastModified: Date.now() };
-                                saveToLocalStorageImmediate();
-                                applyAllSettings();
-                            } else {
-                                // У нас есть данные, но в облаке нет меты.
-                                // Присвоим ревизию и запушим, чтобы зафиксировать в облаке.
-                                localSyncMeta.revision = Math.max(localSyncMeta.revision, 1);
-                                localSyncMeta.lastModified = Date.now();
-                                markLocalChange();
-                            }
-                        }
-                    } else {
-                        const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 1;
-                        const cloudLastModified = cloudSyncMeta.lastModified || 0;
-                        const localRev = localSyncMeta.revision;
-                        const localLastModified = localSyncMeta.lastModified || 0;
-
-                        // Если облако новее — читаем полностью и применяем
-                        if (cloudRev > localRev ||
-                            (cloudRev === localRev && cloudLastModified > localLastModified)) {
-                            const cloudData = await fetchCloudFull();
-                            applyCloudToMemory(cloudData);
-                            localSyncMeta = {
-                                revision: cloudRev,
-                                lastModified: cloudLastModified,
-                            };
-                            saveToLocalStorageImmediate();
-                            applyAllSettings();
-                        } else if (localRev > cloudRev ||
-                                   (localRev === cloudRev && localLastModified > cloudLastModified)) {
-                            // У нас новее — запушим в облако
-                            schedulePush();
-                        }
-                    }
-                } catch (e) {}
-            }
-
-            isInitialized = true;
-
-            if (checkDevAccess()) devBtn.classList.add('show');
-
+    function openCalendar() {
+        calendarOverlay.classList.add('open');
+        if (!selectedDate) {
             const today = new Date();
             selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+        }
+        const [y,m] = selectedDate.split('-').map(Number);
+        currentYear = y; currentMonth = m-1;
+        renderCalendar(currentYear, currentMonth);
+    }
 
-            setTimeout(checkTimezoneChange, 800);
+    // ============================================================
+    // КЛИК
+    // ============================================================
+    function handleHugClick() {
+        const now = new Date();
+        const key = now.getFullYear() + '-' +
+                    String(now.getMonth()+1).padStart(2,'0') + '-' +
+                    String(now.getDate()).padStart(2,'0');
+        const tz = getTzOffsetMinutes();
+        if (!history[key]) history[key] = [];
+        history[key].push({ t: now.getTime(), h: tz });
+        updateCounter();
+        markLocalChange();
+        if (calendarOverlay.classList.contains('open') && selectedDate === key) showDayInfo(key);
+        if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
+    }
+
+    // ============================================================
+    // DEV-ПАНЕЛЬ
+    // ============================================================
+    function devLogLine(text, type) {
+        const div = document.createElement('div');
+        div.className = 'log-line ' + (type || 'log-info');
+        div.textContent = text;
+        devLog.appendChild(div);
+        devLog.scrollTop = devLog.scrollHeight;
+    }
+    function parseDevDate(s) {
+        if (!s) return null;
+        const low = s.toLowerCase();
+        const today = new Date();
+        if (low === 'сегодня') return { y: today.getFullYear(), m: today.getMonth() + 1, d: today.getDate() };
+        if (low === 'вчера') { const yest = new Date(today.getTime() - 86400000); return { y: yest.getFullYear(), m: yest.getMonth()+1, d: yest.getDate() }; }
+        if (low === 'завтра') { const tm = new Date(today.getTime() + 86400000); return { y: tm.getFullYear(), m: tm.getMonth()+1, d: tm.getDate() }; }
+        const m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+        if (!m) return null;
+        return { y: parseInt(m[1],10), m: parseInt(m[2],10), d: parseInt(m[3],10) };
+    }
+    function parseDevTime(s) {
+        if (!s) return { h: 12, mi: 0, se: 0 };
+        const parts = s.split(':').map(x => parseInt(x, 10));
+        if (parts.length < 2 || parts.some(isNaN)) return null;
+        const h = parts[0], mi = parts[1], se = parts[2] || 0;
+        if (h < 0 || h > 23 || mi < 0 || mi > 59 || se < 0 || se > 59) return null;
+        return { h, mi, se };
+    }
+    function dateKeyFromParts(p) { return p.y + '-' + String(p.m).padStart(2,'0') + '-' + String(p.d).padStart(2,'0'); }
+
+    function cmdCounter(amountStr) {
+        const amount = parseInt(amountStr, 10);
+        if (isNaN(amount)) { devLogLine('❌ Неверное число: ' + amountStr, 'log-err'); return; }
+        if (amount === 0) { devLogLine('ℹ️ Счётчик не изменён (0).', 'log-info'); return; }
+        const before = hugCount;
+        counterOffset += amount;
+        const newCount = calcHugCount();
+        if (newCount < 0) { counterOffset -= newCount; devLogLine(`⚠️ Ограничение: счётчик не может быть меньше 0. Offset скорректирован.`, 'log-info'); }
+        updateCounter();
+        markLocalChange();
+        devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}).`, 'log-ok');
+    }
+
+    function cmdHug(sign, dateStr, timeStr) {
+        const dp = parseDevDate(dateStr);
+        if (!dp) { devLogLine('❌ Неверная дата: ' + dateStr, 'log-err'); return; }
+        const tp = parseDevTime(timeStr);
+        if (!tp) { devLogLine('❌ Неверное время: ' + timeStr, 'log-err'); return; }
+        const dt = new Date(dp.y, dp.m - 1, dp.d, tp.h, tp.mi, tp.se, 0);
+        const ts = dt.getTime();
+        const key = dateKeyFromParts(dp);
+        const tz = getTzOffsetMinutes();
+        if (sign === '+') {
+            if (!history[key]) history[key] = [];
+            history[key].push({ t: ts, h: tz });
+            updateCounter();
+            markLocalChange();
+            devLogLine(`✅ Добавлена обнимашка: ${key} (счётчик: ${hugCount})`, 'log-ok');
+        } else {
+            const arr = history[key];
+            if (!arr || arr.length === 0) { devLogLine(`❌ В ${key} нет обнимашек для удаления`, 'log-err'); return; }
+            let bestIdx = -1, bestDiff = Infinity;
+            for (let i = 0; i < arr.length; i++) {
+                const diff = Math.abs(arr[i].t - ts);
+                if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+            }
+            if (bestIdx === -1) { devLogLine(`❌ Не удалось найти обнимашку`, 'log-err'); return; }
+            const removed = arr.splice(bestIdx, 1)[0];
+            if (arr.length === 0) delete history[key];
+            updateCounter();
+            markLocalChange();
+            devLogLine(`✅ Удалена обнимашка из ${key} (${formatClickTime(removed.t)}), счётчик: ${hugCount}`, 'log-ok');
+        }
+        if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
+    }
+
+    function runDevCommand(raw) {
+        const cmd = (raw || '').trim();
+        if (!cmd) return;
+        devLogLine('> ' + cmd, 'log-sys');
+        let m = cmd.match(/^(?:счётчик|счетчик|counter)\s*([+-]?\d+)\s*$/i);
+        if (m) { cmdCounter(m[1]); return; }
+        m = cmd.match(/^([+-])\s*обнимашка\s+(\S+)(?:\s+(\S+))?\s*$/i);
+        if (m) { cmdHug(m[1], m[2], m[3] || null); return; }
+        devLogLine('❌ Неизвестная команда. Смотри подсказки сверху.', 'log-err');
+    }
+
+    function openDevPanel() {
+        devOverlay.classList.add('open');
+        try {
+            const u = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            if (u && u.username) devUserLabel.textContent = '@' + u.username;
+            else devUserLabel.textContent = '(local)';
+        } catch (e) { devUserLabel.textContent = ''; }
+        setTimeout(() => devInput.focus(), 100);
+    }
+    function closeDevPanel() { devOverlay.classList.remove('open'); devInput.blur(); }
+
+    devBtn.addEventListener('click', openDevPanel);
+    devClose.addEventListener('click', closeDevPanel);
+    devOverlay.addEventListener('click', function(e) { if (e.target === this) closeDevPanel(); });
+    devRun.addEventListener('click', function() {
+        const v = devInput.value; devInput.value = '';
+        runDevCommand(v);
+    });
+    devInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const v = devInput.value; devInput.value = '';
+            runDevCommand(v);
+        }
+    });
+
+    // ============================================================
+    // СОБЫТИЯ
+    // ============================================================
+    hugBtn.addEventListener('click', handleHugClick);
+    settingsBtn.addEventListener('click', openSettings);
+    closeSettings.addEventListener('click', closeSettingsFn);
+    settingsOverlay.addEventListener('click', function(e) { if (e.target === this) closeSettingsFn(); });
+
+    bgPicker.addEventListener('input', function() { settings.bgColor = this.value; applyAllSettings(); markLocalChange(); });
+    textPicker.addEventListener('input', function() { settings.textColor = this.value; applyAllSettings(); markLocalChange(); });
+    btnColorPicker.addEventListener('input', function() { settings.btnColor = this.value; applyAllSettings(); markLocalChange(); });
+
+    resetBg.addEventListener('click', () => { settings.bgColor = '#f7f0fa'; bgPicker.value = '#f7f0fa'; applyAllSettings(); markLocalChange(); });
+    resetText.addEventListener('click', () => { settings.textColor = '#000000'; textPicker.value = '#000000'; applyAllSettings(); markLocalChange(); });
+    resetBtnColor.addEventListener('click', () => { settings.btnColor = '#ffb6c9'; btnColorPicker.value = '#ffb6c9'; applyAllSettings(); markLocalChange(); });
+
+    bgImageUpload.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const dataUrl = await compressImage(file, 1280, 0.82);
+            if (dataUrl) {
+                images.bgImage = dataUrl;
+                if (!settings.bgImageSettings) settings.bgImageSettings = { scale: 100, x: 0, y: 0 };
+                applyAllSettings(); markLocalChange();
+            }
+        }
+        e.target.value = '';
+    });
+    btnImageUpload.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const dataUrl = await compressImage(file, 800, 0.85);
+            if (dataUrl) {
+                images.btnImage = dataUrl;
+                if (!settings.btnImageSettings) settings.btnImageSettings = { scale: 100, x: 0, y: 0 };
+                applyAllSettings(); markLocalChange();
+            }
+        }
+        e.target.value = '';
+    });
+
+    removeBgImage.addEventListener('click', function() {
+        images.bgImage = null; bgImageUpload.value = '';
+        document.getElementById('bg-image-editor').classList.remove('open');
+        applyAllSettings(); markLocalChange();
+    });
+    removeBtnImage.addEventListener('click', function() {
+        images.btnImage = null; btnImageUpload.value = '';
+        document.getElementById('btn-image-editor').classList.remove('open');
+        applyAllSettings(); markLocalChange();
+    });
+
+    bgImageEdit.addEventListener('click', function() { if (images.bgImage) toggleEditor('bg-image-editor', images.bgImage); });
+    btnImageEdit.addEventListener('click', function() { if (images.btnImage) toggleEditor('btn-image-editor', images.btnImage); });
+
+    function setupSlider(sliderId, valId, editorId, settingsKey) {
+        const slider = document.getElementById(sliderId);
+        const valSpan = document.getElementById(valId);
+        slider.addEventListener('input', function() {
+            const val = parseInt(this.value);
+            valSpan.textContent = val + '%';
+            if (!settings[settingsKey]) settings[settingsKey] = { scale: 100, x: 0, y: 0 };
+            const key = sliderId.includes('scale') ? 'scale' : sliderId.includes('x') ? 'x' : 'y';
+            settings[settingsKey][key] = val;
+            applyAllSettings();
+            markLocalChange();
+            let imageData = null;
+            if (settingsKey === 'bgImageSettings') imageData = images.bgImage;
+            else if (settingsKey === 'btnImageSettings') imageData = images.btnImage;
+            if (imageData) updateEditorPreview(editorId, imageData);
+        });
+    }
+    setupSlider('bg-image-scale', 'bg-image-scale-val', 'bg-image-editor', 'bgImageSettings');
+    setupSlider('bg-image-x', 'bg-image-x-val', 'bg-image-editor', 'bgImageSettings');
+    setupSlider('bg-image-y', 'bg-image-y-val', 'bg-image-editor', 'bgImageSettings');
+    setupSlider('btn-image-scale', 'btn-image-scale-val', 'btn-image-editor', 'btnImageSettings');
+    setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
+    setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
+
+    resetCounterBtn.addEventListener('click', function() {
+        confirmMessage.textContent = 'Вы уверены, что хотите сбросить счётчик обнимашек?';
+        confirmOverlay.classList.add('open');
+    });
+    confirmYes.addEventListener('click', function() {
+        history = {}; counterOffset = 0;
+        updateCounter(); markLocalChange();
+        if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
+        selectedDate = null;
+        dayInfo.textContent = 'Выберите день';
+        dayClicksList.innerHTML = '';
+        confirmOverlay.classList.remove('open');
+    });
+    confirmNo.addEventListener('click', () => confirmOverlay.classList.remove('open'));
+    confirmOverlay.addEventListener('click', function(e) { if (e.target === this) confirmOverlay.classList.remove('open'); });
+
+    calendarIcon.addEventListener('click', openCalendar);
+    closeCalendar.addEventListener('click', () => calendarOverlay.classList.remove('open'));
+    calendarOverlay.addEventListener('click', function(e) { if (e.target === this) calendarOverlay.classList.remove('open'); });
+    prevMonthBtn.addEventListener('click', () => changeMonth(-1));
+    nextMonthBtn.addEventListener('click', () => changeMonth(1));
+
+    // ============================================================
+    // ЧАСОВОЙ ПОЯС
+    // ============================================================
+    function checkTimezoneChange() {
+        const currentTz = getTzOffsetMinutes();
+        if (currentTz !== savedTzOffset) {
+            const diffMinutes = currentTz - savedTzOffset;
+            const diffH = diffMinutes / 60;
+            const diffStr = diffH > 0 ? `+${diffH}` : `${diffH}`;
+            document.getElementById('tz-message').textContent =
+                `Похоже, у вас изменился часовой пояс (сдвиг ${diffStr} ч). Пересчитать все прошлые обнимашки с новым сдвигом?`;
+            tzOverlay.classList.add('open');
+        }
+    }
+    tzYes.addEventListener('click', function() {
+        const currentTz = getTzOffsetMinutes();
+        const diffMs = (currentTz - savedTzOffset) * 60 * 1000;
+        for (const date in history) {
+            history[date] = history[date].map(c => ({ t: c.t + diffMs, h: currentTz, approx: c.approx }));
+        }
+        savedTzOffset = currentTz;
+        markLocalChange();
+        if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
+        tzOverlay.classList.remove('open');
+    });
+    tzNo.addEventListener('click', function() {
+        savedTzOffset = getTzOffsetMinutes();
+        markLocalChange();
+        tzOverlay.classList.remove('open');
+    });
+
+    // ============================================================
+    // ВИДИМОСТЬ / ФОКУС
+    // ============================================================
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') syncFromCloud();
+        else saveToLocalStorageImmediate();
+    });
+    window.addEventListener('focus', function() { syncFromCloud(); });
+    setInterval(function() { syncFromCloud(); }, 3000);
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    async function init() {
+        // ШАГ 1: мгновенный рендер из localStorage
+        loadFromLocalStorage();
+        applyAllSettings();
+
+        // ШАГ 2: чтение облака
+        if (hasCloudStorage) {
+            try {
+                const cloudSyncMeta = await fetchCloudSyncMeta();
+
+                if (!cloudSyncMeta) {
+                    const cloudData = await fetchCloudFull();
+                    if (cloudData.hasAnyData) {
+                        if (localSyncMeta.revision === 0) {
+                            applyCloudToMemory(cloudData);
+                            localSyncMeta = { revision: 1, lastModified: Date.now() };
+                            saveToLocalStorageImmediate();
+                            applyAllSettings();
+                        } else {
+                            localSyncMeta.revision = Math.max(localSyncMeta.revision, 1);
+                            localSyncMeta.lastModified = Date.now();
+                            markLocalChange();
+                        }
+                    }
+                } else {
+                    const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 1;
+                    const cloudLastModified = cloudSyncMeta.lastModified || 0;
+                    const localRev = localSyncMeta.revision;
+                    const localLastModified = localSyncMeta.lastModified || 0;
+
+                    if (cloudRev > localRev ||
+                        (cloudRev === localRev && cloudLastModified > localLastModified)) {
+                        const cloudData = await fetchCloudFull();
+                        applyCloudToMemory(cloudData);
+                        localSyncMeta = { revision: cloudRev, lastModified: cloudLastModified };
+                        saveToLocalStorageImmediate();
+                        applyAllSettings();
+                    } else if (localRev > cloudRev ||
+                               (localRev === cloudRev && localLastModified > cloudLastModified)) {
+                        schedulePush();
+                    }
+                }
+            } catch (e) {}
         }
 
-        init();
-    })();
+        isInitialized = true;
+        if (checkDevAccess()) devBtn.classList.add('show');
+
+        const today = new Date();
+        selectedDate = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+        setTimeout(checkTimezoneChange, 800);
+    }
+
+    init();
+})();
 </script>
 </body>
 </html>
