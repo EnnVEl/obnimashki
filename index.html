@@ -109,8 +109,10 @@
         .modal::-webkit-scrollbar { width: 3px; }
         .modal::-webkit-scrollbar-track { background: #ece4f0; }
         .modal::-webkit-scrollbar-thumb { background: #b8a2c7; border-radius: 6px; }
-        .reset-btn { width: 100%; padding: 9px; border: none; border-radius: 28px; background: #f0e6f5; font-weight: 600; font-size: 13px; cursor: pointer; color: #3d2a4a; transition: 0.2s; }
+        .reset-btn { width: 100%; padding: 9px; border: none; border-radius: 28px; background: #f0e6f5; font-weight: 600; font-size: 13px; cursor: pointer; color: #3d2a4a; transition: 0.2s; margin-bottom: 8px; }
         .reset-btn:active { background: #dcc8e5; }
+        .sync-action-btn { width: 100%; padding: 9px; border: none; border-radius: 28px; background: #e2d4ed; font-weight: 600; font-size: 13px; cursor: pointer; color: #3d2a4a; transition: 0.2s; margin-bottom: 8px; }
+        .sync-action-btn:active { background: #ceb8df; }
         @media (max-height: 700px) {
             #header { padding: 8px 12px 2px; } #counter { font-size: 18px; padding: 2px 10px; } #settings-btn { font-size: 20px; }
             #hug-btn { width: min(50%, 170px); } #hug-btn .btn-text { font-size: clamp(14px, 3vw, 22px); }
@@ -208,7 +210,11 @@
                 </div>
             </div>
             <div class="setting-group"><label>Цвет текста</label><div class="color-picker-row"><input type="color" id="text-color-picker" value="#000000"><span style="font-size:12px; color:#5a4a6a;">выберите</span><button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button></div></div>
-            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;"><button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button></div>
+            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;">
+                <button class="reset-btn" id="force-save-btn">💾 Принудительное сохранение</button>
+                <button class="sync-action-btn" id="force-sync-btn">🔄 Синхронизировать</button>
+                <button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button>
+            </div>
         </div>
     </div>
     <div id="calendar-overlay" class="overlay">
@@ -324,6 +330,8 @@
     const bgImageEdit = document.getElementById('bg-image-edit');
     const btnImageEdit = document.getElementById('btn-image-edit');
     const resetCounterBtn = document.getElementById('reset-counter-btn');
+    const forceSaveBtn = document.getElementById('force-save-btn');
+    const forceSyncBtn = document.getElementById('force-sync-btn');
     const confirmOverlay = document.getElementById('confirm-overlay');
     const confirmYes = document.getElementById('confirm-yes');
     const confirmNo = document.getElementById('confirm-no');
@@ -477,7 +485,6 @@
         try { localStorage.setItem(K_SYNC_META, JSON.stringify(localSyncMeta)); } catch (e) {}
     }
 
-    // Добавляем отправку в очередь, чтобы запросы выполнялись строго по порядку один за другим
     function pushToCloudNow() {
         if (!hasCloudStorage) return;
         setSyncDot('active');
@@ -678,7 +685,7 @@
         });
         document.querySelectorAll('.modal h2, .modal label, .modal span, .modal .day-cell, #day-info, .calendar-nav span, .weekdays div')
             .forEach(el => el.style.color = color);
-        document.querySelectorAll('.reset-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
+        document.querySelectorAll('.reset-btn, .sync-action-btn, .calendar-nav button, .modal h2 button, #settings-btn, #calendar-icon')
             .forEach(el => el.style.color = color);
         counterEl.style.color = color;
         hugBtn.style.color = color;
@@ -695,6 +702,48 @@
         localSyncMeta.lastModified = Date.now();
         saveToLocalStorageImmediate();
         pushToCloudNow();
+    }
+
+    // Принудительное сохранение (утверждает данные с текущим новым временем/ревизией)
+    function forceSaveToCloud() {
+        localSyncMeta.revision++;
+        localSyncMeta.lastModified = Date.now();
+        saveToLocalStorageImmediate();
+        pushToCloudNow();
+        closeSettingsFn();
+    }
+
+    // Принудительная синхронизация (тянет самые свежие данные из облака независимо от таймстампов)
+    async function forceSyncFromCloud() {
+        if (!hasCloudStorage) return;
+        if (syncInFlight) return;
+        syncInFlight = true;
+        setSyncDot('active');
+
+        try {
+            const cloudData = await fetchCloudFull();
+            const cloudSyncMeta = cloudData.syncMeta;
+
+            if (cloudSyncMeta) {
+                applyCloudToMemory(cloudData);
+                localSyncMeta = { 
+                    revision: typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : (localSyncMeta.revision + 1), 
+                    lastModified: cloudSyncMeta.lastModified || Date.now() 
+                };
+                saveToLocalStorageImmediate();
+                applyAllSettings();
+                if (calendarOverlay.classList.contains('open')) {
+                    renderCalendar(currentYear, currentMonth);
+                }
+            }
+            setSyncDot('done');
+            setTimeout(() => setSyncDot(''), 600);
+        } catch (e) {
+            setSyncDot('');
+        } finally {
+            syncInFlight = false;
+            closeSettingsFn();
+        }
     }
 
     async function syncFromCloud(force) {
@@ -1089,6 +1138,10 @@
     setupSlider('btn-image-scale', 'btn-image-scale-val', 'btn-image-editor', 'btnImageSettings');
     setupSlider('btn-image-x', 'btn-image-x-val', 'btn-image-editor', 'btnImageSettings');
     setupSlider('btn-image-y', 'btn-image-y-val', 'btn-image-editor', 'btnImageSettings');
+
+    // Обработчики новых кнопок
+    forceSaveBtn.addEventListener('click', forceSaveToCloud);
+    forceSyncBtn.addEventListener('click', forceSyncFromCloud);
 
     resetCounterBtn.addEventListener('click', function() {
         confirmMessage.textContent = 'Вы уверены, что хотите сбросить счётчик обнимашек?';
