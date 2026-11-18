@@ -1,241 +1,3 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Обнимашки</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-        html, body { width: 100%; height: 100%; height: 100dvh; background: #f7f0fa; display: flex; justify-content: center; align-items: center; transition: background-color 0.2s; padding: 0; margin: 0; overflow: hidden; position: fixed; top: 0; left: 0; }
-        #app { width: 100%; max-width: 420px; height: 100%; height: 100dvh; max-height: 780px; background: #f7f0fa; border-radius: 0; box-shadow: none; display: flex; flex-direction: column; position: relative; overflow: hidden; transition: background-color 0.2s, background-image 0.3s; background-size: cover; background-position: center; }
-        #header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 4px; position: relative; z-index: 5; flex-shrink: 0; }
-        #counter { font-size: 22px; font-weight: 700; color: #000000; letter-spacing: 0.3px; background: rgba(255,255,255,0.5); padding: 2px 12px; border-radius: 28px; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.04); transition: color 0.2s; display: flex; align-items: center; gap: 6px; }
-        #sync-dot { width: 8px; height: 8px; border-radius: 50%; background: #b0a0c0; opacity: 0; transition: opacity 0.2s, background 0.2s; flex-shrink: 0; }
-        #sync-dot.active { opacity: 1; background: #6ab0ff; animation: syncPulse 0.8s ease-in-out infinite; }
-        #sync-dot.done { opacity: 1; background: #7cd4a0; animation: none; }
-        @keyframes syncPulse { 0%,100% { transform: scale(0.7); opacity: 0.5; } 50% { transform: scale(1); opacity: 1; } }
-        #settings-btn { font-size: 24px; background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 24px; transition: 0.2s; color: #000000; }
-        #settings-btn:hover { background: rgba(0,0,0,0.04); }
-        #btn-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4px 16px; min-height: 0; }
-        #hug-btn { aspect-ratio: 1/1; width: min(60%, 220px); max-width: 260px; border-radius: 50%; background: #ffb6c9; border: none; font-size: clamp(22px, 4.5vw, 36px); font-weight: 700; color: #000000; box-shadow: 0 10px 0 #d48a9e, 0 10px 20px rgba(0,0,0,0.15); transition: all 0.08s ease, background-color 0.2s, color 0.2s, background-image 0.3s, box-shadow 0.2s; cursor: pointer; text-shadow: 0 2px 4px rgba(255,255,255,0.3); touch-action: manipulation; position: relative; background-size: cover; background-position: center; overflow: hidden; outline: none; display: flex; justify-content: center; align-items: center; margin: 0 auto; flex-shrink: 0; }
-        #hug-btn:active { transform: scale(0.95); box-shadow: 0 4px 0 #d48a9e, 0 8px 16px rgba(0,0,0,0.12); }
-        #hug-btn .btn-text { position: relative; z-index: 2; text-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: opacity 0.3s; pointer-events: none; font-size: clamp(18px, 3.5vw, 30px); }
-        #hug-btn.has-image .btn-text { opacity: 0.85; }
-        #bottom-bar { display: flex; justify-content: flex-start; padding: 4px 16px 12px; position: relative; z-index: 5; flex-shrink: 0; }
-        #calendar-icon { background: none; border: none; font-size: 28px; cursor: pointer; padding: 4px 8px; border-radius: 28px; transition: 0.2s; color: #000000; }
-        #calendar-icon:hover { background: rgba(0,0,0,0.04); }
-        #dev-btn { position: absolute; right: 8px; bottom: 8px; min-width: 34px; height: 26px; padding: 0 10px; border-radius: 14px; background: rgba(60, 40, 80, 0.55); color: #fff; border: none; font-size: 11px; font-weight: 700; cursor: pointer; z-index: 10; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.2); opacity: 0.7; letter-spacing: 0.5px; font-family: 'SF Mono', Menlo, Consolas, monospace; }
-        #dev-btn.show { display: flex; }
-        #dev-btn:hover { opacity: 1; transform: scale(1.06); }
-        #dev-btn:active { transform: scale(0.94); }
-        #dev-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(5px); z-index: 50; display: none; justify-content: center; align-items: center; padding: 10px; }
-        #dev-overlay.open { display: flex; }
-        .dev-panel { background: #1a1424; color: #e8e0f0; width: 100%; max-width: 400px; max-height: 92%; border-radius: 20px; padding: 14px 14px 12px; display: flex; flex-direction: column; box-shadow: 0 24px 48px rgba(0,0,0,0.5); border: 1px solid #3a2a4a; font-family: 'SF Mono', Menlo, Consolas, monospace; }
-        .dev-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #33284a; margin-bottom: 8px; }
-        .dev-header .dev-title { font-size: 14px; font-weight: 700; color: #d4b0e0; letter-spacing: 0.5px; }
-        .dev-header .dev-user { font-size: 10px; color: #8878a0; margin-left: 6px; }
-        .dev-close { background: none; border: none; color: #c0a0d0; font-size: 20px; cursor: pointer; padding: 0 6px; }
-        .dev-close:hover { color: #fff; }
-        .dev-hints { background: #241a30; border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; font-size: 11px; line-height: 1.55; color: #b8a0c8; max-height: 180px; overflow-y: auto; }
-        .dev-hints .hint-title { color: #d4b0e0; font-weight: 700; margin-bottom: 4px; font-size: 11px; letter-spacing: 0.3px; }
-        .dev-hints .hint-cmd { color: #ffd78a; font-weight: 700; }
-        .dev-hints .hint-desc { color: #9988aa; font-size: 10px; }
-        .dev-hints .hint-line { margin-bottom: 3px; padding: 2px 0; }
-        .dev-hints code { color: #8ce0c0; font-size: 10px; }
-        .dev-log { flex: 1; min-height: 80px; max-height: 180px; overflow-y: auto; background: #120c1a; border-radius: 10px; padding: 8px 10px; font-size: 11px; line-height: 1.5; margin-bottom: 8px; color: #b0a0c0; border: 1px solid #2a2038; }
-        .dev-log .log-line { padding: 1px 0; word-break: break-word; }
-        .dev-log .log-ok { color: #7ce0a0; }
-        .dev-log .log-err { color: #ff8080; }
-        .dev-log .log-info { color: #a0b8e0; }
-        .dev-log .log-sys { color: #8878a0; font-style: italic; }
-        .dev-input-row { display: flex; gap: 6px; }
-        .dev-input { flex: 1; background: #241a30; border: 1px solid #3a2a4a; border-radius: 10px; padding: 9px 11px; color: #e8e0f0; font-size: 12px; font-family: inherit; outline: none; user-select: text; -webkit-user-select: text; }
-        .dev-input:focus { border-color: #8a6ab0; }
-        .dev-run { background: #6a4a8a; border: none; border-radius: 10px; color: #fff; font-weight: 700; font-size: 12px; padding: 0 16px; cursor: pointer; transition: 0.15s; }
-        .dev-run:hover { background: #7c5a9e; }
-        .dev-run:active { transform: scale(0.96); }
-        .dev-hints::-webkit-scrollbar, .dev-log::-webkit-scrollbar { width: 4px; }
-        .dev-hints::-webkit-scrollbar-thumb, .dev-log::-webkit-scrollbar-thumb { background: #4a3a5a; border-radius: 4px; }
-        .dev-hints::-webkit-scrollbar-track, .dev-log::-webkit-scrollbar-track { background: transparent; }
-        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.15); backdrop-filter: blur(3px); display: flex; justify-content: center; align-items: center; z-index: 20; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
-        .overlay.open { opacity: 1; pointer-events: auto; }
-        .modal { background: #ffffff; width: 92%; max-width: 340px; max-height: 80%; border-radius: 28px; padding: 18px 16px 16px; box-shadow: 0 24px 48px rgba(0,0,0,0.25); overflow-y: auto; transition: transform 0.2s; transform: scale(0.95); color: #1f1a2b; }
-        .overlay.open .modal { transform: scale(1); }
-        .modal h2 { font-size: 19px; margin-bottom: 12px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
-        .modal h2 button { background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 6px; color: #4a3a5a; }
-        .setting-group { margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f0eaf5; }
-        .setting-group:last-of-type { border-bottom: none; margin-bottom: 4px; }
-        .setting-group label { display: block; font-weight: 500; margin-bottom: 4px; font-size: 13px; color: #3a2a4a; }
-        .color-picker-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .color-picker-row input[type="color"] { width: 36px; height: 36px; border: 2px solid #ddd; border-radius: 22px; padding: 2px; background: white; cursor: pointer; }
-        .color-picker-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        .color-picker-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 22px; }
-        .file-upload-wrapper { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
-        .file-upload-wrapper label { background: #eee8f0; padding: 5px 12px; border-radius: 20px; font-weight: 500; font-size: 12px; cursor: pointer; transition: 0.2s; color: #3d2a4a; }
-        .file-upload-wrapper label:active { background: #dcc8e5; }
-        .file-upload-wrapper input[type="file"] { display: none; }
-        .file-upload-wrapper .remove-img { background: none; border: none; font-size: 17px; cursor: pointer; color: #a080b0; padding: 2px 6px; }
-        .file-upload-wrapper .edit-btn { background: none; border: none; font-size: 17px; cursor: pointer; padding: 2px 6px; transition: 0.2s; color: #6a5a7a; }
-        .file-upload-wrapper .edit-btn:hover { transform: scale(1.1); }
-        .btn-small { padding: 3px 10px; border-radius: 20px; border: none; background: #e8def0; font-size: 11px; font-weight: 500; cursor: pointer; color: #2d1b3d; }
-        .btn-small:active { background: #d0c0dd; }
-        .image-editor { margin-top: 6px; padding: 8px; background: #f8f2fc; border-radius: 14px; display: none; }
-        .image-editor.open { display: block; }
-        .image-editor .slider-group { margin-bottom: 6px; }
-        .image-editor .slider-group label { font-size: 11px; font-weight: 500; display: flex; justify-content: space-between; color: #3a2a4a; }
-        .image-editor input[type="range"] { width: 100%; height: 4px; -webkit-appearance: none; background: #dcc8e5; border-radius: 6px; outline: none; }
-        .image-editor input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #b094c2; cursor: pointer; }
-        .image-editor .preview-container { position: relative; width: 100%; height: 80px; border-radius: 10px; overflow: hidden; background: #e8def0; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; }
-        .image-editor .preview-container img { position: absolute; object-fit: cover; transition: all 0.1s; max-width: none; max-height: none; }
-        .image-editor .no-image { color: #887a98; font-size: 12px; }
-        .calendar-nav { display: flex; justify-content: space-between; align-items: center; margin: 8px 0 10px; }
-        .calendar-nav button { background: #eee8f0; border: none; font-size: 17px; width: 32px; height: 32px; border-radius: 20px; cursor: pointer; font-weight: 600; color: #2d1b3d; }
-        .calendar-nav span { font-weight: 600; font-size: 15px; }
-        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 11px; color: #5a4a6a; margin-bottom: 4px; }
-        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-        .day-cell { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; background: #f6f0fa; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.15s; color: #1f1a2b; position: relative; }
-        .day-cell.empty { background: transparent; pointer-events: none; }
-        .day-cell:active { background: #dcc8e5; }
-        .day-cell .hug-indicator { position: absolute; bottom: 1px; right: 3px; font-size: 9px; color: #c44a7a; }
-        .day-cell.selected { background: #d4b0d9; color: #1e0f2a; font-weight: 600; }
-        #day-info { margin-top: 10px; padding: 8px; background: #f3edf7; border-radius: 20px; text-align: center; font-size: 13px; font-weight: 500; color: #2a1a3a; }
-        #day-clicks-list { margin-top: 10px; padding: 8px; background: #faf6fd; border-radius: 16px; max-height: 180px; overflow-y: auto; font-size: 13px; }
-        #day-clicks-list .click-item { padding: 4px 6px; border-bottom: 1px solid #eee5f3; display: flex; justify-content: space-between; align-items: center; color: #2a1a3a; }
-        #day-clicks-list .click-item:last-child { border-bottom: none; }
-        #day-clicks-list .click-item .click-num { color: #887a98; font-size: 11px; margin-right: 6px; }
-        #day-clicks-list .click-item .click-time { font-weight: 600; font-feature-settings: "tnum"; }
-        #day-clicks-list .no-clicks { text-align: center; color: #887a98; font-size: 12px; padding: 6px; }
-        .modal::-webkit-scrollbar { width: 3px; }
-        .modal::-webkit-scrollbar-track { background: #ece4f0; }
-        .modal::-webkit-scrollbar-thumb { background: #b8a2c7; border-radius: 6px; }
-        .reset-btn { width: 100%; padding: 9px; border: none; border-radius: 28px; background: #f0e6f5; font-weight: 600; font-size: 13px; cursor: pointer; color: #3d2a4a; transition: 0.2s; }
-        .reset-btn:active { background: #dcc8e5; }
-        @media (max-height: 700px) {
-            #header { padding: 8px 12px 2px; } #counter { font-size: 18px; padding: 2px 10px; } #settings-btn { font-size: 20px; }
-            #hug-btn { width: min(50%, 170px); } #hug-btn .btn-text { font-size: clamp(14px, 3vw, 22px); }
-            #bottom-bar { padding: 2px 12px 8px; } #calendar-icon { font-size: 22px; }
-            .modal { padding: 12px; max-height: 78%; } .modal h2 { font-size: 16px; margin-bottom: 8px; }
-            .setting-group { margin-bottom: 8px; padding-bottom: 6px; } .setting-group label { font-size: 12px; }
-        }
-        @media (max-height: 600px) {
-            #hug-btn { width: min(40%, 130px); } #hug-btn .btn-text { font-size: clamp(12px, 2.5vw, 18px); }
-            #header { padding: 4px 10px 0px; } #counter { font-size: 15px; padding: 1px 8px; }
-            #bottom-bar { padding: 0px 10px 4px; } #settings-btn { font-size: 18px; } #calendar-icon { font-size: 18px; }
-            .modal { padding: 10px; max-height: 75%; } .modal h2 { font-size: 14px; margin-bottom: 6px; }
-            .setting-group { margin-bottom: 6px; padding-bottom: 4px; }
-        }
-        .confirm-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 30; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
-        .confirm-overlay.open { opacity: 1; pointer-events: auto; }
-        .confirm-box { background: #ffffff; padding: 20px 24px 18px; border-radius: 24px; max-width: 300px; width: 90%; text-align: center; box-shadow: 0 24px 48px rgba(0,0,0,0.3); transform: scale(0.95); transition: transform 0.2s; }
-        .confirm-overlay.open .confirm-box { transform: scale(1); }
-        .confirm-box h3 { font-size: 17px; margin-bottom: 6px; color: #2d1b3d; }
-        .confirm-box p { font-size: 13px; color: #5a4a6a; margin-bottom: 16px; line-height: 1.5; }
-        .confirm-box .confirm-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-        .confirm-box .confirm-btns button { padding: 8px 18px; border: none; border-radius: 20px; font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.2s; }
-        .confirm-box .confirm-btns .confirm-yes { background: #d48a9e; color: white; }
-        .confirm-box .confirm-btns .confirm-yes:active { background: #c07a8e; }
-        .confirm-box .confirm-btns .confirm-no { background: #f0e6f5; color: #3d2a4a; }
-        .confirm-box .confirm-btns .confirm-no:active { background: #dcc8e5; }
-    </style>
-</head>
-<body>
-<div id="app">
-    <div id="header">
-        <span id="counter">🤗 0 <span id="sync-dot"></span></span>
-        <button id="settings-btn" aria-label="Настройки">⚙️</button>
-    </div>
-    <div id="btn-container">
-        <button id="hug-btn"><span class="btn-text">обнимашки</span></button>
-    </div>
-    <div id="bottom-bar">
-        <button id="calendar-icon" aria-label="Календарь">📅</button>
-    </div>
-    <button id="dev-btn" title="Dev">dev</button>
-    <div id="dev-overlay">
-        <div class="dev-panel">
-            <div class="dev-header">
-                <div><span class="dev-title">⚡ DEV PANEL</span><span class="dev-user" id="dev-user-label"></span></div>
-                <button class="dev-close" id="dev-close">✕</button>
-            </div>
-            <div class="dev-hints" id="dev-hints">
-                <div class="hint-title">📋 ДОСТУПНЫЕ КОМАНДЫ</div>
-                <div class="hint-line"><span class="hint-cmd">Счётчик +5</span> / <span class="hint-cmd">Счётчик -3</span><br><span class="hint-desc">меняет ТОЛЬКО число счётчика.</span></div>
-                <div class="hint-line"><span class="hint-cmd">+ обнимашка 2026-09-29 14:30:45</span><br><span class="hint-desc">добавляет реальную обнимашку</span></div>
-                <div class="hint-line"><span class="hint-cmd">- обнимашка 2026-09-29 14:30:45</span><br><span class="hint-desc">удаляет ближайшую обнимашку</span></div>
-                <div class="hint-line" style="margin-top:5px; padding-top:5px; border-top:1px solid #33284a;"><span class="hint-desc"><b style="color:#c0a0d0;">Дата:</b> <code>2026-09-29</code>, <code>сегодня</code>/<code>вчера</code>/<code>завтра</code><br><b style="color:#c0a0d0;">Время:</b> <code>14:30</code> или <code>14:30:45</code></span></div>
-            </div>
-            <div class="dev-log" id="dev-log"><div class="log-line log-sys">Панель готова.</div></div>
-            <div class="dev-input-row">
-                <input type="text" class="dev-input" id="dev-input" placeholder="Счётчик +5" autocomplete="off" autocapitalize="off" spellcheck="false">
-                <button class="dev-run" id="dev-run">RUN</button>
-            </div>
-        </div>
-    </div>
-    <div id="settings-overlay" class="overlay">
-        <div class="modal" id="settings-modal">
-            <h2>Настройки <button id="close-settings">✕</button></h2>
-            <div class="setting-group"><label>Цвет фона приложения</label><div class="color-picker-row"><input type="color" id="bg-color-picker" value="#f7f0fa"><span style="font-size:12px; color:#5a4a6a;">выберите</span><button class="btn-small" id="reset-bg-color" style="margin-left:auto;">Сбросить</button></div></div>
-            <div class="setting-group">
-                <label>Фото на фон приложения</label>
-                <div class="file-upload-wrapper">
-                    <label for="bg-image-upload">📁 Загрузить</label>
-                    <input type="file" id="bg-image-upload" accept="image/*">
-                    <button class="edit-btn" id="bg-image-edit" title="Редактировать">✏️</button>
-                    <button class="remove-img" id="remove-bg-image" title="Удалить фото">✕</button>
-                </div>
-                <div class="image-editor" id="bg-image-editor">
-                    <div class="preview-container" id="bg-image-preview"><span class="no-image">Нет фото</span></div>
-                    <div class="slider-group"><label>Масштаб <span id="bg-image-scale-val">100%</span></label><input type="range" id="bg-image-scale" min="50" max="200" value="100"></div>
-                    <div class="slider-group"><label>Смещение X <span id="bg-image-x-val">0%</span></label><input type="range" id="bg-image-x" min="-50" max="50" value="0"></div>
-                    <div class="slider-group"><label>Смещение Y <span id="bg-image-y-val">0%</span></label><input type="range" id="bg-image-y" min="-50" max="50" value="0"></div>
-                </div>
-            </div>
-            <div class="setting-group"><label>Цвет самой кнопки</label><div class="color-picker-row"><input type="color" id="btn-color-picker" value="#ffb6c9"><span style="font-size:12px; color:#5a4a6a;">выберите</span><button class="btn-small" id="reset-btn-color" style="margin-left:auto;">Сбросить</button></div></div>
-            <div class="setting-group">
-                <label>Фото на кнопку</label>
-                <div class="file-upload-wrapper">
-                    <label for="btn-image-upload">📁 Загрузить</label>
-                    <input type="file" id="btn-image-upload" accept="image/*">
-                    <button class="edit-btn" id="btn-image-edit" title="Редактировать">✏️</button>
-                    <button class="remove-img" id="remove-btn-image" title="Удалить фото">✕</button>
-                </div>
-                <div class="image-editor" id="btn-image-editor">
-                    <div class="preview-container" id="btn-image-preview"><span class="no-image">Нет фото</span></div>
-                    <div class="slider-group"><label>Масштаб <span id="btn-image-scale-val">100%</span></label><input type="range" id="btn-image-scale" min="50" max="200" value="100"></div>
-                    <div class="slider-group"><label>Смещение X <span id="btn-image-x-val">0%</span></label><input type="range" id="btn-image-x" min="-50" max="50" value="0"></div>
-                    <div class="slider-group"><label>Смещение Y <span id="btn-image-y-val">0%</span></label><input type="range" id="btn-image-y" min="-50" max="50" value="0"></div>
-                </div>
-            </div>
-            <div class="setting-group"><label>Цвет текста</label><div class="color-picker-row"><input type="color" id="text-color-picker" value="#000000"><span style="font-size:12px; color:#5a4a6a;">выберите</span><button class="btn-small" id="reset-text-color" style="margin-left:auto;">Сбросить</button></div></div>
-            <div class="setting-group" style="border-bottom: none; margin-bottom: 0;"><button class="reset-btn" id="reset-counter-btn">Сбросить счётчик</button></div>
-        </div>
-    </div>
-    <div id="calendar-overlay" class="overlay">
-        <div class="modal" id="calendar-modal">
-            <h2>📅 Календарь <button id="close-calendar">✕</button></h2>
-            <div class="calendar-nav"><button id="prev-month">‹</button><span id="month-year">Январь 2026</span><button id="next-month">›</button></div>
-            <div class="weekdays" id="weekdays"></div>
-            <div class="days-grid" id="days-grid"></div>
-            <div id="day-info">Выберите день</div>
-            <div id="day-clicks-list"></div>
-        </div>
-    </div>
-    <div class="confirm-overlay" id="confirm-overlay">
-        <div class="confirm-box">
-            <h3>⚠️ Подтверждение</h3>
-            <p id="confirm-message">Вы уверены, что хотите сбросить счётчик обнимашек?</p>
-            <div class="confirm-btns"><button class="confirm-yes" id="confirm-yes">Да</button><button class="confirm-no" id="confirm-no">Отмена</button></div>
-        </div>
-    </div>
-    <div class="confirm-overlay" id="tz-overlay">
-        <div class="confirm-box">
-            <h3>🕒 Изменился часовой пояс</h3>
-            <p id="tz-message">Похоже, у вас изменился часовой пояс. Пересчитать все прошлые обнимашки с новым сдвигом?</p>
-            <div class="confirm-btns"><button class="confirm-yes" id="tz-yes">Да, пересчитать</button><button class="confirm-no" id="tz-no">Нет, оставить</button></div>
-        </div>
-    </div>
-</div>
 <script>
 (function(){
     const DEV_USERNAMES = ['enn_vel', 'kirka5466'];
@@ -283,24 +45,24 @@
         SYNC_META: CP + 'sync_meta',
     };
 
-    const VERSION = 9;
+    const VERSION = 10;
     const CLOUD_LIMIT = 3400;
-    const SYNC_INTERVAL = 1500;  // было 3000 — быстрее
+    // Опрос каждые 700 мс — дёшево (читаем только sync_meta ~50 байт)
+    const SYNC_INTERVAL = 700;
 
     let history = {};
     let counterOffset = 0;
     let hugCount = 0;
-    // lastModified — единственный надёжный признак «кто новее».
-    // revision оставлен только как tie-breaker.
-    let localSyncMeta = { revision: 0, lastModified: 0 };
+    let localSyncMeta = { revision: 0, lastModified: 0, hash: 0 };
 
     let pendingPush = false;
     let isPushing = false;
-    let cloudLoading = false;
     let isInitialized = false;
     let pushRetryCount = 0;
     let pushRetryTimer = null;
     let syncInFlight = false;
+    // Хэш локальной истории — чтобы точно понять «изменилось ли что-то»
+    let lastLocalHash = 0;
 
     let settings = {
         bgColor: '#f7f0fa', textColor: '#000000', btnColor: '#ffb6c9',
@@ -362,6 +124,28 @@
     const devLog = document.getElementById('dev-log');
     const devUserLabel = document.getElementById('dev-user-label');
 
+    // Простой строковый хэш (FNV-1a 32-bit) — быстро и достаточно
+    function hashStr(s) {
+        let h = 0x811c9dc5;
+        for (let i = 0; i < s.length; i++) {
+            h ^= s.charCodeAt(i);
+            h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+        }
+        return h;
+    }
+    function computeHistoryHash() {
+        // Стабильный хэш: сортируем даты, внутри — по timestamp
+        const dates = Object.keys(history).sort();
+        let acc = '';
+        for (const d of dates) {
+            acc += d + ':';
+            const arr = [...history[d]].sort((a,b) => a.t - b.t);
+            for (const c of arr) acc += c.t + ',';
+            acc += ';';
+        }
+        return hashStr(acc) + '' + counterOffset;
+    }
+
     function byteSize(str) {
         let bytes = 0;
         for (let i = 0; i < str.length; i++) {
@@ -400,7 +184,7 @@
         return n;
     }
     function setSyncDot(state) {
-        syncDot.className = state || '';
+        if (syncDot) syncDot.className = state || '';
     }
 
     function cloudSet(key, value) {
@@ -500,7 +284,7 @@
     }
 
     // ============================================================
-    // PUSH — с retry и последовательной записью
+    // PUSH
     // ============================================================
     let pushChain = Promise.resolve();
 
@@ -508,13 +292,13 @@
         for (let attempt = 0; attempt <= retries; attempt++) {
             const ok = await cloudSet(key, value);
             if (ok) return true;
-            if (attempt < retries) await new Promise(r => setTimeout(r, 200 * (attempt + 1)));
+            if (attempt < retries) await new Promise(r => setTimeout(r, 150 * (attempt + 1)));
         }
         return false;
     }
     function schedulePushRetry() {
         if (pushRetryTimer) return;
-        const delay = Math.min(30000, 1500 * Math.pow(2, Math.min(pushRetryCount, 5)));
+        const delay = Math.min(15000, 800 * Math.pow(2, Math.min(pushRetryCount, 5)));
         pushRetryCount++;
         pushRetryTimer = setTimeout(() => {
             pushRetryTimer = null;
@@ -537,6 +321,9 @@
             });
             const serialized = serializeHistory();
             const chunks = splitHistoryIntoChunks(serialized);
+            // Ключевое: hash кладём в meta — по нему другое устройство
+            // ТОЧНО поймёт, что данные изменились, даже если время совпало.
+            localSyncMeta.hash = computeHistoryHash();
             const metaJson = JSON.stringify({ chunks: chunks.length, tz: savedTzOffset });
             const syncMetaJson = JSON.stringify(localSyncMeta);
 
@@ -576,7 +363,7 @@
                 pushRetryCount = 0;
                 if (pushRetryTimer) { clearTimeout(pushRetryTimer); pushRetryTimer = null; }
                 setSyncDot('done');
-                setTimeout(() => { if (!syncInFlight) setSyncDot(''); }, 600);
+                setTimeout(() => { if (!syncInFlight && !isPushing) setSyncDot(''); }, 400);
             }
         }
     }
@@ -589,6 +376,10 @@
             pushScheduled = false;
             pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
         });
+    }
+    // Форсированный пуш — не ждёт microtask, запускает сразу
+    function forcePush() {
+        pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
     }
 
     function loadFromLocalStorage() {
@@ -639,11 +430,16 @@
             try {
                 const sm = JSON.parse(syncMetaStr);
                 if (sm && typeof sm.revision === 'number') {
-                    localSyncMeta = { revision: sm.revision, lastModified: sm.lastModified || 0 };
+                    localSyncMeta = {
+                        revision: sm.revision,
+                        lastModified: sm.lastModified || 0,
+                        hash: sm.hash || 0,
+                    };
                 }
             } catch (e) {}
         }
         hugCount = calcHugCount();
+        lastLocalHash = computeHistoryHash();
     }
 
     async function fetchCloudSyncMeta() {
@@ -704,6 +500,7 @@
         }
         if (cloudData.meta && typeof cloudData.meta.tz === 'number') savedTzOffset = cloudData.meta.tz;
         hugCount = calcHugCount();
+        lastLocalHash = computeHistoryHash();
     }
 
     function applyAllSettings() {
@@ -750,95 +547,85 @@
     function updateCounter() {
         hugCount = calcHugCount();
         counterEl.innerHTML = `🤗 ${hugCount} <span id="sync-dot"></span>`;
-        // syncDot пересоздан, переустанавливаем ссылку
-        window._syncDotRef && (window._syncDotRef = document.getElementById('sync-dot'));
+        // ссылку на sync-dot нужно обновить после пересоздания DOM
+        const newDot = document.getElementById('sync-dot');
+        if (newDot) { newDot.className = syncDot.className; }
     }
 
     // ============================================================
-    // markLocalChange — важное: lastModified = max(свой, облачный) + 1
-    // Это защищает от сбитых часов на телефоне и гарантирует,
-    // что наше изменение окажется «новее» облака.
+    // ЛОКАЛЬНОЕ ИЗМЕНЕНИЕ
+    // lastModified = max(now, prev+1, cloudLastModified+1)
+    // Гарантирует, что наш пуш «победит» при конфликте,
+    // но при этом не откатывает облачные изменения — для этого pull.
     // ============================================================
     function markLocalChange() {
         localSyncMeta.revision++;
         const now = Date.now();
-        // Если наше локальное время меньше облачного — берём облачное + 1.
-        // Иначе при синхронизации облако «победит» наше свежее изменение.
-        localSyncMeta.lastModified = Math.max(now, (localSyncMeta.lastModified || 0) + 1);
+        const prev = localSyncMeta.lastModified || 0;
+        localSyncMeta.lastModified = Math.max(now, prev + 1);
         pendingPush = true;
         saveToLocalStorageImmediate();
         schedulePush();
     }
 
     // ============================================================
-    // СИНХРОНИЗАЦИЯ — сравнение по lastModified, а не по revision
+    // СИНХРОНИЗАЦИЯ: тянем, ЕСЛИ облачный hash/lastModified/revision
+    // ЛЮБОЙ из них ОТЛИЧАЕТСЯ от нашего — значит в облаке другие данные.
     // ============================================================
-    async function syncFromCloud(force) {
+    async function syncFromCloud() {
         if (!hasCloudStorage) return;
         if (!isInitialized) return;
         if (syncInFlight) return;
-        if (isPushing) return;
-
-        if (pendingPush) {
-            // Есть что отправить — отправляем, sync будет после push.
-            pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
-            return;
-        }
 
         syncInFlight = true;
         setSyncDot('active');
         try {
             const cloudSyncMeta = await fetchCloudSyncMeta();
-
             if (!cloudSyncMeta) {
-                const cloudData = await fetchCloudFull();
-                if (!cloudData.hasAnyData) return;
-                if (localSyncMeta.revision > 0) return;
-                applyCloudToMemory(cloudData);
-                localSyncMeta = { revision: 1, lastModified: Date.now() };
-                saveToLocalStorageImmediate();
-                applyAllSettings();
+                // Облако пустое — если локально есть данные, запушим.
+                if (localSyncMeta.revision > 0 || Object.keys(history).length > 0) {
+                    pendingPush = true;
+                    forcePush();
+                }
                 return;
             }
 
-            const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 1;
+            const cloudRev = typeof cloudSyncMeta.revision === 'number' ? cloudSyncMeta.revision : 0;
             const cloudModified = cloudSyncMeta.lastModified || 0;
-            const localRev = localSyncMeta.revision;
-            const localModified = localSyncMeta.lastModified || 0;
+            const cloudHash = cloudSyncMeta.hash || 0;
 
-            // ГЛАВНОЕ: сравниваем по lastModified.
-            // revision — только если времена совпали (маловероятно).
-            const cloudIsNewer =
-                cloudModified > localModified ||
-                (cloudModified === localModified && cloudRev > localRev);
+            // ОБЛАКО ОТЛИЧАЕТСЯ ОТ ЛОКАЛЬНОГО?
+            const differs =
+                cloudHash !== lastLocalHash ||
+                cloudModified !== (localSyncMeta.lastModified || 0) ||
+                cloudRev !== (localSyncMeta.revision || 0);
 
-            if (cloudIsNewer) {
-                const cloudData = await fetchCloudFull();
-                applyCloudToMemory(cloudData);
-                // Запоминаем ИМЕННО облачное время — иначе локальные часы
-                // могут «обогнать» и заставить нас игнорировать будущие обновления.
-                localSyncMeta = { revision: cloudRev, lastModified: cloudModified };
-                saveToLocalStorageImmediate();
-                applyAllSettings();
-                if (calendarOverlay.classList.contains('open')) {
-                    renderCalendar(currentYear, currentMonth);
-                }
-            } else if (force) {
-                // Принудительная синхронизация при старте: даже если «не новее»,
-                // но локально пусто — тянем.
-                if (localRev === 0 || localModified === 0) {
-                    const cloudData = await fetchCloudFull();
-                    applyCloudToMemory(cloudData);
-                    localSyncMeta = { revision: cloudRev, lastModified: cloudModified };
-                    saveToLocalStorageImmediate();
-                    applyAllSettings();
-                }
+            if (!differs) return;
+
+            // Если есть свои несохранённые изменения — сначала пуш.
+            if (pendingPush || isPushing) {
+                forcePush();
+                return;
+            }
+
+            // Тянем полные данные
+            const cloudData = await fetchCloudFull();
+            applyCloudToMemory(cloudData);
+            localSyncMeta = {
+                revision: cloudRev,
+                lastModified: cloudModified,
+                hash: cloudHash,
+            };
+            saveToLocalStorageImmediate();
+            applyAllSettings();
+            if (calendarOverlay.classList.contains('open')) {
+                renderCalendar(currentYear, currentMonth);
             }
         } catch (e) {}
         finally {
             syncInFlight = false;
             setSyncDot('done');
-            setTimeout(() => { if (!syncInFlight && !isPushing) setSyncDot(''); }, 500);
+            setTimeout(() => { if (!syncInFlight && !isPushing) setSyncDot(''); }, 400);
         }
     }
 
@@ -987,8 +774,7 @@
     }
 
     // ============================================================
-    // КЛИК — мгновенный отклик, пуш с задержкой 300мс,
-    // потом принудительный pull (чтобы увидеть чужие клики)
+    // КЛИК — мгновенный push + pull через 150мс
     // ============================================================
     let clickSyncTimer = null;
     function handleHugClick() {
@@ -1001,16 +787,17 @@
         history[key].push({ t: now.getTime(), h: tz });
         updateCounter();
         markLocalChange();
+        // НЕМЕДЛЕННО отправляем в облако (без microtask-задержки)
+        forcePush();
         if (calendarOverlay.classList.contains('open') && selectedDate === key) showDayInfo(key);
         if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
 
-        // Через 300мс после клика пробуем синхронизироваться,
-        // чтобы увидеть чужие клики с других устройств.
+        // Через 150 мс тянем — чтобы увидеть чужие клики
         if (clickSyncTimer) clearTimeout(clickSyncTimer);
         clickSyncTimer = setTimeout(() => {
             clickSyncTimer = null;
-            syncFromCloud(true);
-        }, 300);
+            syncFromCloud();
+        }, 150);
     }
 
     function devLogLine(text, type) {
@@ -1050,6 +837,7 @@
         if (newCount < 0) { counterOffset -= newCount; devLogLine(`⚠️ Ограничение: счётчик не может быть меньше 0.`, 'log-info'); }
         updateCounter();
         markLocalChange();
+        forcePush();
         devLogLine(`✅ Счётчик: ${before} → ${hugCount} (${amount > 0 ? '+' : ''}${amount}).`, 'log-ok');
     }
     function cmdHug(sign, dateStr, timeStr) {
@@ -1066,6 +854,7 @@
             history[key].push({ t: ts, h: tz });
             updateCounter();
             markLocalChange();
+            forcePush();
             devLogLine(`✅ Добавлена обнимашка: ${key} (счётчик: ${hugCount})`, 'log-ok');
         } else {
             const arr = history[key];
@@ -1080,6 +869,7 @@
             if (arr.length === 0) delete history[key];
             updateCounter();
             markLocalChange();
+            forcePush();
             devLogLine(`✅ Удалена обнимашка из ${key} (${formatClickTime(removed.t)}), счётчик: ${hugCount}`, 'log-ok');
         }
         if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
@@ -1200,7 +990,7 @@
     });
     confirmYes.addEventListener('click', function() {
         history = {}; counterOffset = 0;
-        updateCounter(); markLocalChange();
+        updateCounter(); markLocalChange(); forcePush();
         if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
         selectedDate = null;
         dayInfo.textContent = 'Выберите день';
@@ -1234,32 +1024,37 @@
             history[date] = history[date].map(c => ({ t: c.t + diffMs, h: currentTz, approx: c.approx }));
         }
         savedTzOffset = currentTz;
-        markLocalChange();
+        markLocalChange(); forcePush();
         if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
         tzOverlay.classList.remove('open');
     });
     tzNo.addEventListener('click', function() {
         savedTzOffset = getTzOffsetMinutes();
-        markLocalChange();
+        markLocalChange(); forcePush();
         tzOverlay.classList.remove('open');
     });
 
     document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible') syncFromCloud(true);
+        if (document.visibilityState === 'visible') syncFromCloud();
         else saveToLocalStorageImmediate();
     });
-    window.addEventListener('focus', function() { syncFromCloud(true); });
-    // Быстрый опрос: только маленький sync_meta. Если он изменился — тянем.
-    setInterval(function() { syncFromCloud(false); }, SYNC_INTERVAL);
+    window.addEventListener('focus', function() { syncFromCloud(); });
+    // Быстрый опрос: 700 мс, читаем только sync_meta
+    setInterval(function() { syncFromCloud(); }, SYNC_INTERVAL);
+    // Периодический force-push, если есть несохранённое (страховка)
+    setInterval(function() {
+        if (pendingPush && !isPushing) forcePush();
+    }, 2000);
 
     async function init() {
-        // ШАГ 1: мгновенно — локальные данные на экран
         loadFromLocalStorage();
         applyAllSettings();
         isInitialized = true;
-
-        // ШАГ 2: немедленно синхронизируемся с облаком (force — тянем даже пустое)
-        syncFromCloud(true);
+        // При старте — сразу тянем облако
+        syncFromCloud();
+        // И через 400мс ещё раз (если сеть тормозит)
+        setTimeout(() => syncFromCloud(), 400);
+        setTimeout(() => syncFromCloud(), 1200);
 
         if (checkDevAccess()) devBtn.classList.add('show');
 
@@ -1272,5 +1067,3 @@
     init();
 })();
 </script>
-</body>
-</html>
