@@ -273,22 +273,18 @@
     const K_SYNC_META = K('sync_meta');
     const LS_IMAGES = K('images');
 
-    const CP = 'hugApp_';
-
-    const VERSION = 10;
+    const VERSION = 11;
     const CLOUD_LIMIT = 3400;
-    const SYNC_INTERVAL = 800;  // Опрос каждые 0.8 сек для молниеносной синхронизации
+    const SYNC_INTERVAL = 1000;
 
     let history = {};
     let counterOffset = 0;
     let hugCount = 0;
     let localSyncMeta = { revision: 0, lastModified: 0 };
 
-    let pendingPush = false;
     let isPushing = false;
+    let pendingPush = false;
     let isInitialized = false;
-    let pushRetryCount = 0;
-    let pushRetryTimer = null;
     let syncInFlight = false;
 
     let settings = {
@@ -482,23 +478,16 @@
         try { localStorage.setItem(K_SYNC_META, JSON.stringify(localSyncMeta)); } catch (e) {}
     }
 
-    let pushChain = Promise.resolve();
-
-    async function setCloud(key, value, retries = 3) {
-        for (let attempt = 0; attempt <= retries; attempt++) {
-            const ok = await cloudSet(key, value);
-            if (ok) return true;
-            if (attempt < retries) await new Promise(r => setTimeout(r, 100 * (attempt + 1)));
-        }
-        return false;
-    }
-
+    // Мгновенная отправка в облако с защитой от параллельных запросов
     async function pushToCloudNow() {
-        if (!hasCloudStorage) { pendingPush = false; return; }
-        if (isPushing) return;
+        if (!hasCloudStorage) return;
+        if (isPushing) {
+            pendingPush = true;
+            return;
+        }
         isPushing = true;
         setSyncDot('active');
-        let allOk = true;
+
         try {
             const settingsJson = JSON.stringify({
                 bgColor: settings.bgColor, textColor: settings.textColor, btnColor: settings.btnColor,
@@ -517,39 +506,33 @@
                 [K_SYNC_META, syncMetaJson],
                 ...chunks.map((chunk, i) => [K_HISTORY_CHUNK(i), JSON.stringify(chunk)]),
             ];
+
             for (const [k, v] of entries) {
-                const ok = await setCloud(k, v, 2);
-                if (!ok) { allOk = false; break; }
+                await cloudSet(k, v);
             }
-            if (allOk) {
-                pendingPush = false;
-                try {
-                    const allKeys = await cloudGetAllKeys();
-                    const prefix = 'hugApp_' + ACCOUNT_KEY + '_history_';
-                    const ourChunkKeys = allKeys.filter(k => k.startsWith(prefix) && k !== K_HISTORY_META);
-                    const toRemove = ourChunkKeys.filter(k => {
-                        const idx = parseInt(k.replace(prefix, ''), 10);
-                        return !isNaN(idx) && idx >= chunks.length;
-                    });
-                    for (const k of toRemove) await cloudRemove(k);
-                } catch (e) {}
-            }
-        } catch (e) { allOk = false; }
-        finally {
+
+            // Очищаем старые чанки
+            try {
+                const allKeys = await cloudGetAllKeys();
+                const prefix = 'hugApp_' + ACCOUNT_KEY + '_history_';
+                const ourChunkKeys = allKeys.filter(k => k.startsWith(prefix) && k !== K_HISTORY_META);
+                const toRemove = ourChunkKeys.filter(k => {
+                    const idx = parseInt(k.replace(prefix, ''), 10);
+                    return !isNaN(idx) && idx >= chunks.length;
+                });
+                for (const k of toRemove) await cloudRemove(k);
+            } catch (e) {}
+
+            setSyncDot('done');
+            setTimeout(() => { if (!syncInFlight) setSyncDot(''); }, 400);
+        } catch (e) {
+        } finally {
             isPushing = false;
-            if (!allOk) {
-                pendingPush = true;
-                setSyncDot('');
-            } else {
-                setSyncDot('done');
-                setTimeout(() => { if (!syncInFlight) setSyncDot(''); }, 400);
+            if (pendingPush) {
+                pendingPush = false;
+                pushToCloudNow();
             }
         }
-    }
-
-    function schedulePush() {
-        pendingPush = true;
-        pushChain = pushChain.then(() => pushToCloudNow()).catch(() => {});
     }
 
     function loadFromLocalStorage() {
@@ -719,34 +702,25 @@
 
     function markLocalChange() {
         localSyncMeta.revision++;
-        localSyncMeta.lastModified = Math.max(Date.now(), (localSyncMeta.lastModified || 0) + 1);
+        localSyncMeta.lastModified = Date.now();
         saveToLocalStorageImmediate();
-        schedulePush();
+        pushToCloudNow();
     }
 
     async function syncFromCloud(force) {
         if (!hasCloudStorage) return;
         if (!isInitialized) return;
         if (syncInFlight) return;
-        if (pendingPush && !force) return; // Не прерываем свежий локальный пуш, если не принудительно
+        if (isPushing && !force) return; // Не читаем облако прямо во время собственной отправки
 
         syncInFlight = true;
-        if (!pendingPush) setSyncDot('active');
 
         try {
             const cloudSyncMeta = await fetchCloudSyncMeta();
 
             if (!cloudSyncMeta) {
                 if (localSyncMeta.revision > 0) {
-                    schedulePush();
-                } else {
-                    const cloudData = await fetchCloudFull();
-                    if (cloudData.hasAnyData) {
-                        applyCloudToMemory(cloudData);
-                        localSyncMeta = cloudData.syncMeta || { revision: 1, lastModified: Date.now() };
-                        saveToLocalStorageImmediate();
-                        applyAllSettings();
-                    }
+                    pushToCloudNow();
                 }
                 return;
             }
@@ -781,10 +755,6 @@
         } catch (e) {}
         finally {
             syncInFlight = false;
-            if (!pendingPush && !isPushing) {
-                setSyncDot('done');
-                setTimeout(() => { if (!syncInFlight && !pendingPush) setSyncDot(''); }, 400);
-            }
         }
     }
 
@@ -948,11 +918,6 @@
         markLocalChange();
         if (calendarOverlay.classList.contains('open') && selectedDate === key) showDayInfo(key);
         if (calendarOverlay.classList.contains('open')) renderCalendar(currentYear, currentMonth);
-
-        // Моментальный запуск пуша и проверка чужих изменений через 300мс
-        setTimeout(() => {
-            syncFromCloud(true);
-        }, 300);
     }
 
     function devLogLine(text, type) {
@@ -1192,7 +1157,6 @@
     });
     window.addEventListener('focus', function() { syncFromCloud(true); });
 
-    // Автоматическая проверка обновлений в фоне
     setInterval(function() { syncFromCloud(false); }, SYNC_INTERVAL);
 
     async function init() {
