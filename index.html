@@ -273,19 +273,18 @@
     const K_SYNC_META = K('sync_meta');
     const LS_IMAGES = K('images');
 
-    const VERSION = 11;
+    const VERSION = 12;
     const CLOUD_LIMIT = 3400;
-    const SYNC_INTERVAL = 1000;
+    const SYNC_INTERVAL = 1200;
 
     let history = {};
     let counterOffset = 0;
     let hugCount = 0;
     let localSyncMeta = { revision: 0, lastModified: 0 };
 
-    let isPushing = false;
-    let pendingPush = false;
     let isInitialized = false;
     let syncInFlight = false;
+    let pushQueue = Promise.resolve(); // СТРОГАЯ ОЧЕРЕДЬ ЗАПИСЕЙ
 
     let settings = {
         bgColor: '#f7f0fa', textColor: '#000000', btnColor: '#ffb6c9',
@@ -478,61 +477,52 @@
         try { localStorage.setItem(K_SYNC_META, JSON.stringify(localSyncMeta)); } catch (e) {}
     }
 
-    // Мгновенная отправка в облако с защитой от параллельных запросов
-    async function pushToCloudNow() {
+    // Добавляем отправку в очередь, чтобы запросы выполнялись строго по порядку один за другим
+    function pushToCloudNow() {
         if (!hasCloudStorage) return;
-        if (isPushing) {
-            pendingPush = true;
-            return;
-        }
-        isPushing = true;
         setSyncDot('active');
 
-        try {
-            const settingsJson = JSON.stringify({
-                bgColor: settings.bgColor, textColor: settings.textColor, btnColor: settings.btnColor,
-                bgImageSettings: settings.bgImageSettings, btnImageSettings: settings.btnImageSettings,
-            });
-            const serialized = serializeHistory();
-            const chunks = splitHistoryIntoChunks(serialized);
-            const metaJson = JSON.stringify({ chunks: chunks.length, tz: savedTzOffset });
-            const syncMetaJson = JSON.stringify(localSyncMeta);
-
-            const entries = [
-                [K_VERSION, String(VERSION)],
-                [K_SETTINGS, settingsJson],
-                [K_HISTORY_META, metaJson],
-                [K_COUNTER_OFFSET, String(counterOffset)],
-                [K_SYNC_META, syncMetaJson],
-                ...chunks.map((chunk, i) => [K_HISTORY_CHUNK(i), JSON.stringify(chunk)]),
-            ];
-
-            for (const [k, v] of entries) {
-                await cloudSet(k, v);
-            }
-
-            // Очищаем старые чанки
+        pushQueue = pushQueue.then(async () => {
             try {
-                const allKeys = await cloudGetAllKeys();
-                const prefix = 'hugApp_' + ACCOUNT_KEY + '_history_';
-                const ourChunkKeys = allKeys.filter(k => k.startsWith(prefix) && k !== K_HISTORY_META);
-                const toRemove = ourChunkKeys.filter(k => {
-                    const idx = parseInt(k.replace(prefix, ''), 10);
-                    return !isNaN(idx) && idx >= chunks.length;
+                const settingsJson = JSON.stringify({
+                    bgColor: settings.bgColor, textColor: settings.textColor, btnColor: settings.btnColor,
+                    bgImageSettings: settings.bgImageSettings, btnImageSettings: settings.btnImageSettings,
                 });
-                for (const k of toRemove) await cloudRemove(k);
-            } catch (e) {}
+                const serialized = serializeHistory();
+                const chunks = splitHistoryIntoChunks(serialized);
+                const metaJson = JSON.stringify({ chunks: chunks.length, tz: savedTzOffset });
+                const syncMetaJson = JSON.stringify(localSyncMeta);
 
-            setSyncDot('done');
-            setTimeout(() => { if (!syncInFlight) setSyncDot(''); }, 400);
-        } catch (e) {
-        } finally {
-            isPushing = false;
-            if (pendingPush) {
-                pendingPush = false;
-                pushToCloudNow();
+                const entries = [
+                    [K_VERSION, String(VERSION)],
+                    [K_SETTINGS, settingsJson],
+                    [K_HISTORY_META, metaJson],
+                    [K_COUNTER_OFFSET, String(counterOffset)],
+                    [K_SYNC_META, syncMetaJson],
+                    ...chunks.map((chunk, i) => [K_HISTORY_CHUNK(i), JSON.stringify(chunk)]),
+                ];
+
+                for (const [k, v] of entries) {
+                    await cloudSet(k, v);
+                }
+
+                try {
+                    const allKeys = await cloudGetAllKeys();
+                    const prefix = 'hugApp_' + ACCOUNT_KEY + '_history_';
+                    const ourChunkKeys = allKeys.filter(k => k.startsWith(prefix) && k !== K_HISTORY_META);
+                    const toRemove = ourChunkKeys.filter(k => {
+                        const idx = parseInt(k.replace(prefix, ''), 10);
+                        return !isNaN(idx) && idx >= chunks.length;
+                    });
+                    for (const k of toRemove) await cloudRemove(k);
+                } catch (e) {}
+
+                setSyncDot('done');
+                setTimeout(() => { if (!syncInFlight) setSyncDot(''); }, 400);
+            } catch (e) {
+                setSyncDot('');
             }
-        }
+        });
     }
 
     function loadFromLocalStorage() {
@@ -711,7 +701,6 @@
         if (!hasCloudStorage) return;
         if (!isInitialized) return;
         if (syncInFlight) return;
-        if (isPushing && !force) return; // Не читаем облако прямо во время собственной отправки
 
         syncInFlight = true;
 
